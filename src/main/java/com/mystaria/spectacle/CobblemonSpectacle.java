@@ -57,11 +57,13 @@ public class CobblemonSpectacle implements ClientModInitializer {
 			ClassicBattles.tick();
 			com.mystaria.spectacle.emote.TrainerEmotes.tick();
 			com.mystaria.spectacle.ambiance.BattleAmbiance.tick();
+			com.mystaria.spectacle.move.MoveEffects.tick();
 		});
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ClassicBattles.reset();
 			com.mystaria.spectacle.emote.TrainerEmotes.reset();
 			com.mystaria.spectacle.ambiance.BattleAmbiance.end();
+			com.mystaria.spectacle.move.MoveEffects.reset();
 			BattleMusic.stop();
 			BattleCameraDirector.stop();
 			BattleSpectacle.clear();
@@ -69,6 +71,7 @@ public class CobblemonSpectacle implements ClientModInitializer {
 		});
 		WorldRenderEvents.AFTER_ENTITIES.register(BattleCinematic::renderWorld);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.spectacle.ambiance.BattleAmbiance::render);
+		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.spectacle.move.MoveEffects::render);
 		HudRenderCallback.EVENT.register((graphics, tickCounter) -> {
 			com.mystaria.spectacle.ambiance.BattleAmbiance.renderHud(graphics);
 			BattleCinematic.renderHud(graphics);
@@ -84,6 +87,15 @@ public class CobblemonSpectacle implements ClientModInitializer {
 										.executes(context -> {
 											String id = context.getArgument("ambiance", net.minecraft.resources.ResourceLocation.class).toString();
 											Minecraft.getInstance().tell(() -> com.mystaria.spectacle.ambiance.BattleAmbiance.preview(id));
+											return Command.SINGLE_SUCCESS;
+										})))
+						.then(ClientCommandManager.literal("move")
+								.then(ClientCommandManager.argument("move", StringArgumentType.word())
+										.suggests((context, builder) -> SharedSuggestionProvider.suggest(
+												com.mystaria.spectacle.move.MoveEffects.ids(), builder))
+										.executes(context -> {
+											String move = StringArgumentType.getString(context, "move");
+											Minecraft.getInstance().tell(() -> com.mystaria.spectacle.move.MoveEffects.preview(move));
 											return Command.SINGLE_SUCCESS;
 										})))
 						.then(ClientCommandManager.literal("emote")

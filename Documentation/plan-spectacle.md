@@ -25,7 +25,8 @@
 | A1 | Ambiances : moteur par couches, décrites en JSON (`assets/<ns>/ambiances/*.json`, un pack peut en ajouter) — heure et vitesse du temps, ciel, brouillard, nuages, étoiles, fond qui cache le monde (cosmos) avec étoiles tournantes, arc-en-ciel, projecteurs, particules et vent, blocs flottants, foudre, bruit d'ambiance, filtre d'écran ; réponses aux moments du combat (lancer, attaque, coup critique, K.O., victoire : particules, flash, foudre, son, filtre bref) ; choix dans le menu (N), `SpectacleHooks.setAmbianceOverride`, `/spectacle preview ambiance <id>` | validé 2026-10-30 |
 | A2 | Ambiances de départ (`tools/ambiances.py`) : disco, prairie, nuit étoilée, orage, spectral, féerique, cosmos, vieux film, arcade, corrompu ; filtres d'écran de Spectacle (`tools/filters.py` : noir et blanc, pixels, glitch, ondulation, vieux téléviseur — Minecraft 1.21.1 n'a plus les siens) ; plus tard : effacement du monde (cosmos), failles, taches au sol, stroboscope, aurore en rayons, étoiles filantes et météores, système solaire, vraie pluie | validé 2026-10-30 |
 | A3 | Phantasmon : liste « Ambiance » dans le lobby (l'un ou l'autre joueur choisit, `BattleLobbySetAmbiance`), imposée aux deux au lancement (`BattleSessionStarted.ambiance`, `SpectacleHooks.setAmbianceOverride`) ; pas encore aux spectateurs | fait 2026-10-30 |
-| M1 | Attaques : top d'usage Smogon (National Dex et OU, Gen 9), inventaire de l'existant Cobblemon (136 animations), vérifier si les effets serveur se remplacent côté client ou seulement se complètent | à faire |
+| P1 | Poké Balls et transitions dans le combat : lancer, ouverture, rappel, changement de Pokémon, K.O., capture — détail à valider avec Adrien | à faire |
+| M1 | Attaques : top d'usage Smogon (National Dex et OU, Gen 9), inventaire de l'existant Cobblemon (136 animations). **Essai de remplacement (2026-11-01) : Ball'Ombre** — les particules d'une attaque refaite (`cobblemon:<attaque>_*`, envoyées par le serveur ou rejouées par Phantasmon) sont jetées à l'arrivée (`MoveParticleOverrideMixin`) et Spectacle dessine la sienne, rythmée par ces mêmes paquets (`move/MoveEffects`, `move/ShadowBall`) ; pose et sons de Cobblemon gardés ; `/spectacle preview move shadowball` | essai validé 2026-11-01 (preview et combat : particules remplacées, la caméra attend la fin) |
 | M2+ | Attaques refaites une par une, par lots, dans l'ordre d'usage | à faire |
 
 ## E1 — comment c'est fait
@@ -49,10 +50,8 @@
 
 ## Reste à faire
 
-- Plan « Vos regards se croisent » : les dresseurs restent invisibles chez Adrien (enregistrement 2026-10-30, 14 à
-  15,5 s : caméra haute sur l'arène, **sans** la boîte de texte de ce plan). Le cadrage a été revu (par-dessus
-  l'épaule au-delà de 16 blocs), sans effet : vérifier si ce plan est bien celui de Spectacle (la boîte de texte
-  manque) — peut-être un autre plan (Phantasmon, `BattleFieldScenes`) avant l'intro ; Adrien testera ailleurs.
+- Plan « Vos regards se croisent » **supprimé** (Adrien 2026-11-01 : les dresseurs y restaient invisibles chez lui) :
+  l'intro commence directement à son balayage, depuis la vue du joueur.
 - Sous shaders, coudes et genoux restent droits (bendy-lib noircissait la seconde couche du skin) : à revoir si un
   moyen de garder les flexions apparaît.
 - Spectateurs d'un combat Ghost : leur transmettre l'ambiance du lobby.

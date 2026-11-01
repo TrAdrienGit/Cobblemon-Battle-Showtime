@@ -118,7 +118,8 @@ public final class BattleCinematic {
 	public static void startIntro(UUID opponent, String name, int teamSize, int ownSize, Intro which, Runnable onIntroEnd) {
 		introEndAction = onIntroEnd;
 		ownTeamSize = Mth.clamp(ownSize, 0, 6);
-		introStart = System.currentTimeMillis();
+		// The "eyes meet" shot is gone (Adrien 2026-11-01): the intro starts at its wipe, from the player's own view.
+		introStart = System.currentTimeMillis() - EYES_MEET_END;
 		intro = which == null ? Intro.XY : which;
 		opponentUuid = opponent;
 		opponentName = name == null ? "?" : name;
@@ -276,7 +277,7 @@ public final class BattleCinematic {
 			if (intro == Intro.BLACK_WHITE && elapsed >= EYES_MEET_END) {
 				return zoomShot(level, self, partialTick, Math.min(1f, (elapsed - EYES_MEET_END) / (float) (ZOOM_END - EYES_MEET_END)));
 			}
-			return eyesMeetShot(level, self, partialTick, elapsed);
+			return null;
 		}
 		if (sendOutStart < 0) {
 			return null;
