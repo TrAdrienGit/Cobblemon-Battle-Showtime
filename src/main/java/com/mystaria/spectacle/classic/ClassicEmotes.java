@@ -88,6 +88,8 @@ public final class ClassicEmotes {
 
 	/** Moves ordered, the winners and the losers. */
 	public static void onMessages(List<Component> messages) {
+		com.mystaria.spectacle.move.FieldEffects.onMessages(messages);
+		com.mystaria.spectacle.move.PokemonEffects.onMessages(messages);
 		try {
 			for (Component message : messages) {
 				if (message.getContents() instanceof TranslatableContents contents) {
@@ -100,6 +102,8 @@ public final class ClassicEmotes {
 	}
 
 	public static void onEnd() {
+		com.mystaria.spectacle.move.FieldEffects.reset();
+		com.mystaria.spectacle.move.PokemonEffects.reset();
 		TrainerEmotes.end();
 		com.mystaria.spectacle.ambiance.BattleAmbiance.end();
 	}

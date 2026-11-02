@@ -309,16 +309,18 @@ final class Motifs {
 	private static void crossSlash(Context c) {
 		Vec3 at = c.aim();
 		Vec3[] b = c.screen(at);
-		float s = c.size() * Math.max(0.8f, c.move().targetHeight() * 0.7f);
-		float fade = 1 - Mth.clamp((c.k() - 0.5f) * 2, 0, 1);
+		float s = c.size() * Math.max(1.1f, c.move().targetHeight() * 0.9f);
+		float fade = 1 - Mth.clamp((c.k() - 0.6f) / 0.4f, 0, 1);
 		for (int i = 0; i < 2; i++) {
-			float p = Mth.clamp(c.k() * 3.5f - i * 0.6f, 0, 1);
+			float p = Mth.clamp(c.k() * 3f - i * 0.8f, 0, 1);
 			Vec3 u = b[0].scale(i == 0 ? 1 : -1).add(b[1]).normalize();
 			Vec3 from = at.subtract(u.scale(s));
 			Vec3 to = at.add(u.scale(s));
 			Vec3 head = from.lerp(to, p);
-			Draw.streak(c.glow(), c.m(), head, from, c.camera(), 0.16f * s, c.color(), (int) (200 * fade));
-			Draw.streak(c.glow(), c.m(), head, from, c.camera(), 0.06f * s, 0xFFFFFF, (int) (255 * fade));
+			Draw.streak(c.glow(), c.m(), head, from, c.camera(), 0.3f * s, c.color(), (int) (180 * fade));
+			Draw.streak(c.glow(), c.m(), from, head, c.camera(), 0.3f * s, c.color(), (int) (180 * fade));
+			Draw.streak(c.glow(), c.m(), head, from, c.camera(), 0.08f * s, 0xFFFFFF, (int) (255 * fade));
+			Draw.streak(c.glow(), c.m(), from, head, c.camera(), 0.08f * s, 0xFFFFFF, (int) (255 * fade));
 		}
 		if (c.k() > 0.3f) {
 			Draw.halo(c.glow(), c.m(), at, c.camera(), 0, s * (0.3f + c.k()), c.accent(), (int) (200 * fade));
@@ -630,7 +632,10 @@ final class Motifs {
 		}
 	}
 
-	/** Afterimages: streaks and fading copies of a glow rushing from the user to the target (a charge). */
+	/**
+	 * A rush: speed lines streaming back from the user, then converging on the target — no glow travelling between
+	 * them (it read as a projectile on a physical move: Adrien 2026-11-02).
+	 */
 	private static void dash(Context c) {
 		Vec3 from = c.userCentre();
 		Vec3 to = c.aim();
@@ -638,15 +643,17 @@ final class Motifs {
 		Vec3 side = dir.cross(new Vec3(0, 1, 0));
 		side = side.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : side.normalize();
 		float s = c.size();
-		float p = c.k();
-		for (int i = 0; i < 4; i++) {
-			Vec3 at = from.lerp(to, Math.max(0, p - i * 0.12f));
-			Draw.halo(c.glow(), c.m(), at, c.camera(), 0, c.move().user().getBbWidth() * 0.6f + 0.2f, c.color(), 120 - i * 25);
-		}
-		for (int i = 0; i < 8; i++) {
-			Vec3 offset = side.scale((i - 3.5) * 0.15 * s).add(0, Math.sin(i * 1.7) * 0.3 * s, 0);
-			Vec3 head = from.lerp(to, p).add(offset);
-			Draw.streak(c.glow(), c.m(), head, head.subtract(dir.scale(1.4 * s)), c.camera(), 0.03f * s, c.accent(), 210);
+		float w = c.move().user().getBbWidth() * 0.6f + 0.3f;
+		int alpha = (int) (200 * c.fade(0.1f, 0.3f));
+		for (int i = 0; i < 10; i++) {
+			Vec3 offset = side.scale((i - 4.5) * 0.2 * w).add(0, Math.sin(i * 1.7) * 0.5 * w, 0);
+			float run = (c.t() * 0.35f + i * 0.31f) % 1f;
+			// Around the user, rushing back.
+			Vec3 head = from.add(offset).subtract(dir.scale(run * 2.5 * s));
+			Draw.streak(c.glow(), c.m(), head, head.subtract(dir.scale(0.9 * s)), c.camera(), 0.03f * s, c.accent(), (int) (alpha * (1 - run)));
+			// Closing in on the target from all around.
+			Vec3 near = to.add(offset.scale(1.6)).subtract(dir.scale((1 - c.k()) * 2.4 * s));
+			Draw.streak(c.glow(), c.m(), near, near.subtract(dir.scale(0.7 * s)), c.camera(), 0.025f * s, c.color(), (int) (alpha * c.k()));
 		}
 	}
 

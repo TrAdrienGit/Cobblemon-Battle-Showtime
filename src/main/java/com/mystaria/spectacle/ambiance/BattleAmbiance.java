@@ -505,7 +505,7 @@ public final class BattleAmbiance {
 
 	private static void drawStars(MultiBufferSource buffers, Matrix4f m, Ambiance.Backdrop backdrop, float r, float time) {
 		if (backdrop.stars > 0) {
-			VertexConsumer glow = buffers.getBuffer(RenderType.lightning());
+			VertexConsumer glow = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 			int color = Ambiance.color(backdrop.starColor, 0xFFFFFF);
 			RandomSource seeded = RandomSource.create(1234L);
 			float spin = time / 1200f * backdrop.spin * (float) Math.PI * 2;
@@ -522,7 +522,7 @@ public final class BattleAmbiance {
 
 	private static void drawRainbow(PoseStack pose, MultiBufferSource buffers, Ambiance.Rainbow rainbow, Vec3 camera) {
 		int[] bands = { 0xFF3B30, 0xFF9500, 0xFFCC00, 0x34C759, 0x32ADE6, 0x5856D6, 0xAF52DE };
-		VertexConsumer out = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer out = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		// Behind the field as the player saw it at the start, and fixed there.
 		Vec3 back = rainbowBack;
@@ -546,7 +546,7 @@ public final class BattleAmbiance {
 	}
 
 	private static void drawSpotlights(PoseStack pose, MultiBufferSource buffers, Ambiance.Spotlights spotlights, float time) {
-		VertexConsumer out = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer out = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float ring = fieldRadius + 4f;
 		for (int i = 0; i < spotlights.count; i++) {
@@ -570,7 +570,7 @@ public final class BattleAmbiance {
 	}
 
 	private static void drawFloorLights(PoseStack pose, MultiBufferSource buffers, Ambiance.FloorLights lights, float time) {
-		VertexConsumer out = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer out = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		for (int i = 0; i < lights.count; i++) {
 			// Each spot runs its own loop over the floor: different radii, speeds and directions.
@@ -608,7 +608,7 @@ public final class BattleAmbiance {
 
 	private static void drawRifts(PoseStack pose, MultiBufferSource buffers, Ambiance.Rifts rifts, float partialTick) {
 		int color = Ambiance.color(rifts.color, 0xB400FF);
-		VertexConsumer glow = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer glow = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		VertexConsumer core = buffers.getBuffer(RenderType.entityCutoutNoCull(
 				ResourceLocation.withDefaultNamespace("textures/block/black_concrete.png")));
 		Matrix4f m = pose.last().pose();
@@ -661,7 +661,7 @@ public final class BattleAmbiance {
 	 * in from below and out above, flickering on its own — light, not cloth (Adrien 2026-10-30).
 	 */
 	private static void drawAurora(PoseStack pose, MultiBufferSource buffers, Ambiance.Aurora aurora, float time) {
-		VertexConsumer out = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer out = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int bands = 3;
 		int rays = 140;
@@ -714,7 +714,7 @@ public final class BattleAmbiance {
 		Matrix4f m = pose.last().pose();
 		VertexConsumer solid = buffers.getBuffer(RenderType.entityCutoutNoCull(
 				ResourceLocation.withDefaultNamespace("textures/block/white_concrete.png")));
-		VertexConsumer glow = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer glow = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		List<Vec3> places = new ArrayList<>();
 		Vec3 sun = null;
 		for (Ambiance.Planet planet : active.planets) {
@@ -785,7 +785,7 @@ public final class BattleAmbiance {
 	}
 
 	private static void drawStreaks(PoseStack pose, MultiBufferSource buffers, float partialTick) {
-		VertexConsumer out = buffers.getBuffer(RenderType.lightning());
+		VertexConsumer out = buffers.getBuffer(com.mystaria.spectacle.SpectacleRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(active.shootingStars.color, 0xE8F0FF);
 		for (Streak streak : STREAKS) {

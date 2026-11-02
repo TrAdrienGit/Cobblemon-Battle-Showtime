@@ -58,12 +58,16 @@ public class CobblemonSpectacle implements ClientModInitializer {
 			com.mystaria.spectacle.emote.TrainerEmotes.tick();
 			com.mystaria.spectacle.ambiance.BattleAmbiance.tick();
 			com.mystaria.spectacle.move.MoveEffects.tick();
+			com.mystaria.spectacle.move.FieldEffects.tick();
+			com.mystaria.spectacle.move.PokemonEffects.tick();
 		});
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ClassicBattles.reset();
 			com.mystaria.spectacle.emote.TrainerEmotes.reset();
 			com.mystaria.spectacle.ambiance.BattleAmbiance.end();
 			com.mystaria.spectacle.move.MoveEffects.reset();
+			com.mystaria.spectacle.move.FieldEffects.reset();
+			com.mystaria.spectacle.move.PokemonEffects.reset();
 			BattleMusic.stop();
 			BattleCameraDirector.stop();
 			BattleSpectacle.clear();
@@ -72,6 +76,8 @@ public class CobblemonSpectacle implements ClientModInitializer {
 		WorldRenderEvents.AFTER_ENTITIES.register(BattleCinematic::renderWorld);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.spectacle.ambiance.BattleAmbiance::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.spectacle.move.MoveEffects::render);
+		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.spectacle.move.FieldEffects::render);
+		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.spectacle.move.PokemonEffects::render);
 		HudRenderCallback.EVENT.register((graphics, tickCounter) -> {
 			com.mystaria.spectacle.ambiance.BattleAmbiance.renderHud(graphics);
 			BattleCinematic.renderHud(graphics);
@@ -88,6 +94,24 @@ public class CobblemonSpectacle implements ClientModInitializer {
 										.executes(context -> {
 											String id = context.getArgument("ambiance", net.minecraft.resources.ResourceLocation.class).toString();
 											Minecraft.getInstance().tell(() -> com.mystaria.spectacle.ambiance.BattleAmbiance.preview(id));
+											return Command.SINGLE_SUCCESS;
+										})))
+						.then(ClientCommandManager.literal("status")
+								.then(ClientCommandManager.argument("effect", StringArgumentType.word())
+										.suggests((context, builder) -> SharedSuggestionProvider.suggest(
+												com.mystaria.spectacle.move.PokemonEffects.previewIds(), builder))
+										.executes(context -> {
+											String effect = StringArgumentType.getString(context, "effect");
+											Minecraft.getInstance().tell(() -> com.mystaria.spectacle.move.PokemonEffects.preview(effect));
+											return Command.SINGLE_SUCCESS;
+										})))
+						.then(ClientCommandManager.literal("field")
+								.then(ClientCommandManager.argument("effect", StringArgumentType.word())
+										.suggests((context, builder) -> SharedSuggestionProvider.suggest(
+												com.mystaria.spectacle.move.FieldEffects.previewIds(), builder))
+										.executes(context -> {
+											String effect = StringArgumentType.getString(context, "effect");
+											Minecraft.getInstance().tell(() -> com.mystaria.spectacle.move.FieldEffects.preview(effect));
 											return Command.SINGLE_SUCCESS;
 										})))
 						.then(ClientCommandManager.literal("move")

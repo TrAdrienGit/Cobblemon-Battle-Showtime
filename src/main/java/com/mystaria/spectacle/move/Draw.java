@@ -9,13 +9,13 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
-/** Shapes for the move effects: glowing ones (additive, {@link RenderType#lightning()}) and dark solid ones. */
+/** Shapes for the move effects: glowing ones (additive, {@link com.mystaria.spectacle.SpectacleRenderTypes#GLOW}) and dark solid ones. */
 final class Draw {
 
 	/** Tinted by the vertex colour: a dark translucent body (what additive light can't draw). */
 	static final RenderType DARK = RenderType.entityTranslucent(
 			ResourceLocation.withDefaultNamespace("textures/block/white_concrete.png"));
-	static final RenderType GLOW = RenderType.lightning();
+	static final RenderType GLOW = com.mystaria.spectacle.SpectacleRenderTypes.GLOW;
 
 	private Draw() {
 	}
