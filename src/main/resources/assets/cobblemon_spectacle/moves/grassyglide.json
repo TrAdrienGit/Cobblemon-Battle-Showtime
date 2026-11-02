@@ -1,0 +1,35 @@
+{
+  "category": "physical",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 20,
+      "particles": [
+        "minecraft:happy_villager"
+      ]
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    },
+    {
+      "motif": "cracks",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

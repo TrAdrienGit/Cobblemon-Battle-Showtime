@@ -1,0 +1,25 @@
+{
+  "category": "special",
+  "color": "#B8C8D8",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind"
+    },
+    {
+      "motif": "beam",
+      "phase": "travel",
+      "size": 1.5
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "size": 1.4,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:wax_on"
+      ]
+    }
+  ]
+}

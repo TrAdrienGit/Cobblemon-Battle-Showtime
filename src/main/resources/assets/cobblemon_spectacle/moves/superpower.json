@@ -1,0 +1,37 @@
+{
+  "category": "physical",
+  "color": "#E8502A",
+  "accent": "#FFC080",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 20,
+      "particles": [
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "barrage",
+      "phase": "hit",
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "size": 1.4,
+      "delay": 8,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

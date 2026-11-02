@@ -1,0 +1,21 @@
+{
+  "category": "special",
+  "color": "#FFFFFF",
+  "accent": "#A0E0FF",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "meteors",
+      "phase": "hit",
+      "count": 8,
+      "duration": 28,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

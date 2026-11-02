@@ -1,0 +1,14 @@
+{
+  "category": "status",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "dance",
+      "phase": "self",
+      "particles": [
+        "minecraft:cloud"
+      ]
+    }
+  ]
+}

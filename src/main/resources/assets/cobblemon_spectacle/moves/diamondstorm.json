@@ -1,0 +1,25 @@
+{
+  "category": "physical",
+  "color": "#C8F8FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "fall_rocks",
+      "phase": "hit",
+      "count": 8,
+      "block": "minecraft:diamond_block",
+      "duration": 26,
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "size": 0.8,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

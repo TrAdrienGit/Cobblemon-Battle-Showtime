@@ -1,0 +1,20 @@
+{
+  "category": "physical",
+  "color": "#7A4CC8",
+  "accent": "#D0B0FF",
+  "layers": [
+    {
+      "motif": "shadow_hand",
+      "phase": "travel",
+      "duration": 12
+    },
+    {
+      "motif": "claw",
+      "phase": "hit",
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ]
+}

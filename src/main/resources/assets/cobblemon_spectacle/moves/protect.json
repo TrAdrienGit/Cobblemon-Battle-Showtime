@@ -1,0 +1,11 @@
+{
+  "category": "status",
+  "color": "#7FD8FF",
+  "accent": "#E0FAFF",
+  "layers": [
+    {
+      "motif": "dome",
+      "phase": "self"
+    }
+  ]
+}

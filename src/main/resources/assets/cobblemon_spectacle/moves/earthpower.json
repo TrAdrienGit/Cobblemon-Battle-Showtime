@@ -1,0 +1,19 @@
+{
+  "category": "special",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "cracks",
+      "phase": "travel",
+      "duration": 10
+    },
+    {
+      "motif": "pillars",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

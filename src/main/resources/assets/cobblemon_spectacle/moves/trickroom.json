@@ -1,0 +1,17 @@
+{
+  "category": "status",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "wall",
+      "phase": "self",
+      "size": 2.0
+    },
+    {
+      "motif": "rays",
+      "phase": "self",
+      "duration": 12
+    }
+  ]
+}

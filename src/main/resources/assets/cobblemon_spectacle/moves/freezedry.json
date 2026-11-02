@@ -1,0 +1,28 @@
+{
+  "category": "special",
+  "color": "#7FE6FF",
+  "accent": "#B0FFFF",
+  "layers": [
+    {
+      "motif": "ice_beam",
+      "phase": "travel"
+    },
+    {
+      "motif": "freeze",
+      "phase": "hit",
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 12,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    }
+  ]
+}

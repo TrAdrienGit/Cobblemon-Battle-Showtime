@@ -1,0 +1,11 @@
+{
+  "category": "status",
+  "color": "#FFF0A0",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "wall",
+      "phase": "self"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "category": "special",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "wind"
+    },
+    {
+      "motif": "orb_rings",
+      "phase": "travel"
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    }
+  ],
+  "size": 1.2
+}

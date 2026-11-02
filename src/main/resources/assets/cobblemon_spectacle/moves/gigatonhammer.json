@@ -1,0 +1,27 @@
+{
+  "category": "physical",
+  "color": "#B8C8D8",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "hammer",
+      "phase": "hit",
+      "block": "minecraft:iron_block",
+      "size": 1.4,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:wax_on"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "size": 0.8,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:wax_on"
+      ]
+    }
+  ],
+  "size": 1.3
+}

@@ -1,0 +1,15 @@
+{
+  "category": "status",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:snowflake"
+      ]
+    }
+  ]
+}

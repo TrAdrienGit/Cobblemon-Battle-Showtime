@@ -1,0 +1,37 @@
+{
+  "category": "physical",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "sword",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "heal",
+      "phase": "hit",
+      "delay": 6,
+      "duration": 14,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "category": "special",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "orb",
+      "phase": "travel"
+    },
+    {
+      "motif": "sparks_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#A8D020",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "web",
+      "phase": "hit",
+      "duration": 30,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    }
+  ]
+}

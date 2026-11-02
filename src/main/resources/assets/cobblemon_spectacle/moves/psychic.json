@@ -1,0 +1,21 @@
+{
+  "category": "special",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "wind"
+    },
+    {
+      "motif": "lift",
+      "phase": "hit",
+      "duration": 26,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    }
+  ],
+  "size": 1.2
+}

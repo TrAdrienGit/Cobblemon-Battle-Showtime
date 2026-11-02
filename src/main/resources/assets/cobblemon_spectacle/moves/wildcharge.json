@@ -1,0 +1,35 @@
+{
+  "category": "physical",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 20,
+      "particles": [
+        "minecraft:electric_spark"
+      ]
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    },
+    {
+      "motif": "sparks_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "category": "physical",
+  "color": "#FF6A1A",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "stream_fire",
+      "phase": "travel"
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "size": 0.7,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ]
+}

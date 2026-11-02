@@ -1,0 +1,15 @@
+{
+  "category": "status",
+  "color": "#B0B0B0",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "caltrops",
+      "phase": "hit",
+      "duration": 26,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

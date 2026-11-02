@@ -1,0 +1,32 @@
+{
+  "category": "physical",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "spin",
+      "phase": "wind"
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "kick",
+      "phase": "hit",
+      "particles": [
+        "minecraft:cloud",
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "wings",
+      "phase": "hit",
+      "delay": 4,
+      "particles": [
+        "minecraft:cloud",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

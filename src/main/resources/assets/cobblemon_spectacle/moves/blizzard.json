@@ -1,0 +1,25 @@
+{
+  "category": "special",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 28,
+      "particles": [
+        "minecraft:snowflake"
+      ]
+    },
+    {
+      "motif": "freeze",
+      "phase": "hit",
+      "delay": 10,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    }
+  ],
+  "size": 1.2
+}

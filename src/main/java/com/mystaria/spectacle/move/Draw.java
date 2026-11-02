@@ -97,6 +97,52 @@ final class Draw {
 		vertex(out, m, to.add(side.scale(0.2)), color, 0);
 	}
 
+	/**
+	 * A swept crescent: a ribbon around {@code center} in the plane ({@code u}, {@code v}), from angle {@code from} to
+	 * {@code to}, drawn up to {@code progress} (0..1) — bright at its leading edge, fading towards where it started,
+	 * thin at both ends. The shape of a slash, a tail or a kick.
+	 */
+	static void arc(VertexConsumer out, Matrix4f m, Vec3 center, Vec3 u, Vec3 v, float radius, float from, float to,
+			float progress, float width, int color, int alpha) {
+		int segments = 20;
+		float end = from + (to - from) * Math.max(0f, Math.min(1f, progress));
+		for (int s = 0; s < segments; s++) {
+			float p0 = s / (float) segments;
+			float p1 = (s + 1) / (float) segments;
+			float a0 = from + (end - from) * p0;
+			float a1 = from + (end - from) * p1;
+			float w0 = width * (float) Math.sin(Math.PI * Math.min(1, p0 * 1.15));
+			float w1 = width * (float) Math.sin(Math.PI * Math.min(1, p1 * 1.15));
+			int al0 = (int) (alpha * p0);
+			int al1 = (int) (alpha * p1);
+			Vec3 d0 = u.scale(Math.cos(a0)).add(v.scale(Math.sin(a0)));
+			Vec3 d1 = u.scale(Math.cos(a1)).add(v.scale(Math.sin(a1)));
+			vertex(out, m, center.add(d0.scale(radius - w0)), color, 0);
+			vertex(out, m, center.add(d0.scale(radius)), color, al0);
+			vertex(out, m, center.add(d1.scale(radius)), color, al1);
+			vertex(out, m, center.add(d1.scale(radius - w1)), color, 0);
+			vertex(out, m, center.add(d0.scale(radius)), color, al0);
+			vertex(out, m, center.add(d0.scale(radius + w0 * 0.4f)), color, 0);
+			vertex(out, m, center.add(d1.scale(radius + w1 * 0.4f)), color, 0);
+			vertex(out, m, center.add(d1.scale(radius)), color, al1);
+		}
+	}
+
+	/** A flat glowing quad (a wall of light: Reflect, Light Screen), {@code u} and {@code v} its half sides. */
+	static void panel(VertexConsumer out, Matrix4f m, Vec3 at, Vec3 u, Vec3 v, int color, int alpha) {
+		vertex(out, m, at.subtract(u).subtract(v), color, alpha);
+		vertex(out, m, at.add(u).subtract(v), color, alpha);
+		vertex(out, m, at.add(u).add(v), color, alpha);
+		vertex(out, m, at.subtract(u).add(v), color, alpha);
+	}
+
+	/** Two axes across {@code normal}: {@code [u, v]}. */
+	static Vec3[] basis(Vec3 normal) {
+		Vec3 u = normal.cross(new Vec3(0, 1, 0));
+		u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+		return new Vec3[] { u, normal.cross(u).normalize() };
+	}
+
 	static Vec3 unit(double theta, double phi) {
 		return new Vec3(Math.sin(theta) * Math.cos(phi), Math.cos(theta), Math.sin(theta) * Math.sin(phi));
 	}

@@ -1,0 +1,21 @@
+{
+  "category": "special",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "heat_wave",
+      "phase": "travel",
+      "duration": 20
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ],
+  "size": 1.3
+}

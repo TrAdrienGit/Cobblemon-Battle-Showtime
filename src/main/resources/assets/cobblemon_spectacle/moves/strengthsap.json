@@ -1,0 +1,26 @@
+{
+  "category": "status",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "seeds",
+      "phase": "hit",
+      "duration": 18,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    },
+    {
+      "motif": "heal",
+      "phase": "hit",
+      "delay": 10,
+      "duration": 16,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

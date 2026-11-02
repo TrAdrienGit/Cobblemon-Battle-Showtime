@@ -1,0 +1,20 @@
+{
+  "category": "status",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "bolt",
+      "phase": "travel"
+    },
+    {
+      "motif": "sparks_on",
+      "phase": "hit",
+      "duration": 26,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

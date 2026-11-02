@@ -1,0 +1,20 @@
+{
+  "category": "special",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "crescents",
+      "phase": "travel",
+      "count": 3
+    },
+    {
+      "motif": "slash",
+      "phase": "hit",
+      "particles": [
+        "minecraft:cloud",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

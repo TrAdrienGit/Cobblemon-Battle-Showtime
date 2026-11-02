@@ -1,0 +1,29 @@
+{
+  "category": "physical",
+  "color": "#7A4CC8",
+  "accent": "#D0B0FF",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "wind"
+    },
+    {
+      "motif": "knock_item",
+      "phase": "hit",
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    },
+    {
+      "motif": "wisps",
+      "phase": "hit",
+      "duration": 16,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ],
+  "size": 1.2
+}

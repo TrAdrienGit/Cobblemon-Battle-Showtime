@@ -1,0 +1,23 @@
+{
+  "category": "special",
+  "color": "#FF8CD8",
+  "accent": "#FFE4F6",
+  "layers": [
+    {
+      "motif": "rays",
+      "phase": "wind"
+    },
+    {
+      "motif": "rays",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    }
+  ]
+}

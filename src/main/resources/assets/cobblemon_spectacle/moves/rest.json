@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#C0C0FF",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "notes",
+      "phase": "self",
+      "duration": 30
+    },
+    {
+      "motif": "heal",
+      "phase": "self"
+    }
+  ]
+}

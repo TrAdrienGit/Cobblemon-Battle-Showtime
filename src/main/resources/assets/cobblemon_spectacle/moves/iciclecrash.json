@@ -1,0 +1,18 @@
+{
+  "category": "physical",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "fall_rocks",
+      "phase": "hit",
+      "count": 5,
+      "block": "minecraft:packed_ice",
+      "duration": 24,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    }
+  ]
+}

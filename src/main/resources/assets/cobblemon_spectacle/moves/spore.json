@@ -1,0 +1,25 @@
+{
+  "category": "status",
+  "color": "#C8E070",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 28,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    },
+    {
+      "motif": "notes",
+      "phase": "hit",
+      "delay": 10,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

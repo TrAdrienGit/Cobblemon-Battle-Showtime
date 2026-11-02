@@ -1,0 +1,15 @@
+{
+  "category": "special",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 30,
+      "particles": [
+        "minecraft:cloud"
+      ]
+    }
+  ]
+}

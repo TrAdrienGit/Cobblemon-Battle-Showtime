@@ -1,0 +1,29 @@
+{
+  "category": "physical",
+  "color": "#A040D0",
+  "accent": "#E8A0FF",
+  "layers": [
+    {
+      "motif": "spin",
+      "phase": "wind",
+      "duration": 20
+    },
+    {
+      "motif": "splat",
+      "phase": "hit",
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    },
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 12,
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    }
+  ]
+}

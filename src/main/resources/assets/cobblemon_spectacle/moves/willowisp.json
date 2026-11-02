@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#5A6CFF",
+  "accent": "#C0E0FF",
+  "layers": [
+    {
+      "motif": "wisps",
+      "phase": "hit",
+      "duration": 30,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "category": "physical",
+  "color": "#E8502A",
+  "accent": "#A0FF80",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "fist",
+      "phase": "hit",
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "heal",
+      "phase": "hit",
+      "delay": 6,
+      "duration": 16,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

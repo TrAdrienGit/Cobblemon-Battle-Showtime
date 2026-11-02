@@ -1,0 +1,25 @@
+{
+  "category": "special",
+  "color": "#48C840",
+  "accent": "#FFFFC0",
+  "layers": [
+    {
+      "motif": "solar_charge",
+      "phase": "wind"
+    },
+    {
+      "motif": "beam",
+      "phase": "travel",
+      "size": 1.6
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "size": 1.4,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "category": "status",
+  "color": "#A040D0",
+  "accent": "#E8A0FF",
+  "layers": [
+    {
+      "motif": "caltrops",
+      "phase": "hit",
+      "duration": 26,
+      "block": "minecraft:amethyst_cluster",
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "category": "physical",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "knock_item",
+      "phase": "hit",
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    }
+  ],
+  "size": 1.1
+}

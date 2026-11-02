@@ -1,0 +1,32 @@
+{
+  "category": "special",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "sparks_on",
+      "phase": "wind",
+      "duration": 12
+    },
+    {
+      "motif": "bolt",
+      "phase": "travel"
+    },
+    {
+      "motif": "sparks_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

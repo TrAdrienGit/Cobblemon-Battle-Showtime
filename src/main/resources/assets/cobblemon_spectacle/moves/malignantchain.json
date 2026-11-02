@@ -1,0 +1,30 @@
+{
+  "category": "special",
+  "color": "#A040D0",
+  "accent": "#E8A0FF",
+  "layers": [
+    {
+      "motif": "whip",
+      "phase": "travel",
+      "duration": 10
+    },
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 20,
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    },
+    {
+      "motif": "splat",
+      "phase": "hit",
+      "size": 0.7,
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    }
+  ]
+}

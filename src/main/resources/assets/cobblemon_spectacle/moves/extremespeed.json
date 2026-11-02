@@ -1,0 +1,39 @@
+{
+  "category": "physical",
+  "color": "#E8E2D0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel",
+      "duration": 4
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "delay": 3,
+      "size": 0.7,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "size": 0.6,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "category": "special",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "particles": [
+        "minecraft:flame"
+      ]
+    },
+    {
+      "motif": "stream_fire",
+      "phase": "travel",
+      "size": 1.5
+    },
+    {
+      "motif": "star_fire",
+      "phase": "hit",
+      "size": 1.2,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ],
+  "size": 1.3
+}

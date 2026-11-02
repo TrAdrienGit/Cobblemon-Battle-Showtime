@@ -1,0 +1,32 @@
+{
+  "category": "special",
+  "color": "#2E8BFF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "jets_water",
+      "phase": "travel",
+      "count": 2,
+      "particles": [
+        "minecraft:cloud"
+      ]
+    },
+    {
+      "motif": "splash",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    },
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 14,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

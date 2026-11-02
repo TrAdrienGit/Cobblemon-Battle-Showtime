@@ -77,6 +77,7 @@ public class CobblemonSpectacle implements ClientModInitializer {
 			BattleCinematic.renderHud(graphics);
 		});
 		com.mystaria.spectacle.ambiance.Ambiances.register();
+		com.mystaria.spectacle.move.MoveSpecs.register();
 		BattleScreenButtons.register();
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> dispatcher.register(
 				ClientCommandManager.literal("spectacle").then(ClientCommandManager.literal("preview")

@@ -1,0 +1,27 @@
+{
+  "category": "physical",
+  "color": "#A8D020",
+  "accent": "#F0FF90",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "bite",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    }
+  ]
+}

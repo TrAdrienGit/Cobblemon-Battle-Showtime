@@ -1,0 +1,21 @@
+{
+  "category": "physical",
+  "color": "#E8E2D0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "burst",
+      "phase": "wind",
+      "duration": 6
+    },
+    {
+      "motif": "fist",
+      "phase": "hit",
+      "size": 0.8,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

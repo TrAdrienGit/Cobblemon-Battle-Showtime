@@ -1,0 +1,15 @@
+{
+  "category": "status",
+  "color": "#B8A058",
+  "accent": "#F0E0A8",
+  "layers": [
+    {
+      "motif": "rocks_float",
+      "phase": "hit",
+      "duration": 30,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

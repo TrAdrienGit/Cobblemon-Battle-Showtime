@@ -1,0 +1,15 @@
+{
+  "category": "status",
+  "color": "#E0E8FF",
+  "accent": "#FFE4F6",
+  "layers": [
+    {
+      "motif": "moon",
+      "phase": "self"
+    },
+    {
+      "motif": "heal",
+      "phase": "self"
+    }
+  ]
+}

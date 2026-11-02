@@ -1,0 +1,30 @@
+{
+  "category": "physical",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "sword",
+      "phase": "hit",
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "caltrops",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 24,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    }
+  ],
+  "size": 1.1
+}

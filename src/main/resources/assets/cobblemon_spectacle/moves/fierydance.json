@@ -1,0 +1,24 @@
+{
+  "category": "special",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "dance",
+      "phase": "wind",
+      "duration": 12
+    },
+    {
+      "motif": "stream_fire",
+      "phase": "travel"
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "category": "physical",
+  "color": "#E8E2D0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "spin",
+      "phase": "wind",
+      "duration": 20
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

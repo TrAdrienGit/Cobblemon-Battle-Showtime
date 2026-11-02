@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:cloud",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

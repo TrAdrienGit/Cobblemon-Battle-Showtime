@@ -1,0 +1,24 @@
+{
+  "category": "status",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "lift",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    },
+    {
+      "motif": "knock_item",
+      "phase": "hit",
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    }
+  ]
+}

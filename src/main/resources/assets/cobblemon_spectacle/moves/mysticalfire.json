@@ -1,0 +1,27 @@
+{
+  "category": "special",
+  "color": "#FF4FA8",
+  "accent": "#FFB040",
+  "layers": [
+    {
+      "motif": "stream_fire",
+      "phase": "travel"
+    },
+    {
+      "motif": "glare",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "category": "special",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "orb_leaves",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

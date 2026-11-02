@@ -34,6 +34,11 @@ public abstract class MoveEffect {
 
 	protected abstract void render(PoseStack pose, MultiBufferSource buffers, Vec3 camera, float partialTick);
 
+	/** Still waiting for its hit: Cobblemon's generic hit particle on another Pokémon is this move's. */
+	protected boolean awaitingHit() {
+		return true;
+	}
+
 	void previewTarget(Vec3 point) {
 		targetPoint = point;
 	}

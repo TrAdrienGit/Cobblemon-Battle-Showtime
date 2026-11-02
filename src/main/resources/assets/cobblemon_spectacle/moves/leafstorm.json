@@ -1,0 +1,17 @@
+{
+  "category": "special",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 28,
+      "block": "minecraft:oak_leaves",
+      "particles": [
+        "minecraft:cherry_leaves"
+      ]
+    }
+  ],
+  "size": 1.2
+}

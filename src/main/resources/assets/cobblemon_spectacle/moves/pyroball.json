@@ -1,0 +1,25 @@
+{
+  "category": "physical",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind"
+    },
+    {
+      "motif": "lob",
+      "phase": "travel",
+      "count": 1
+    },
+    {
+      "motif": "star_fire",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ],
+  "size": 1.2
+}

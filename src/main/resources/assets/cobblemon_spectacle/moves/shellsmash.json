@@ -1,0 +1,17 @@
+{
+  "category": "status",
+  "color": "#FFB040",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "shell",
+      "phase": "self"
+    },
+    {
+      "motif": "rays",
+      "phase": "self",
+      "delay": 18,
+      "duration": 12
+    }
+  ]
+}

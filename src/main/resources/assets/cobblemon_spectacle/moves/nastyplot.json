@@ -1,0 +1,19 @@
+{
+  "category": "status",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:squid_ink"
+      ]
+    },
+    {
+      "motif": "glare",
+      "phase": "self",
+      "duration": 16
+    }
+  ]
+}

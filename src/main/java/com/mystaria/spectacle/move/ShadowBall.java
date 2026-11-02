@@ -130,6 +130,11 @@ final class ShadowBall extends MoveEffect {
 	}
 
 	@Override
+	protected boolean awaitingHit() {
+		return burstAge < 0;
+	}
+
+	@Override
 	protected boolean finished() {
 		return user.isRemoved() || age > 160 || (burstAge >= 0 && age - burstAge > BURST);
 	}

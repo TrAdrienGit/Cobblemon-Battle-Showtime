@@ -1,0 +1,21 @@
+{
+  "category": "status",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "lob",
+      "phase": "travel",
+      "count": 3
+    },
+    {
+      "motif": "seeds",
+      "phase": "hit",
+      "duration": 28,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

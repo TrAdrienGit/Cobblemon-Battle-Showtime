@@ -19,6 +19,7 @@
 		"EmoteBattleInitializeHandlerMixin",
 		"EmoteBattleMessageHandlerMixin",
 		"MoveParticleOverrideMixin",
+		"MoveAnimationMixin",
 		"EntityRendererCinematicMixin",
 		"GameRendererAccessor",
 		"ClientLevelDataAmbianceMixin",

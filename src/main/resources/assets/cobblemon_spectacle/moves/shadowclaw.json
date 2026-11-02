@@ -1,0 +1,19 @@
+{
+  "category": "physical",
+  "color": "#7A4CC8",
+  "accent": "#D0B0FF",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "claw",
+      "phase": "hit",
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ]
+}

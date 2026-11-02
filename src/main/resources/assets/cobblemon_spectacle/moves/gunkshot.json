@@ -1,0 +1,21 @@
+{
+  "category": "physical",
+  "color": "#A040D0",
+  "accent": "#E8A0FF",
+  "layers": [
+    {
+      "motif": "lob",
+      "phase": "travel",
+      "count": 5
+    },
+    {
+      "motif": "splat",
+      "phase": "hit",
+      "size": 1.3,
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    }
+  ]
+}

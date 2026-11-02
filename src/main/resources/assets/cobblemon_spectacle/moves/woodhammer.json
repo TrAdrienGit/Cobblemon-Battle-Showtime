@@ -1,0 +1,24 @@
+{
+  "category": "physical",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "hammer",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ],
+  "size": 1.2
+}

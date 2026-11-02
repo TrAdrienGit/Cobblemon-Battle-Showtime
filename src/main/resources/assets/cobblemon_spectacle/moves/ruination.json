@@ -1,0 +1,30 @@
+{
+  "category": "special",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 24,
+      "size": 1.4,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "size": 0.8,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    }
+  ]
+}

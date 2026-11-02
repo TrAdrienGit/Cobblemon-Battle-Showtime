@@ -1,0 +1,34 @@
+{
+  "category": "physical",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "cracks",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "kick",
+      "phase": "hit",
+      "count": 2,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ],
+  "size": 1.2
+}

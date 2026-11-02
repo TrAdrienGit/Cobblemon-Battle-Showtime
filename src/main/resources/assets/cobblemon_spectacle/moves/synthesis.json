@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "solar_charge",
+      "phase": "self",
+      "duration": 14
+    },
+    {
+      "motif": "heal",
+      "phase": "self"
+    }
+  ]
+}

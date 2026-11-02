@@ -1,0 +1,20 @@
+{
+  "category": "physical",
+  "color": "#B8A058",
+  "accent": "#F0E0A8",
+  "layers": [
+    {
+      "motif": "cracks",
+      "phase": "travel",
+      "duration": 8
+    },
+    {
+      "motif": "rise_rocks",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ],
+  "size": 1.2
+}

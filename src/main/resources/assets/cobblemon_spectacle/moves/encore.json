@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#E8E2D0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "notes",
+      "phase": "hit",
+      "duration": 28,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

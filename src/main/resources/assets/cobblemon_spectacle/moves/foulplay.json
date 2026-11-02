@@ -1,0 +1,28 @@
+{
+  "category": "physical",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "shadow_hand",
+      "phase": "travel"
+    },
+    {
+      "motif": "claw",
+      "phase": "hit",
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "slash",
+      "phase": "hit",
+      "delay": 4,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    }
+  ]
+}

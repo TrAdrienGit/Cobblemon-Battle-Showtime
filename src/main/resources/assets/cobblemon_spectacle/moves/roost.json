@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "wings",
+      "phase": "self",
+      "duration": 14
+    },
+    {
+      "motif": "heal",
+      "phase": "self"
+    }
+  ]
+}

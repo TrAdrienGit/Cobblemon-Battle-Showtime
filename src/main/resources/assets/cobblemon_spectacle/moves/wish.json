@@ -1,0 +1,17 @@
+{
+  "category": "status",
+  "color": "#FFF0A0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "meteors",
+      "phase": "self",
+      "count": 1,
+      "duration": 16
+    },
+    {
+      "motif": "heal",
+      "phase": "self"
+    }
+  ]
+}

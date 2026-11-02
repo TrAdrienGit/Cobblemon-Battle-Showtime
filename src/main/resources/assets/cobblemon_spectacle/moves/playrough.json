@@ -1,0 +1,28 @@
+{
+  "category": "physical",
+  "color": "#FF8CD8",
+  "accent": "#FFE4F6",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "barrage",
+      "phase": "hit",
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "size": 0.7,
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    }
+  ]
+}

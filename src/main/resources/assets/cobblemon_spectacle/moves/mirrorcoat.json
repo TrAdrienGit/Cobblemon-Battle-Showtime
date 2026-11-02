@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "dome",
+      "phase": "self"
+    },
+    {
+      "motif": "rays",
+      "phase": "self",
+      "duration": 10
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "category": "special",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "sky_bolt",
+      "phase": "hit",
+      "duration": 16,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

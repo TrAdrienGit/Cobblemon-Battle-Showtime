@@ -1,0 +1,11 @@
+{
+  "category": "status",
+  "color": "#B8C8D8",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "swords",
+      "phase": "self"
+    }
+  ]
+}

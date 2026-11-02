@@ -1,0 +1,21 @@
+{
+  "category": "special",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "sound_rings",
+      "phase": "travel",
+      "duration": 14
+    },
+    {
+      "motif": "lift",
+      "phase": "hit",
+      "duration": 14,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "category": "special",
+  "color": "#FFD040",
+  "accent": "#FFF4B0",
+  "layers": [
+    {
+      "motif": "coins",
+      "phase": "travel",
+      "count": 10
+    },
+    {
+      "motif": "coins",
+      "phase": "hit",
+      "count": 18,
+      "duration": 24,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:wax_on"
+      ]
+    }
+  ]
+}

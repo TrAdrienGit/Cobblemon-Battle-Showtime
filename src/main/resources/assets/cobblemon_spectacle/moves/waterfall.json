@@ -1,0 +1,35 @@
+{
+  "category": "physical",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 20,
+      "particles": [
+        "minecraft:splash"
+      ]
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "splash",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

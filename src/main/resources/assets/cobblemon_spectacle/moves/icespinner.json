@@ -1,0 +1,33 @@
+{
+  "category": "physical",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "spin",
+      "phase": "wind",
+      "duration": 20
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "freeze",
+      "phase": "hit",
+      "size": 0.7,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    }
+  ]
+}

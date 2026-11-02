@@ -1,0 +1,28 @@
+{
+  "category": "physical",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "slash",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    },
+    {
+      "motif": "splash",
+      "phase": "hit",
+      "size": 0.8,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

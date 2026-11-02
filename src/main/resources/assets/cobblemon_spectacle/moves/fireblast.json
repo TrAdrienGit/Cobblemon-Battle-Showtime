@@ -1,0 +1,29 @@
+{
+  "category": "special",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "orb",
+      "phase": "travel"
+    },
+    {
+      "motif": "star_fire",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ],
+  "size": 1.3
+}
