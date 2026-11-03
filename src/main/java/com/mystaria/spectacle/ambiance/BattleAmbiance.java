@@ -59,6 +59,16 @@ public final class BattleAmbiance {
 	private static List<UUID> trainers = List.of();
 	private static Vec3 center;
 	private static float fieldRadius = 10f;
+	/**
+	 * A battle seen from afar, not watched (Adrien 2026-11-02): its decorations stand around its field only, and what
+	 * changes the whole world (time, sky, fog, weather, filter, sound, the world hidden) applies only while this player
+	 * stands inside the field's circle.
+	 */
+	private static boolean distant;
+	/** Distant mode: where the field's sides stand (its Pokémon), asked every tick. */
+	private static java.util.function.Supplier<List<Vec3>> distantSpots;
+	/** Distant mode: whether the player was inside the circle at the last tick. */
+	private static boolean inside;
 	private static long ticks;
 	private static long startDayTime;
 	private static int previewLeft;
@@ -106,6 +116,36 @@ public final class BattleAmbiance {
 		begin(Ambiances.get(id), battleTrainers, 0);
 	}
 
+	/**
+	 * A battle seen from afar (Phantasmon's field view, not watched): its ambiance — {@code id}, null or empty for this
+	 * player's own — restricted to its field, whose sides {@code spots} gives. Never over this player's own battle.
+	 */
+	public static void startDistant(String id, java.util.function.Supplier<List<Vec3>> spots) {
+		if (active() && !distant) {
+			return;
+		}
+		begin(Ambiances.get(id == null || id.isEmpty() ? SpectacleConfig.ambiance() : id), List.of(), 0);
+		if (active == null) {
+			return;
+		}
+		distant = true;
+		distantSpots = spots;
+		inside = true; // corrected at the first tick: off if the player stands outside
+		updateField(Minecraft.getInstance().level);
+	}
+
+	/** The battle seen from afar is over (or no longer seen). */
+	public static void endDistant() {
+		if (distant) {
+			end();
+		}
+	}
+
+	/** Whether the world-wide layers apply: always for this player's own battle, inside the field when distant. */
+	private static boolean global() {
+		return active() && (!distant || inside);
+	}
+
 	/** {@code /spectacle preview ambiance <id>}: around the player for 30 s ({@code none} stops it). */
 	public static void preview(String id) {
 		Minecraft mc = Minecraft.getInstance();
@@ -122,6 +162,9 @@ public final class BattleAmbiance {
 		active = null;
 		trainers = List.of();
 		center = null;
+		distant = false;
+		distantSpots = null;
+		inside = false;
 		previewLeft = 0;
 		flashLeft = 0;
 		FLOATING.clear();
@@ -194,6 +237,22 @@ public final class BattleAmbiance {
 		updateField(mc.level);
 		if (center == null) {
 			return;
+		}
+		if (distant && mc.player != null) {
+			double dx = mc.player.getX() - center.x;
+			double dz = mc.player.getZ() - center.z;
+			boolean now = dx * dx + dz * dz <= fieldRadius * fieldRadius;
+			if (now != inside) {
+				inside = now;
+				// Stepping in or out: the filter and the sound follow.
+				setFilter(inside ? active.filter : null);
+				if (inside && active.sound != null && active.sound.id != null && sound == null) {
+					sound = new LoopSound(ResourceLocation.parse(active.sound.id), active.sound.volume, active.sound.pitch);
+					mc.getSoundManager().play(sound);
+				} else if (!inside) {
+					stopSound();
+				}
+			}
 		}
 		for (Ambiance.Particles particles : active.particles) {
 			spawn(mc.level, particles);
@@ -303,6 +362,9 @@ public final class BattleAmbiance {
 
 	private static void updateField(ClientLevel level) {
 		List<Vec3> spots = new ArrayList<>();
+		if (distantSpots != null) {
+			spots.addAll(distantSpots.get());
+		}
 		for (UUID uuid : trainers) {
 			Player player = SpectacleHooks.player(level, uuid);
 			if (player != null) {
@@ -332,23 +394,23 @@ public final class BattleAmbiance {
 
 	/** The day time this client shows (sun, moon, stars, light), or {@code world} outside an ambiance with a time. */
 	public static long dayTime(long world) {
-		if (!active() || active.time == null) {
+		if (!global() || active.time == null) {
 			return world;
 		}
 		return startDayTime + (long) (ticks * active.time.speed);
 	}
 
 	public static Vec3 skyColor(Vec3 world) {
-		return blend(world, active() && active.sky != null ? active.sky.skyColor : null);
+		return blend(world, global() && active.sky != null ? active.sky.skyColor : null);
 	}
 
 	public static Vec3 cloudColor(Vec3 world) {
-		return blend(world, active() && active.sky != null ? active.sky.cloudColor : null);
+		return blend(world, global() && active.sky != null ? active.sky.cloudColor : null);
 	}
 
 	/** The fog colour over the world's ({@code rgb} 0..1, changed in place). */
 	public static void fogColor(float[] rgb) {
-		if (!active() || active.sky == null || active.sky.fogColor == null) {
+		if (!global() || active.sky == null || active.sky.fogColor == null) {
 			return;
 		}
 		Vec3 blended = blend(new Vec3(rgb[0], rgb[1], rgb[2]), active.sky.fogColor);
@@ -359,34 +421,34 @@ public final class BattleAmbiance {
 
 	/** Fog start / end in blocks, or NaN for the world's. */
 	public static float fogStart() {
-		return active() && active.sky != null && active.sky.fogStart != null ? active.sky.fogStart : Float.NaN;
+		return global() && active.sky != null && active.sky.fogStart != null ? active.sky.fogStart : Float.NaN;
 	}
 
 	public static float fogEnd() {
-		return active() && active.sky != null && active.sky.fogEnd != null ? active.sky.fogEnd : Float.NaN;
+		return global() && active.sky != null && active.sky.fogEnd != null ? active.sky.fogEnd : Float.NaN;
 	}
 
 	/** {@code LevelRendererHideWorldMixin}: no block of the world drawn. */
 	public static boolean hidesWorld() {
-		return active() && active.hideWorld;
+		return global() && active.hideWorld;
 	}
 
 	/** Rain shown (0..1), or {@code world}'s. */
 	public static float rainLevel(float world) {
-		return active() && active.sky != null && active.sky.rain != null ? active.sky.rain : world;
+		return global() && active.sky != null && active.sky.rain != null ? active.sky.rain : world;
 	}
 
 	public static float thunderLevel(float world) {
-		return active() && active.sky != null && active.sky.thunder != null ? active.sky.thunder : world;
+		return global() && active.sky != null && active.sky.thunder != null ? active.sky.thunder : world;
 	}
 
 	public static float starBrightness(float world) {
-		return active() && active.sky != null && active.sky.stars != null ? active.sky.stars : world;
+		return global() && active.sky != null && active.sky.stars != null ? active.sky.stars : world;
 	}
 
 	/** The clouds' height: NaN hides them. */
 	public static float cloudHeight(float world) {
-		if (!active() || active.sky == null) {
+		if (!global() || active.sky == null) {
 			return world;
 		}
 		if (active.sky.hideClouds) {

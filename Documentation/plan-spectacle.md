@@ -53,7 +53,7 @@
 
 ## Reste à faire
 
-- **Ambiance vue de loin** (Adrien 2026-11-02) : un joueur proche d'un combat qu'il ne regarde pas en spectateur doit aussi voir son ambiance, ses attaques et ses effets persistants, mais restreints au terrain (le disque entre les deux joueurs) : par exemple Cosmos n'efface les blocs que dans ce disque, au lieu de tout le monde comme pour les joueurs et les spectateurs qui ont rejoint le combat.
+- **Ambiance vue de loin** (Adrien 2026-11-02, fait 2026-11-03) : un joueur qui voit le terrain d'un combat sans le regarder reçoit son ambiance (`BattleFieldAmbiance`) ; `BattleAmbiance.startDistant` la joue autour du terrain seulement, et ce qui change tout le monde (heure, ciel, brouillard, météo, filtre, son, monde caché de Cosmos) seulement quand il se tient dans le cercle du terrain. Limite : avec Sodium, effacer les blocs **à l'intérieur** du cercle seulement n'est pas possible simplement — Cosmos cache tout le monde dès qu'on entre dans le cercle.
 
 - Plan « Vos regards se croisent » **supprimé** (Adrien 2026-11-01 : les dresseurs y restaient invisibles chez lui) :
   l'intro commence directement à son balayage, depuis la vue du joueur.
