@@ -36,7 +36,7 @@ dependencies {
 	// Mod Menu: optional, only its API is compiled against (the "Configure" button → settings screen).
 	modCompileOnly "maven.modrinth:modmenu:11.0.3"
 
-	// playerAnimator (KosmX): optional, the trainers' emotes. Emotecraft ships it; Spectacle only compiles against it.
+	// playerAnimator (KosmX): optional, the trainers' emotes. Emotecraft ships it; Showtime only compiles against it.
 	modCompileOnly "dev.kosmx.player-anim:player-animation-lib-fabric:${project.player_anim_version}"
 }
 

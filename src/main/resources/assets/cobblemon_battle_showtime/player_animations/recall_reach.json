@@ -1,0 +1,426 @@
+{
+	"version": 1,
+	"name": "recall_reach",
+	"author": "Cobblemon Battle Showtime",
+	"description": "Calls a Pokémon back: the ball held out at arm's length, then drawn back to the chest.",
+	"emote": {
+		"isLoop": "false",
+		"returnTick": 0,
+		"beginTick": 0,
+		"endTick": 26,
+		"stopTick": 27,
+		"degrees": false,
+		"moves": [
+			{
+				"tick": 0,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"head": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": 0.04,
+					"yaw": 0,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 0,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"torso": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": -0.04,
+					"yaw": 0,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 0,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"rightArm": {
+					"x": -5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.5,
+					"yaw": 0,
+					"roll": 0.12,
+					"bend": -0.95
+				}
+			},
+			{
+				"tick": 0,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"leftArm": {
+					"x": 5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.38,
+					"yaw": 0,
+					"roll": -0.12,
+					"bend": -1.1
+				}
+			},
+			{
+				"tick": 0,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"rightLeg": {
+					"x": -2.0,
+					"y": 12,
+					"z": 0.1,
+					"pitch": -0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.3
+				}
+			},
+			{
+				"tick": 0,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"leftLeg": {
+					"x": 2.0,
+					"y": 12,
+					"z": -0.1,
+					"pitch": 0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.18
+				}
+			},
+			{
+				"tick": 5,
+				"easing": "OUTQUAD",
+				"turn": 0,
+				"head": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": 0.04,
+					"yaw": 0.1,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 5,
+				"easing": "OUTQUAD",
+				"turn": 0,
+				"torso": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": -0.04,
+					"yaw": -0.1,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 5,
+				"easing": "OUTQUAD",
+				"turn": 0,
+				"rightArm": {
+					"x": -5,
+					"y": 2,
+					"z": 0,
+					"pitch": -1.45,
+					"yaw": 0.1,
+					"roll": 0.05,
+					"bend": -0.05
+				}
+			},
+			{
+				"tick": 5,
+				"easing": "OUTQUAD",
+				"turn": 0,
+				"leftArm": {
+					"x": 5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.38,
+					"yaw": 0,
+					"roll": -0.12,
+					"bend": -1.1
+				}
+			},
+			{
+				"tick": 5,
+				"easing": "OUTQUAD",
+				"turn": 0,
+				"rightLeg": {
+					"x": -2.0,
+					"y": 12,
+					"z": 0.1,
+					"pitch": -0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.3
+				}
+			},
+			{
+				"tick": 5,
+				"easing": "OUTQUAD",
+				"turn": 0,
+				"leftLeg": {
+					"x": 2.0,
+					"y": 12,
+					"z": -0.1,
+					"pitch": 0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.18
+				}
+			},
+			{
+				"tick": 14,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"head": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": 0.04,
+					"yaw": 0.1,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 14,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"torso": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": -0.04,
+					"yaw": -0.1,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 14,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"rightArm": {
+					"x": -5,
+					"y": 2,
+					"z": 0,
+					"pitch": -1.4,
+					"yaw": 0.1,
+					"roll": 0.05,
+					"bend": -0.05
+				}
+			},
+			{
+				"tick": 14,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"leftArm": {
+					"x": 5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.38,
+					"yaw": 0,
+					"roll": -0.12,
+					"bend": -1.1
+				}
+			},
+			{
+				"tick": 14,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"rightLeg": {
+					"x": -2.0,
+					"y": 12,
+					"z": 0.1,
+					"pitch": -0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.3
+				}
+			},
+			{
+				"tick": 14,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"leftLeg": {
+					"x": 2.0,
+					"y": 12,
+					"z": -0.1,
+					"pitch": 0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.18
+				}
+			},
+			{
+				"tick": 19,
+				"easing": "INQUAD",
+				"turn": 0,
+				"head": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": 0.04,
+					"yaw": 0,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 19,
+				"easing": "INQUAD",
+				"turn": 0,
+				"torso": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": -0.04,
+					"yaw": 0,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 19,
+				"easing": "INQUAD",
+				"turn": 0,
+				"rightArm": {
+					"x": -5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.7,
+					"yaw": 0,
+					"roll": 0.05,
+					"bend": -1.2
+				}
+			},
+			{
+				"tick": 19,
+				"easing": "INQUAD",
+				"turn": 0,
+				"leftArm": {
+					"x": 5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.38,
+					"yaw": 0,
+					"roll": -0.12,
+					"bend": -1.1
+				}
+			},
+			{
+				"tick": 19,
+				"easing": "INQUAD",
+				"turn": 0,
+				"rightLeg": {
+					"x": -2.0,
+					"y": 12,
+					"z": 0.1,
+					"pitch": -0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.3
+				}
+			},
+			{
+				"tick": 19,
+				"easing": "INQUAD",
+				"turn": 0,
+				"leftLeg": {
+					"x": 2.0,
+					"y": 12,
+					"z": -0.1,
+					"pitch": 0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.18
+				}
+			},
+			{
+				"tick": 26,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"head": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": 0.04,
+					"yaw": 0,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 26,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"torso": {
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"pitch": -0.04,
+					"yaw": 0,
+					"roll": 0
+				}
+			},
+			{
+				"tick": 26,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"rightArm": {
+					"x": -5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.5,
+					"yaw": 0,
+					"roll": 0.12,
+					"bend": -0.95
+				}
+			},
+			{
+				"tick": 26,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"leftArm": {
+					"x": 5,
+					"y": 2,
+					"z": 0,
+					"pitch": -0.38,
+					"yaw": 0,
+					"roll": -0.12,
+					"bend": -1.1
+				}
+			},
+			{
+				"tick": 26,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"rightLeg": {
+					"x": -2.0,
+					"y": 12,
+					"z": 0.1,
+					"pitch": -0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.3
+				}
+			},
+			{
+				"tick": 26,
+				"easing": "INOUTSINE",
+				"turn": 0,
+				"leftLeg": {
+					"x": 2.0,
+					"y": 12,
+					"z": -0.1,
+					"pitch": 0.2,
+					"yaw": 0,
+					"roll": 0,
+					"bend": 0.18
+				}
+			}
+		]
+	}
+}

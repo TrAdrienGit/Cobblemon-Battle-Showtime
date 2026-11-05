@@ -1,4 +1,4 @@
-"""Writes the trainers' default animations (plan-spectacle.md, phase E1) as playerAnimator / Emotecraft JSON.
+"""Writes the trainers' default animations (plan-showtime.md, phase E1) as playerAnimator / Emotecraft JSON.
 
 Each animation is a list of poses (tick, easing, {part: {axis: value}}); a part left out of a pose holds its previous
 value. Radians; an arm or leg with a negative pitch swings forward, a positive head pitch looks down, z negative is in
@@ -8,13 +8,13 @@ replaces the player's own look: yaw 0 keeps the eyes on the opponent the body is
 
     python tools/trainer_animations.py
 
-writes src/main/resources/assets/cobblemon_spectacle/player_animations/*.json. Finer animations made in Blockbench
+writes src/main/resources/assets/cobblemon_battle_showtime/player_animations/*.json. Finer animations made in Blockbench
 (Emotecraft plugin) can replace these files: same names.
 """
 import json
 import os
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "cobblemon_spectacle",
+OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "cobblemon_battle_showtime",
                    "player_animations")
 
 DEFAULTS = {
@@ -82,7 +82,7 @@ def animation(name, description, poses, loop=False):
     return {
         "version": 1,
         "name": name,
-        "author": "Cobblemon Spectacle",
+        "author": "Cobblemon Battle Showtime",
         "description": description,
         "emote": {
             "isLoop": "true" if loop else "false",

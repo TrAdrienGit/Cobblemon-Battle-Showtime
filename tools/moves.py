@@ -1,4 +1,4 @@
-"""Writes Spectacle's redrawn moves (M2): assets/cobblemon_spectacle/moves/<move>.json.
+"""Writes Showtime's redrawn moves (M2): assets/cobblemon_battle_showtime/moves/<move>.json.
 
 Each move stacks a few motifs (see Motifs.java) in phases: "wind" (the user winds up), "travel" (to the target),
 "hit" (on Cobblemon's hit cue), "self" (moves on the user alone). Physical moves are blows up close (a dash, then the
@@ -12,7 +12,7 @@ Run: python tools/moves.py
 import json
 import os
 
-ROOT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "cobblemon_spectacle", "moves")
+ROOT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "cobblemon_battle_showtime", "moves")
 
 # type: (colour, accent, particles)
 TYPES = {

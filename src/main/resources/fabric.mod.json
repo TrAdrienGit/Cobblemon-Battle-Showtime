@@ -1,9 +1,10 @@
 {
 	"schemaVersion": 1,
-	"id": "cobblemon_spectacle",
+	"id": "cobblemon_battle_showtime",
 	"version": "${version}",
-	"name": "Cobblemon Spectacle",
-	"description": "Client-side staging of Cobblemon battles: cinematic battle camera, drawn intros, Mega Evolution, Z-Moves and Terastallization as set pieces.",
+	"name": "Cobblemon Battle Showtime",
+	"description": "Turns Cobblemon battles into a show, client-side: trainer and Pokémon animations, move effects, camera moves, intros, ambiances and music.",
+	"icon": "assets/cobblemon_battle_showtime/icon.png",
 	"authors": [
 		"Mystaria"
 	],
@@ -11,14 +12,14 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"com.mystaria.spectacle.CobblemonSpectacle"
+			"com.mystaria.showtime.CobblemonBattleShowtime"
 		],
 		"modmenu": [
-			"com.mystaria.spectacle.gui.SpectacleModMenu"
+			"com.mystaria.showtime.gui.ShowtimeModMenu"
 		]
 	},
 	"mixins": [
-		"cobblemon_spectacle.mixins.json"
+		"cobblemon_battle_showtime.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.18.1",

@@ -1,4 +1,4 @@
-# Cobblemon Spectacle
+# Cobblemon Battle Showtime
 
 Mod client Fabric (Minecraft 1.21.1, Cobblemon 1.8.1) qui met en scène les combats Pokémon : caméra de cinéma
 pendant le combat, intros dessinées, Méga-Évolution, Retour primal, capacités Z et Téracristallisation en grand
@@ -21,8 +21,8 @@ fin), et les spectacles se jouent pendant que le combat continue.
 
 ## Musiques
 
-1. Copier le modèle `resourcepack-template/Cobblemon Spectacle Music` dans le dossier `resourcepacks` de l'instance.
-2. Déposer des `.ogg` dans `assets/cobblemon_spectacle/sounds/music/<lobby|intro|battle|victory|defeat>/` (voir son
+1. Copier le modèle `resourcepack-template/Cobblemon Battle Showtime Music` dans le dossier `resourcepacks` de l'instance.
+2. Déposer des `.ogg` dans `assets/cobblemon_battle_showtime/sounds/music/<lobby|intro|battle|victory|defeat>/` (voir son
    `LISEZ-MOI.txt`), activer le pack, F3 + T pour recharger.
 
 Un ancien pack « Phantasmon Music » (`assets/phantasmon/…`) marche aussi. Quand le pack fournit une musique, elle
@@ -41,17 +41,17 @@ décoché n'est jamais tiré), les écouter, régler le volume. Avec Phantasmon,
 
 ## Réglages
 
-Mod Menu → Cobblemon Spectacle → Configurer, ou `config/cobblemon_spectacle.json`. Pour chaque type de combat
+Mod Menu → Cobblemon Battle Showtime → Configurer, ou `config/cobblemon_battle_showtime.json`. Pour chaque type de combat
 (Phantasmon, joueur contre joueur, dresseur PNJ) : caméra cinéma au départ ou libre, intro (pas pour Phantasmon, où
 elle synchronise les deux joueurs), musique. Plus le volume des musiques (qui s'ajoute au curseur « Musique » de
-Minecraft). Les morceaux décochés sont dans `config/cobblemon_spectacle-music.json`.
+Minecraft). Les morceaux décochés sont dans `config/cobblemon_battle_showtime-music.json`.
 
 ## Commandes
 
 | Commande | Effet |
 |---|---|
-| `/spectacle preview intro <xy\|sword_shield\|diamond_pearl\|emerald\|black_white>` | Joue une intro seule, contre le joueur le plus proche |
-| `/spectacle preview <mega\|primal\|zmove\|tera> [type]` | Joue un spectacle sur le Pokémon le plus proche, sans le modifier |
+| `/showtime preview intro <xy\|sword_shield\|diamond_pearl\|emerald\|black_white>` | Joue une intro seule, contre le joueur le plus proche |
+| `/showtime preview <mega\|primal\|zmove\|tera> [type]` | Joue un spectacle sur le Pokémon le plus proche, sans le modifier |
 
 ## Développement
 
@@ -59,7 +59,7 @@ Minecraft). Les morceaux décochés sont dans `config/cobblemon_spectacle-music.
   le jar publié dans le Maven local.
 - Plan et état des phases : [`Documentation/plan-decoupage.md`](Documentation/plan-decoupage.md).
 - Règle : toute évolution garde les combats Phantasmon intacts. Phantasmon n'utilise que l'API publique (paquet
-  `api` et méthodes publiques de `BattleCinematic`, `BattleCameraDirector`, `BattleSpectacle`).
+  `api` et méthodes publiques de `BattleCinematic`, `BattleCameraDirector`, `BattleShowtime`).
 
 ## License
 

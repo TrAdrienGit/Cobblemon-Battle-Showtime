@@ -1,0 +1,117 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/pixels.json",
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#0a0018",
+		"fog_color": "#140030",
+		"strength": 0.9,
+		"hide_clouds": true,
+		"stars": 0.6
+	},
+	"spotlights": {
+		"count": 8,
+		"colors": [
+			"#00ffd5",
+			"#ff00c8",
+			"#fff200"
+		],
+		"sweep": 24,
+		"height": 35,
+		"width": 1.2
+	},
+	"floor_lights": {
+		"count": 16,
+		"colors": [
+			"#00ffd5",
+			"#ff00c8",
+			"#fff200",
+			"#5b6bff"
+		],
+		"speed": 16,
+		"size": 1.6,
+		"alpha": 180
+	},
+	"strobe": {
+		"colors": [
+			"#00ffd5",
+			"#ff00c8"
+		],
+		"every": 8,
+		"alpha": 0.05
+	},
+	"floating_blocks": {
+		"block": "minecraft:redstone_lamp[lit=true]",
+		"count": 10,
+		"radius": [
+			10,
+			16
+		],
+		"height": [
+			3,
+			9
+		],
+		"bob": 0.8,
+		"orbit": 2.0
+	},
+	"shooting_stars": {
+		"rate": 0.06,
+		"color": "#00ffd5"
+	},
+	"particles": [
+		{
+			"type": "minecraft:electric_spark",
+			"rate": 2,
+			"area": "ring"
+		},
+		{
+			"type": "minecraft:glow",
+			"rate": 1,
+			"area": "air"
+		},
+		{
+			"type": "minecraft:wax_off",
+			"rate": 1.5,
+			"area": "field"
+		}
+	],
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:firework",
+			"count": 30,
+			"sound": "minecraft:block.note_block.bit",
+			"pitch": 1.5
+		},
+		"attack": {
+			"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
+			"filter_ticks": 4,
+			"particle": "minecraft:electric_spark",
+			"count": 15,
+			"sound": "minecraft:block.note_block.bit"
+		},
+		"crit": {
+			"filter": "minecraft:shaders/post/invert.json",
+			"filter_ticks": 6,
+			"flash": "#00ffd5",
+			"particle": "minecraft:firework",
+			"count": 40,
+			"sound": "minecraft:block.note_block.bit",
+			"pitch": 2.0
+		},
+		"faint": {
+			"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
+			"filter_ticks": 20,
+			"particle": "minecraft:wax_off",
+			"count": 40,
+			"sound": "minecraft:entity.item.break"
+		},
+		"victory": {
+			"particle": "minecraft:firework",
+			"count": 120,
+			"flash": "#fff200",
+			"sound": "minecraft:ui.toast.challenge_complete"
+		}
+	}
+}

@@ -1,0 +1,19 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/black_white.json",
+	"particles": [
+		{
+			"type": "minecraft:white_ash",
+			"rate": 3,
+			"area": "air"
+		}
+	],
+	"moments": {
+		"crit": {
+			"flash": "#ffffff"
+		},
+		"victory": {
+			"flash": "#ffffff",
+			"sound": "minecraft:block.note_block.chime"
+		}
+	}
+}

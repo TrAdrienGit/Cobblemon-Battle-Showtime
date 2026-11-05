@@ -1,4 +1,4 @@
-"""Writes Spectacle's battle ambiances (plan-spectacle.md, phase A2) as assets/cobblemon_spectacle/ambiances/*.json.
+"""Writes Showtime's battle ambiances (plan-showtime.md, phase A2) as assets/cobblemon_battle_showtime/ambiances/*.json.
 
     python tools/ambiances.py
 
@@ -8,11 +8,11 @@ can add ambiances of its own (assets/<namespace>/ambiances/<id>.json) with its o
 import json
 import os
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "cobblemon_spectacle",
+OUT = os.path.join(os.path.dirname(__file__), "..", "src", "main", "resources", "assets", "cobblemon_battle_showtime",
                    "ambiances")
 
-# Screen filters: Spectacle's own (tools/filters.py; Minecraft 1.21.1 dropped most of its old ones), and Minecraft's invert.
-FILTER = "cobblemon_spectacle:shaders/post/"
+# Screen filters: Showtime's own (tools/filters.py; Minecraft 1.21.1 dropped most of its old ones), and Minecraft's invert.
+FILTER = "cobblemon_battle_showtime:shaders/post/"
 BLACK_WHITE = FILTER + "black_white.json"
 PIXELS = FILTER + "pixels.json"
 GLITCH = FILTER + "glitch.json"

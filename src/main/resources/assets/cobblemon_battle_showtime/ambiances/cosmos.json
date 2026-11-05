@@ -1,0 +1,147 @@
+{
+	"hide_world": true,
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#020008",
+		"fog_color": "#020008",
+		"strength": 1.0,
+		"stars": 1.0,
+		"hide_clouds": true
+	},
+	"backdrop": {
+		"box": false,
+		"radius": 60,
+		"stars": 2200,
+		"spin": 0.3,
+		"star_color": "#dfe6ff",
+		"stars_around": true
+	},
+	"shooting_stars": {
+		"rate": 0.08,
+		"color": "#ffd9a0",
+		"size": 4,
+		"trail": "minecraft:flame",
+		"below": true
+	},
+	"planets": [
+		{
+			"color": "#ffd25a",
+			"size": 7,
+			"orbit": 0,
+			"height": -45,
+			"speed": 0,
+			"glow": true
+		},
+		{
+			"color": "#b5683c",
+			"size": 1.4,
+			"orbit": 18,
+			"height": -40,
+			"speed": 3
+		},
+		{
+			"color": "#3d7bff",
+			"size": 2.4,
+			"orbit": 30,
+			"height": -36,
+			"speed": 1.6
+		},
+		{
+			"color": "#d9b77a",
+			"size": 3.6,
+			"orbit": 44,
+			"height": -30,
+			"speed": 0.8,
+			"ring": "#e8d8b0"
+		},
+		{
+			"color": "#7fd6ff",
+			"size": 2.8,
+			"orbit": 58,
+			"height": -26,
+			"speed": 0.5
+		},
+		{
+			"color": "#c46ad6",
+			"size": 5,
+			"orbit": 50,
+			"height": 34,
+			"speed": -0.4,
+			"ring": "#f0c8ff"
+		},
+		{
+			"color": "#d8dde8",
+			"size": 1.6,
+			"orbit": 26,
+			"height": 22,
+			"speed": -1.2
+		},
+		{
+			"color": "#9fd8ff",
+			"size": 3,
+			"orbit": 70,
+			"height": 48,
+			"speed": 0.2,
+			"glow": true
+		}
+	],
+	"aurora": {
+		"colors": [
+			"#6a4bff",
+			"#3d8bff",
+			"#c24bff"
+		],
+		"height": 20,
+		"alpha": 60
+	},
+	"particles": [
+		{
+			"type": "minecraft:end_rod",
+			"rate": 0.6,
+			"area": "air",
+			"motion": [
+				0,
+				0.005,
+				0
+			],
+			"spread": 0.01
+		},
+		{
+			"type": "minecraft:reverse_portal",
+			"rate": 2,
+			"area": "ring"
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.beacon.ambient",
+		"volume": 0.5,
+		"pitch": 0.6
+	},
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:reverse_portal",
+			"count": 40,
+			"sound": "minecraft:block.beacon.activate"
+		},
+		"crit": {
+			"flash": "#b9a6ff",
+			"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+			"filter_ticks": 20,
+			"sound": "minecraft:block.respawn_anchor.charge"
+		},
+		"faint": {
+			"particle": "minecraft:portal",
+			"count": 60,
+			"sound": "minecraft:block.beacon.deactivate"
+		},
+		"victory": {
+			"particle": "minecraft:end_rod",
+			"count": 150,
+			"sound": "minecraft:block.end_portal.spawn",
+			"volume": 0.5
+		}
+	}
+}

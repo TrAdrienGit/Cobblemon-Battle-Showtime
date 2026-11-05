@@ -1,0 +1,39 @@
+{
+	"required": true,
+	"package": "com.mystaria.showtime.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"CameraMixin",
+		"GameRendererShowtimeMixin",
+		"BattleGuiShowtimeMixin",
+		"EntityGlowMixin",
+		"MusicManagerMixin",
+		"ClassicBattleInitializeHandlerMixin",
+		"ClassicBattleMakeChoiceHandlerMixin",
+		"ClassicBattleSwitchPokemonHandlerMixin",
+		"ClassicBattleFaintHandlerMixin",
+		"ClassicBattleMessageHandlerMixin",
+		"ClassicBattleEndHandlerMixin",
+		"ClassicBattleMusicHandlerMixin",
+		"LivingEntityRendererFacingMixin",
+		"EmoteBattleInitializeHandlerMixin",
+		"EmoteBattleMessageHandlerMixin",
+		"MoveParticleOverrideMixin",
+		"MoveAnimationMixin",
+		"EntityRendererCinematicMixin",
+		"GameRendererAccessor",
+		"ClientLevelDataAmbianceMixin",
+		"ClientLevelAmbianceMixin",
+		"FogRendererAmbianceMixin",
+		"DimensionSpecialEffectsAmbianceMixin",
+		"LevelWeatherAmbianceMixin",
+		"LevelRendererHideWorldMixin",
+		"BlockEntityRenderDispatcherHideWorldMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

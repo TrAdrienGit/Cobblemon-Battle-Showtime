@@ -1,11 +1,11 @@
-"""Writes Spectacle's screen filters (post effects) for the battle ambiances: python tools/filters.py ."""
+"""Writes Showtime's screen filters (post effects) for the battle ambiances: python tools/filters.py ."""
 import json
 import os
 import sys
 
 ROOT = os.path.join(sys.argv[1], "src", "main", "resources", "assets")
 PROGRAM = os.path.join(ROOT, "minecraft", "shaders", "program")
-POST = os.path.join(ROOT, "cobblemon_spectacle", "shaders", "post")
+POST = os.path.join(ROOT, "cobblemon_battle_showtime", "shaders", "post")
 os.makedirs(PROGRAM, exist_ok=True)
 os.makedirs(POST, exist_ok=True)
 
@@ -19,7 +19,7 @@ BASE_UNIFORMS = [
 
 FRAGMENTS = {
     # Colours split apart, drifting: a glitch.
-    "spectacle_split": ("Amount", 0.006, """
+    "showtime_split": ("Amount", 0.006, """
 void main() {
     float drift = sin(Time * 6.2831) * 0.5 + 0.5;
     vec2 offset = vec2(Amount * (0.6 + drift), Amount * 0.3 * sin(Time * 12.566));
@@ -34,7 +34,7 @@ void main() {
 }
 """),
     # The screen waving like heat haze or warped space.
-    "spectacle_wobble": ("Amount", 0.008, """
+    "showtime_wobble": ("Amount", 0.008, """
 void main() {
     vec2 uv = texCoord;
     uv.x += sin(uv.y * 18.0 + Time * 6.2831 * 2.0) * Amount;
@@ -43,7 +43,7 @@ void main() {
 }
 """),
     # An old television: scanlines, a dark rim, washed-out colour, a flicker.
-    "spectacle_old_tv": ("Amount", 1.0, """
+    "showtime_old_tv": ("Amount", 1.0, """
 void main() {
     vec3 color = texture(DiffuseSampler, texCoord).rgb;
     float grey = dot(color, vec3(0.299, 0.587, 0.114));
@@ -87,9 +87,9 @@ def post(name, program, uniforms=None):
 post("black_white", "color_convolve", {"Saturation": [0.0]})
 # Gentle (Adrien 2026-10-30: 4 colour levels and big blocks made the game unwatchable): fine pixels, many levels.
 post("pixels", "bits", {"Resolution": [24.0], "MosaicSize": [2.5]})
-post("glitch", "spectacle_split")
+post("glitch", "showtime_split")
 # The corrupted ambiance's lasting split, softer than a moment's glitch (Adrien 2026-10-30: twice asked lighter).
-post("glitch_soft", "spectacle_split", {"Amount": [0.0022]})
-post("wobble", "spectacle_wobble")
-post("old_tv", "spectacle_old_tv")
+post("glitch_soft", "showtime_split", {"Amount": [0.0022]})
+post("wobble", "showtime_wobble")
+post("old_tv", "showtime_old_tv")
 print("filters written")

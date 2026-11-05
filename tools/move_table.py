@@ -1,4 +1,4 @@
-"""Writes Documentation/attaques.csv: the moves played in competitive (real Smogon usage) and the ones Spectacle redraws.
+"""Writes Documentation/attaques.csv: the moves played in competitive (real Smogon usage) and the ones Showtime redraws.
 
 Inputs (downloaded by hand, not kept in the repo):
   - Smogon "chaos" stats: https://www.smogon.com/stats/<month>/chaos/gen9ou-1695.json and gen9nationaldex-1630.json
