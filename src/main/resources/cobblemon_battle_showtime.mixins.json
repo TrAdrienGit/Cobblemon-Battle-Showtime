@@ -4,6 +4,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"CameraMixin",
+		"PokemonClientDelegateBallMixin",
 		"GameRendererShowtimeMixin",
 		"BattleGuiShowtimeMixin",
 		"EntityGlowMixin",

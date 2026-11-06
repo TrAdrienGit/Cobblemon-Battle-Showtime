@@ -60,6 +60,13 @@ public final class TrainerEmotes {
 	 * E2) picks one per moment: the local player's from Showtime's settings, the others' from
 	 * {@link ShowtimeHooks#trainerAnimation} (Phantasmon, phase E3).
 	 */
+	/**
+	 * Where a throw starts when the ball is already leaving (it flies for 0.5 s, whatever the trainer does): most of
+	 * the wind-up is skipped so that the arm comes through with the ball. The fade from the guard covers the jump.
+	 */
+	private static final Map<String, Integer> THROW_START = Map.of("send_out_overhand", 9, "send_out_underhand", 9,
+			"send_out_spin", 8);
+
 	private static final Map<Moment, String> DEFAULTS = Map.of(
 			Moment.GUARD, "guard_ready",
 			Moment.SEND_OUT, "send_out_overhand",
@@ -86,6 +93,8 @@ public final class TrainerEmotes {
 	private static final Set<String> MISSING = new HashSet<>();
 	/** A battle is on: trainers go back to the guard between moments; else they stop once their moment is over. */
 	private static boolean inBattle;
+	/** This battle's Pokémon are real entities: the trainers follow their balls. Ghost battles keep their packets. */
+	private static boolean followsBalls;
 
 	private TrainerEmotes() {
 	}
@@ -167,10 +176,13 @@ public final class TrainerEmotes {
 	public static void start(Map<UUID, List<UUID>> trainers) {
 		stopAll();
 		inBattle = true;
+		followsBalls = !ShowtimeHooks.handlingForeignPacket();
 		trainers.forEach((uuid, opponents) -> {
 			Trainer state = TRAINERS.computeIfAbsent(uuid, ignored -> new Trainer());
 			state.opponents = List.copyOf(opponents);
-			state.queue.add(Moment.SEND_OUT);
+			if (!followsBalls) {
+				state.queue.add(Moment.SEND_OUT);
+			}
 		});
 		ShowtimeHooks.trainersStarting(trainers.keySet());
 		LOG.debug("Trainer emotes: battle with {} player trainer(s) {}", trainers.size(), trainers.keySet());
@@ -226,6 +238,37 @@ public final class TrainerEmotes {
 		}
 	}
 
+	/** Whether a switch's trainer acts on the packet: only when no ball signal drives it. */
+	public static boolean followsBalls() {
+		return followsBalls;
+	}
+
+	/**
+	 * {@code BallSignals}: {@code trainer}'s ball is thrown or calling back now. Acted at once, cutting what is playing,
+	 * a throw from {@link #THROW_START}.
+	 */
+	public static void onBall(UUID trainer, Moment moment) {
+		Trainer state = TRAINERS.get(trainer);
+		Minecraft mc = Minecraft.getInstance();
+		if (PLAYER == null || state == null || !inBattle || !followsBalls || mc.level == null) {
+			return;
+		}
+		Player player = ShowtimeHooks.player(mc.level, trainer);
+		if (player == null) {
+			return;
+		}
+		state.uuid = trainer;
+		state.queue.clear();
+		state.playing = moment;
+		String name = animationFor(trainer, moment);
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(NAMESPACE, name);
+		if (moment == Moment.SEND_OUT) {
+			PLAYER.play(player, id, THROW_START.getOrDefault(name, 0));
+		} else {
+			PLAYER.play(player, id);
+		}
+	}
+
 	/** The battle is over: the guard stops, a victory or defeat still playing ends first. */
 	public static void end() {
 		inBattle = false;
@@ -248,6 +291,7 @@ public final class TrainerEmotes {
 	public static void reset() {
 		stopAll();
 		inBattle = false;
+		followsBalls = false;
 	}
 
 	/** Every client tick: the next moment, the guard again, or the end. */

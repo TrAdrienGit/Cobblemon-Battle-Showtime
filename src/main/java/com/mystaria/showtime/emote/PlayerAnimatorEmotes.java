@@ -41,6 +41,23 @@ final class PlayerAnimatorEmotes implements EmotePlayer {
 	}
 
 	@Override
+	public boolean play(Player player, ResourceLocation id, int startTick) {
+		if (!(player instanceof AbstractClientPlayer client)) {
+			return false;
+		}
+		IPlayable animation = PlayerAnimationRegistry.getAnimation(id);
+		if (animation == null) {
+			return false;
+		}
+		IAnimation playing = animation.playAnimation();
+		if (playing instanceof dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer keyframes) {
+			playing = new dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer(keyframes.getData(), startTick);
+		}
+		layer(client).replaceAnimationWithFade(fade(), playing);
+		return true;
+	}
+
+	@Override
 	public java.util.Set<String> names(String namespace) {
 		return PlayerAnimationRegistry.getModAnimations(namespace).keySet();
 	}

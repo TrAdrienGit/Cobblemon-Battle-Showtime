@@ -74,7 +74,10 @@ public final class ClassicEmotes {
 			var found = battle.getPokemonFromPNX(pnx);
 			ClientBattleActor actor = found.getFirst();
 			ClientBattlePokemon leaving = found.getSecond().getBattlePokemon();
-			if (leaving != null && leaving.getHpValue() > 0) {
+			if (TrainerEmotes.followsBalls()) {
+				// The trainer already acts on the ball's own signal (BallSignals).
+				com.mystaria.showtime.ambiance.BattleAmbiance.moment("send_out");
+			} else if (leaving != null && leaving.getHpValue() > 0) {
 				TrainerEmotes.act(actor.getUuid(), Moment.RECALL, Moment.SEND_OUT);
 				com.mystaria.showtime.ambiance.BattleAmbiance.moment("send_out");
 			} else {

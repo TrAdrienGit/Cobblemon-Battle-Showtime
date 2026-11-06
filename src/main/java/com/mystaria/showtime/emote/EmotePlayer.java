@@ -9,6 +9,9 @@ interface EmotePlayer {
 	/** Fades into animation {@code id} on {@code player}; false if there is no such animation. */
 	boolean play(Player player, ResourceLocation id);
 
+	/** The same, the animation starting at {@code startTick} rather than at its beginning. */
+	boolean play(Player player, ResourceLocation id, int startTick);
+
 	/** Whether the animation last played on {@code player} is still running (a loop always is). */
 	boolean playing(Player player);
 

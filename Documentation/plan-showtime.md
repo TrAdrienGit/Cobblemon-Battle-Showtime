@@ -55,6 +55,15 @@
 
 `gui/ShowtimeMenuScreen`, sur la touche N et par Mod Menu : un menu propre à Showtime, organisé comme une app web (catégories à gauche, sections, liste de choix). Il reprend de Cobblemon la palette, les flèches et le bouton retour, pas la disposition de son PC. Pour les animations et les ambiances, une fenêtre sur le vrai monde (`gui/MenuPreview`) montre le dresseur avec la sélection. Pas d'aperçu pendant un combat. À terme, les commandes `/showtime preview` disparaîtront : ce sont des commandes de debug.
 
+## P1 — décisions (Adrien 2026-11-06)
+
+- Moments : lancer, ouverture, rappel et changement d'abord, puis K.O. **Pas de capture.**
+- Style fidèle aux jeux Pokémon, couleur liée au type ou à la Ball ; la vraie Ball du Pokémon à l'écran.
+- Caméra : grand plan à l'ouverture du match et aux K.O. ; discrète pour les changements.
+- **Règle du mod : un seul menu, une seule touche (N), aucune commande.** Tout réglage va dans ce menu, quitte à y créer un onglet.
+
+**P1.1, calage (fait 2026-11-06, à valider en jeu)** : le dresseur suit le signal de Cobblemon, le mode de faisceau synchronisé de l'entité (`classic/BallSignals`, 1 = lancé, 3 = rappel). Le paquet de changement ne convient pas : il arrive une fois le rappel fini, juste quand la Ball part. La Ball vole 0,5 s sans nous attendre, donc un lancer démarre après son élan (`TrainerEmotes.THROW_START`). Les combats Ghost gardent le fonctionnement par paquets.
+
 ## Reste à faire
 
 - **Ambiance vue de loin** (Adrien 2026-11-02, fait 2026-11-03, validé 2026-11-06) : un joueur qui voit le terrain d'un combat sans le regarder reçoit son ambiance (`BattleFieldAmbiance`) ; `BattleAmbiance.startDistant` la joue autour du terrain seulement, et ce qui change tout le monde (heure, ciel, brouillard, météo, filtre, son, monde caché de Cosmos) seulement quand il se tient dans le cercle du terrain. Limite : avec Sodium, effacer les blocs **à l'intérieur** du cercle seulement n'est pas possible simplement — Cosmos cache tout le monde dès qu'on entre dans le cercle.
