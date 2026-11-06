@@ -24,6 +24,8 @@ public final class BallSignals {
 	/** The server often sends a mode again: only a change counts. */
 	private static final Map<PokemonEntity, Integer> LAST = new WeakHashMap<>();
 
+	private static final java.util.List<PokemonEntity> THROWN_NOW = new java.util.ArrayList<>();
+
 	private BallSignals() {
 	}
 
@@ -44,6 +46,24 @@ public final class BallSignals {
 		return false;
 	}
 
+	private static boolean inBattle(PokemonEntity entity) {
+		return entity.isBattling() || entity.getOwnerUUID() == null
+				&& com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() != null;
+	}
+
+	/** Every client tick: the throws of the last one, now that all their data has arrived. */
+	public static void tick() {
+		for (PokemonEntity entity : THROWN_NOW) {
+			if (inBattle(entity) && !entity.isRemoved()) {
+				com.mystaria.showtime.battle.BattleCameraDirector.onThrow(entity);
+				if (com.mystaria.showtime.battle.BattleCameraDirector.ballEffects()) {
+					com.mystaria.showtime.move.BallOpening.start(entity);
+				}
+			}
+		}
+		THROWN_NOW.clear();
+	}
+
 	public static void onBeamMode(PokemonEntity entity) {
 		int mode = entity.getBeamMode();
 		Integer last = LAST.put(entity, mode);
@@ -54,15 +74,12 @@ public final class BallSignals {
 		// Only battles: a player sending a Pokémon out for a walk has an owner and no battle. A Pokémon of a client-side
 		// battle (Phantasmon's Ghost battles) has neither.
 		// The owner alone doesn't tell: it can reach this client after the beam mode, on a Pokémon sent out for a walk.
-		boolean inBattle = entity.isBattling()
-				|| owner == null && com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() != null;
+		// Cobblemon's spawn packet sets the beam mode before the battle id: a throw is judged at the next tick.
+		if (mode == THROWN) {
+			THROWN_NOW.add(entity);
+		}
+		boolean inBattle = inBattle(entity);
 		boolean effects = inBattle && com.mystaria.showtime.battle.BattleCameraDirector.ballEffects();
-		if (mode == THROWN && inBattle) {
-			com.mystaria.showtime.battle.BattleCameraDirector.onThrow(entity);
-		}
-		if (mode == THROWN && effects) {
-			com.mystaria.showtime.move.BallOpening.start(entity);
-		}
 		Moment moment = mode == THROWN ? Moment.SEND_OUT : mode == RECALLED ? Moment.RECALL : null;
 		if (moment == null) {
 			return;

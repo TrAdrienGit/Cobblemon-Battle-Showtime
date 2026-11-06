@@ -58,6 +58,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 			com.mystaria.showtime.emote.TrainerEmotes.tick();
 			com.mystaria.showtime.ambiance.BattleAmbiance.tick();
 			com.mystaria.showtime.move.MoveEffects.tick();
+			com.mystaria.showtime.classic.BallSignals.tick();
 			com.mystaria.showtime.move.BallOpening.tick();
 			com.mystaria.showtime.move.BallRecall.tick();
 			com.mystaria.showtime.move.FieldEffects.tick();
