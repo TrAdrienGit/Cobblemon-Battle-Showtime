@@ -59,6 +59,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 			com.mystaria.showtime.ambiance.BattleAmbiance.tick();
 			com.mystaria.showtime.move.MoveEffects.tick();
 			com.mystaria.showtime.move.BallOpening.tick();
+			com.mystaria.showtime.move.BallRecall.tick();
 			com.mystaria.showtime.move.FieldEffects.tick();
 			com.mystaria.showtime.move.PokemonEffects.tick();
 		});
@@ -68,6 +69,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 			com.mystaria.showtime.ambiance.BattleAmbiance.end();
 			com.mystaria.showtime.move.MoveEffects.reset();
 			com.mystaria.showtime.move.BallOpening.reset();
+			com.mystaria.showtime.move.BallRecall.reset();
 			com.mystaria.showtime.move.FieldEffects.reset();
 			com.mystaria.showtime.move.PokemonEffects.reset();
 			BattleMusic.stop();
@@ -79,6 +81,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.ambiance.BattleAmbiance::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.MoveEffects::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.BallOpening::render);
+		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.BallRecall::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.FieldEffects::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.PokemonEffects::render);
 		HudRenderCallback.EVENT.register((graphics, tickCounter) -> {

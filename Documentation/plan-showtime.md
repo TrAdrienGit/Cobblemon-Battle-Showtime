@@ -64,7 +64,9 @@
 
 **P1.1, calage (validé 2026-11-06)** : le dresseur suit le signal de Cobblemon, le mode de faisceau synchronisé de l'entité (`classic/BallSignals`, 1 = lancé, 3 = rappel). Le paquet de changement ne convient pas : il arrive une fois le rappel fini, juste quand la Ball part. La Ball vole 0,5 s sans nous attendre, donc un lancer démarre après son élan (`TrainerEmotes.THROW_START`). Les combats Ghost utilisent le même signal : leurs entités, sans propriétaire ni combat, nomment le dresseur par la cible du faisceau.
 
-**P1.2, ouverture (fait 2026-11-06, à valider en jeu)** : `move/BallOpening`, en combat, à l'instant où la Ball de Cobblemon s'ouvre : flash, rayons, colonne de lumière, deux ondes au sol, particules qui montent, teintés selon la Ball. Le flash couvre l'apparition du Pokémon, sans vraie silhouette de lumière.
+**P1.2, ouverture (validé 2026-11-06)** : `move/BallOpening`, en combat, à l'instant où la Ball de Cobblemon s'ouvre : flash, rayons, colonne de lumière, deux ondes au sol, particules qui montent, teintés selon la Ball. Le flash couvre l'apparition du Pokémon, sans vraie silhouette de lumière.
+
+**P1.3, rappel et changement (fait 2026-11-06, à valider en jeu)** : `move/BallRecall`, ajouté au faisceau de Cobblemon : halo, anneau qui se referme, particules aspirées vers le dresseur, éclat à l'arrivée. La caméra des changements reste le plan rapproché en fondu qui existait déjà.
 
 ## Reste à faire
 

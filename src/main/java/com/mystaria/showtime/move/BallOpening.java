@@ -52,7 +52,7 @@ public final class BallOpening {
 	}
 
 	/** The light of a ball: by its family, white for the ones without a clear colour. */
-	private static int color(String ball) {
+	static int color(String ball) {
 		if (ball.contains("master")) {
 			return 0xB060FF;
 		}

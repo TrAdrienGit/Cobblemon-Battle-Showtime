@@ -37,8 +37,9 @@ public final class BallSignals {
 		// Only battles: a player sending a Pokémon out for a walk has an owner and no battle. A Pokémon of a client-side
 		// battle (Phantasmon's Ghost battles) has neither.
 		// The owner alone doesn't tell: it can reach this client after the beam mode, on a Pokémon sent out for a walk.
-		if (mode == THROWN && (entity.isBattling()
-				|| owner == null && com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() != null)) {
+		boolean inBattle = entity.isBattling()
+				|| owner == null && com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() != null;
+		if (mode == THROWN && inBattle) {
 			com.mystaria.showtime.move.BallOpening.start(entity);
 		}
 		Moment moment = mode == THROWN ? Moment.SEND_OUT : mode == RECALLED ? Moment.RECALL : null;
@@ -47,6 +48,9 @@ public final class BallSignals {
 		}
 		// The ball's trainer, which Ghost battles name; the server's order of these two values isn't known: else the owner.
 		Entity thrower = entity.level().getEntity(entity.getPhasingTargetId());
+		if (mode == RECALLED && inBattle) {
+			com.mystaria.showtime.move.BallRecall.start(entity, thrower);
+		}
 		if (thrower != null) {
 			TrainerEmotes.onBall(thrower, moment);
 		} else if (owner != null) {
