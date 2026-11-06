@@ -27,6 +27,23 @@ public final class BallSignals {
 	private BallSignals() {
 	}
 
+	/** A recall with a Pokémon at 0 HP still on the field is its K.O.: Cobblemon only announces it after the recall. */
+	private static boolean knockedOut() {
+		var battle = com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle();
+		if (battle == null) {
+			return false;
+		}
+		for (var side : battle.getSides()) {
+			for (var active : side.getActiveClientBattlePokemon()) {
+				var pokemon = active.getBattlePokemon();
+				if (pokemon != null && pokemon.getHpValue() <= 0) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public static void onBeamMode(PokemonEntity entity) {
 		int mode = entity.getBeamMode();
 		Integer last = LAST.put(entity, mode);
@@ -49,7 +66,11 @@ public final class BallSignals {
 		// The ball's trainer, which Ghost battles name; the server's order of these two values isn't known: else the owner.
 		Entity thrower = entity.level().getEntity(entity.getPhasingTargetId());
 		if (mode == RECALLED && inBattle) {
-			com.mystaria.showtime.move.BallRecall.start(entity, thrower);
+			boolean knockedOut = knockedOut();
+			com.mystaria.showtime.move.BallRecall.start(entity, thrower, knockedOut);
+			if (knockedOut) {
+				com.mystaria.showtime.battle.BattleCameraDirector.onKnockOut(entity);
+			}
 		}
 		if (thrower != null) {
 			TrainerEmotes.onBall(thrower, moment);

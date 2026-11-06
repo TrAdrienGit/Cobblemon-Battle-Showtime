@@ -66,7 +66,9 @@
 
 **P1.2, ouverture (validé 2026-11-06)** : `move/BallOpening`, en combat, à l'instant où la Ball de Cobblemon s'ouvre : flash, rayons, colonne de lumière, deux ondes au sol, particules qui montent, teintés selon la Ball. Le flash couvre l'apparition du Pokémon, sans vraie silhouette de lumière.
 
-**P1.3, rappel et changement (fait 2026-11-06, à valider en jeu)** : `move/BallRecall`, ajouté au faisceau de Cobblemon : halo, anneau qui se referme, particules aspirées vers le dresseur, éclat à l'arrivée. La caméra des changements reste le plan rapproché en fondu qui existait déjà.
+**P1.3, rappel et changement (validé 2026-11-06)** : `move/BallRecall`, ajouté au faisceau de Cobblemon : halo, anneau qui se referme, particules aspirées vers le dresseur, éclat à l'arrivée. La caméra des changements reste le plan rapproché en fondu qui existait déjà.
+
+**P1.4, K.O. (validé 2026-11-06)** : un rappel alors qu'un Pokémon actif est à 0 PV est un K.O. (`BallSignals`, Cobblemon ne l'annonce qu'après le rappel). `BallRecall` joue alors un éclat blanc, trois ondes lourdes et des cendres, et `BattleCameraDirector.onKnockOut` coupe sur un plan rapproché de 3 s. Pas de vraie chute du modèle : c'est l'animation de Cobblemon.
 
 ## Reste à faire
 

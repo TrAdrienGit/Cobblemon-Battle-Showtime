@@ -24,6 +24,8 @@ import net.minecraft.world.phys.Vec3;
 public final class BallRecall {
 
 	private static final int TICKS = 16;
+	private static final int KNOCK_OUT_TICKS = 26;
+	private static final int ASH = 0xC8C8D8;
 	private static final int MOTES = 22;
 	private static final Vec3 UP = new Vec3(0, 1, 0);
 
@@ -33,12 +35,14 @@ public final class BallRecall {
 		final PokemonEntity entity;
 		final Entity thrower;
 		final int color;
+		final boolean knockedOut;
 		/** Kept for the last ticks, when Cobblemon may already have removed the entity. */
 		Vec3 feet;
 		float size;
 		int age;
 
-		Recall(PokemonEntity entity, Entity thrower, int color) {
+		Recall(PokemonEntity entity, Entity thrower, int color, boolean knockedOut) {
+			this.knockedOut = knockedOut;
 			this.entity = entity;
 			this.thrower = thrower;
 			this.color = color;
@@ -51,8 +55,10 @@ public final class BallRecall {
 	}
 
 	/** {@code entity} starts going back to {@code thrower} (null when unknown: the motes rise instead). */
-	public static void start(PokemonEntity entity, Entity thrower) {
-		PLAYING.add(new Recall(entity, thrower, BallOpening.color(entity.getExposedBall().getName().getPath())));
+	public static void start(PokemonEntity entity, Entity thrower, boolean knockedOut) {
+		// A K.O. has lost its colour: ash instead of the ball's light.
+		int color = knockedOut ? ASH : BallOpening.color(entity.getExposedBall().getName().getPath());
+		PLAYING.add(new Recall(entity, thrower, color, knockedOut));
 	}
 
 	public static void tick() {
@@ -60,7 +66,7 @@ public final class BallRecall {
 			if (!recall.entity.isRemoved()) {
 				recall.feet = recall.entity.position();
 			}
-			return ++recall.age > TICKS;
+			return ++recall.age > (recall.knockedOut ? KNOCK_OUT_TICKS : TICKS);
 		});
 	}
 
@@ -81,7 +87,7 @@ public final class BallRecall {
 		VertexConsumer out = buffers.getBuffer(Draw.GLOW);
 		Matrix4f m = pose.last().pose();
 		for (Recall recall : PLAYING) {
-			draw(out, m, recall, Mth.clamp((recall.age + partialTick) / TICKS, 0, 1), camera, partialTick);
+			draw(out, m, recall, Mth.clamp((recall.age + partialTick) / (recall.knockedOut ? KNOCK_OUT_TICKS : TICKS), 0, 1), camera, partialTick);
 		}
 		buffers.endBatch();
 		pose.popPose();
@@ -95,6 +101,29 @@ public final class BallRecall {
 				: center.add(0, size * 1.5, 0);
 		int color = recall.color;
 
+		if (recall.knockedOut) {
+			// The blow: a white burst, heavy waves on the ground, ash slowly rising.
+			if (t < 0.22f) {
+				float k = t / 0.22f;
+				Draw.halo(out, m, center, camera, 0, size * (1.1f + 1.3f * k), 0xFFFFFF, (int) (220 * (1 - k)));
+			}
+			for (int wave = 0; wave < 3; wave++) {
+				float k = Mth.clamp((t - wave * 0.1f) / 0.6f, 0, 1);
+				if (k > 0 && k < 1) {
+					Draw.ring(out, m, recall.feet.add(0, 0.06, 0), UP, size * (0.4f + 2.4f * k), 0.22f, color, (int) (200 * (1 - k)));
+				}
+			}
+			for (int i = 0; i < MOTES; i++) {
+				float k = Mth.clamp((t - i * 0.012f) / 0.75f, 0, 1);
+				if (k > 0 && k < 1) {
+					double angle = i * 2.4 + k;
+					double radius = size * (0.3 + 0.5 * ((i * 7 % MOTES) / (double) MOTES)) * (0.6 + k);
+					Vec3 at = recall.feet.add(Math.cos(angle) * radius, size * (0.1 + 1.1 * k), Math.sin(angle) * radius);
+					Draw.halo(out, m, at, camera, 0, 0.1f, color, (int) (210 * (1 - k)));
+				}
+			}
+			return;
+		}
 		// A soft glow on the Pokémon while it dissolves.
 		float glow = t < 0.5f ? t / 0.5f : 1 - (t - 0.5f) / 0.5f;
 		Draw.halo(out, m, center, camera, 0, size * 0.9f, color, (int) (150 * glow));

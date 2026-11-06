@@ -34,6 +34,7 @@ public final class BattleCameraDirector {
 	private static final float BLEND_SECONDS = 2.0f;
 	private static final float ACTION_HOLD_SECONDS = 3.2f;
 	private static final float FOCUS_HOLD_SECONDS = 2.6f;
+	private static final float KNOCK_OUT_HOLD_SECONDS = 3.0f;
 
 	private enum Kind { ORBIT, DOLLY, CRANE, SHOULDER, CLOSE_UP, SWEEP, LOW_ANGLE, SPIRAL }
 
@@ -143,6 +144,18 @@ public final class BattleCameraDirector {
 		if (battleActive && pnx != null) {
 			cutTo(closeUp(pnx), FOCUS_HOLD_SECONDS, false);
 		}
+	}
+
+	/** A Pokémon is knocked out: the moment of the match, cut straight to it. */
+	public static void onKnockOut(Entity entity) {
+		if (!battleActive || entity == null) {
+			return;
+		}
+		cutTo((field, t) -> {
+			Vec3 at = entity.position();
+			Vec3 other = at.distanceToSqr(field.local()) < at.distanceToSqr(field.opponent()) ? field.opponent() : field.local();
+			return closeUpPose(at, other, entity, t);
+		}, KNOCK_OUT_HOLD_SECONDS, true);
 	}
 
 	// =====================================================================
