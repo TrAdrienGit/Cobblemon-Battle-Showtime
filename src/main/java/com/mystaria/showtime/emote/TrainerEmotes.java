@@ -93,8 +93,6 @@ public final class TrainerEmotes {
 	private static final Set<String> MISSING = new HashSet<>();
 	/** A battle is on: trainers go back to the guard between moments; else they stop once their moment is over. */
 	private static boolean inBattle;
-	/** This battle's Pokémon are real entities: the trainers follow their balls. Ghost battles keep their packets. */
-	private static boolean followsBalls;
 
 	private TrainerEmotes() {
 	}
@@ -176,13 +174,9 @@ public final class TrainerEmotes {
 	public static void start(Map<UUID, List<UUID>> trainers) {
 		stopAll();
 		inBattle = true;
-		followsBalls = !ShowtimeHooks.handlingForeignPacket();
 		trainers.forEach((uuid, opponents) -> {
 			Trainer state = TRAINERS.computeIfAbsent(uuid, ignored -> new Trainer());
 			state.opponents = List.copyOf(opponents);
-			if (!followsBalls) {
-				state.queue.add(Moment.SEND_OUT);
-			}
 		});
 		ShowtimeHooks.trainersStarting(trainers.keySet());
 		LOG.debug("Trainer emotes: battle with {} player trainer(s) {}", trainers.size(), trainers.keySet());
@@ -238,19 +232,25 @@ public final class TrainerEmotes {
 		}
 	}
 
-	/** Whether a switch's trainer acts on the packet: only when no ball signal drives it. */
-	public static boolean followsBalls() {
-		return followsBalls;
-	}
-
 	/**
 	 * {@code BallSignals}: {@code trainer}'s ball is thrown or calling back now. Acted at once, cutting what is playing,
 	 * a throw from {@link #THROW_START}.
 	 */
+	public static void onBall(Entity thrower, Moment moment) {
+		Minecraft mc = Minecraft.getInstance();
+		for (UUID uuid : TRAINERS.keySet()) {
+			// By entity: a Hub avatar's own uuid isn't the battle's.
+			if (ShowtimeHooks.player(mc.level, uuid) == thrower) {
+				onBall(uuid, moment);
+				return;
+			}
+		}
+	}
+
 	public static void onBall(UUID trainer, Moment moment) {
 		Trainer state = TRAINERS.get(trainer);
 		Minecraft mc = Minecraft.getInstance();
-		if (PLAYER == null || state == null || !inBattle || !followsBalls || mc.level == null) {
+		if (PLAYER == null || state == null || !inBattle || mc.level == null) {
 			return;
 		}
 		Player player = ShowtimeHooks.player(mc.level, trainer);
@@ -291,7 +291,6 @@ public final class TrainerEmotes {
 	public static void reset() {
 		stopAll();
 		inBattle = false;
-		followsBalls = false;
 	}
 
 	/** Every client tick: the next moment, the guard again, or the end. */

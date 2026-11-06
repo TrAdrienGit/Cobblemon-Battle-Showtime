@@ -13,7 +13,6 @@ import com.cobblemon.mod.common.api.battles.model.actor.ActorType;
 import com.cobblemon.mod.common.client.CobblemonClient;
 import com.cobblemon.mod.common.client.battle.ClientBattle;
 import com.cobblemon.mod.common.client.battle.ClientBattleActor;
-import com.cobblemon.mod.common.client.battle.ClientBattlePokemon;
 import com.cobblemon.mod.common.client.battle.ClientBattleSide;
 import com.cobblemon.mod.common.net.messages.client.battle.BattleInitializePacket;
 
@@ -71,19 +70,8 @@ public final class ClassicEmotes {
 			if (battle == null) {
 				return;
 			}
-			var found = battle.getPokemonFromPNX(pnx);
-			ClientBattleActor actor = found.getFirst();
-			ClientBattlePokemon leaving = found.getSecond().getBattlePokemon();
-			if (TrainerEmotes.followsBalls()) {
-				// The trainer already acts on the ball's own signal (BallSignals).
-				com.mystaria.showtime.ambiance.BattleAmbiance.moment("send_out");
-			} else if (leaving != null && leaving.getHpValue() > 0) {
-				TrainerEmotes.act(actor.getUuid(), Moment.RECALL, Moment.SEND_OUT);
-				com.mystaria.showtime.ambiance.BattleAmbiance.moment("send_out");
-			} else {
-				TrainerEmotes.act(actor.getUuid(), Moment.SEND_OUT);
-				com.mystaria.showtime.ambiance.BattleAmbiance.moment("send_out");
-			}
+			// The trainer acts on the ball's own signal (BallSignals).
+			com.mystaria.showtime.ambiance.BattleAmbiance.moment("send_out");
 		} catch (RuntimeException ex) {
 			LOG.debug("No trainer emote for the switch at {}", pnx, ex);
 		}

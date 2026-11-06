@@ -62,7 +62,9 @@
 - Caméra : grand plan à l'ouverture du match et aux K.O. ; discrète pour les changements.
 - **Règle du mod : un seul menu, une seule touche (N), aucune commande.** Tout réglage va dans ce menu, quitte à y créer un onglet.
 
-**P1.1, calage (fait 2026-11-06, à valider en jeu)** : le dresseur suit le signal de Cobblemon, le mode de faisceau synchronisé de l'entité (`classic/BallSignals`, 1 = lancé, 3 = rappel). Le paquet de changement ne convient pas : il arrive une fois le rappel fini, juste quand la Ball part. La Ball vole 0,5 s sans nous attendre, donc un lancer démarre après son élan (`TrainerEmotes.THROW_START`). Les combats Ghost gardent le fonctionnement par paquets.
+**P1.1, calage (validé 2026-11-06)** : le dresseur suit le signal de Cobblemon, le mode de faisceau synchronisé de l'entité (`classic/BallSignals`, 1 = lancé, 3 = rappel). Le paquet de changement ne convient pas : il arrive une fois le rappel fini, juste quand la Ball part. La Ball vole 0,5 s sans nous attendre, donc un lancer démarre après son élan (`TrainerEmotes.THROW_START`). Les combats Ghost utilisent le même signal : leurs entités, sans propriétaire ni combat, nomment le dresseur par la cible du faisceau.
+
+**P1.2, ouverture (fait 2026-11-06, à valider en jeu)** : `move/BallOpening`, en combat, à l'instant où la Ball de Cobblemon s'ouvre : flash, rayons, colonne de lumière, deux ondes au sol, particules qui montent, teintés selon la Ball. Le flash couvre l'apparition du Pokémon, sans vraie silhouette de lumière.
 
 ## Reste à faire
 

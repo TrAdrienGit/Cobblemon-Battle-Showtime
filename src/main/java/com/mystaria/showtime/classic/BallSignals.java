@@ -6,6 +6,8 @@ import java.util.WeakHashMap;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 
+import net.minecraft.world.entity.Entity;
+
 import com.mystaria.showtime.emote.TrainerEmotes;
 import com.mystaria.showtime.emote.TrainerEmotes.Moment;
 
@@ -32,13 +34,23 @@ public final class BallSignals {
 			return;
 		}
 		UUID owner = entity.getOwnerUUID();
-		if (owner == null) {
+		// Only battles: a player sending a Pokémon out for a walk has an owner and no battle. A Pokémon of a client-side
+		// battle (Phantasmon's Ghost battles) has neither.
+		// The owner alone doesn't tell: it can reach this client after the beam mode, on a Pokémon sent out for a walk.
+		if (mode == THROWN && (entity.isBattling()
+				|| owner == null && com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() != null)) {
+			com.mystaria.showtime.move.BallOpening.start(entity);
+		}
+		Moment moment = mode == THROWN ? Moment.SEND_OUT : mode == RECALLED ? Moment.RECALL : null;
+		if (moment == null) {
 			return;
 		}
-		if (mode == THROWN) {
-			TrainerEmotes.onBall(owner, Moment.SEND_OUT);
-		} else if (mode == RECALLED) {
-			TrainerEmotes.onBall(owner, Moment.RECALL);
+		// The ball's trainer, which Ghost battles name; the server's order of these two values isn't known: else the owner.
+		Entity thrower = entity.level().getEntity(entity.getPhasingTargetId());
+		if (thrower != null) {
+			TrainerEmotes.onBall(thrower, moment);
+		} else if (owner != null) {
+			TrainerEmotes.onBall(owner, moment);
 		}
 	}
 }
