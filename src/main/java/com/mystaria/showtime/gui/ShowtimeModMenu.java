@@ -8,6 +8,6 @@ public final class ShowtimeModMenu implements ModMenuApi {
 
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return SettingsScreen::new;
+		return ShowtimeMenuScreen::new;
 	}
 }

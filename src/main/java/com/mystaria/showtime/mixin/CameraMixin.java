@@ -33,7 +33,10 @@ public abstract class CameraMixin {
 	private void showtime$battleCinematic(BlockGetter level, Entity entity, boolean detachedArg, boolean mirrored,
 			float partialTick, CallbackInfo ci) {
 		Camera camera = (Camera) (Object) this;
-		BattleCinematic.CameraPose pose = BattleCinematic.cameraPose(camera, partialTick);
+		BattleCinematic.CameraPose pose = com.mystaria.showtime.gui.MenuPreview.cameraPose(camera, partialTick);
+		if (pose == null) {
+			pose = BattleCinematic.cameraPose(camera, partialTick);
+		}
 		if (pose == null) {
 			pose = com.mystaria.showtime.battle.BattleCameraDirector.cameraPose(camera, partialTick);
 			// A Mega Evolution / Z-Move / Terastallization takes the camera, blending from and back to the shot below.

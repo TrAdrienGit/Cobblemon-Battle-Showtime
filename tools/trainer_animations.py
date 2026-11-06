@@ -28,6 +28,7 @@ DEFAULTS = {
 
 # Elbows and knees bend (bendy-lib, shipped with Emotecraft). Signs checked in game by Adrien 2026-10-30.
 ELBOW = -1
+FULL_TURN = 6.2832
 KNEE = 1
 
 # The battle guard (Battle Revolution, Adrien's references and feedback 2026-10-30): right foot a little forward, left a
@@ -226,13 +227,18 @@ ANIMATIONS += [
         (0, "INOUTSINE", merge(neutral(), GUARD)),
         (4, "INQUAD", {"torso": {"yaw": 0.3}, "rightArm": {"pitch": -0.2, "roll": 1.1, "bend": ELBOW * 0.2},
                        "leftArm": {"pitch": -0.2, "roll": -0.9, "bend": ELBOW * 0.3}}),
-        (12, "INOUTSINE", {"torso": {"yaw": 2.6}, "head": {"yaw": 0.3}}),
-        (18, "OUTQUAD", {"torso": {"yaw": -0.25, "pitch": -0.1}, "head": {"pitch": 0.1, "yaw": 0.25},
+        (12, "INOUTSINE", {"torso": {"yaw": 3.2}, "head": {"yaw": 0.3}}),
+        (18, "OUTQUAD", {"torso": {"yaw": FULL_TURN - 0.25, "pitch": -0.1}, "head": {"pitch": 0.1, "yaw": 0.25},
                          "rightArm": {"pitch": -2.3, "roll": 0, "bend": ELBOW * 0.1},
                          "leftArm": {"pitch": -0.4, "roll": -0.1, "bend": ELBOW * 0.6}}),
-        (22, "OUTQUAD", {"torso": {"yaw": -0.35, "pitch": -0.12}, "head": {"yaw": 0.35},
+        (22, "OUTQUAD", {"torso": {"yaw": FULL_TURN - 0.35, "pitch": -0.12}, "head": {"yaw": 0.35},
                          "rightArm": {"pitch": -1.0, "yaw": -0.3}}),
-        (32, "INOUTSINE", GUARD),
+        (32, "INOUTSINE", merge(GUARD, {"torso": {"yaw": FULL_TURN}})),
+        # The full turn looks like no turn: the yaw snaps back to 0 unseen, or the fade into the next animation, which
+        # blends the numbers, would unwind the whole turn. CONSTANT holds the value instead of sweeping through it.
+        (33, "CONSTANT", {}),
+        (34, "CONSTANT", {"torso": {"yaw": 0}}),
+        (35, "INOUTSINE", {}),
     ]),
 
     animation("recall_overhead", "Calls a Pokemon back: the ball raised high, then brought down to the chest.", [

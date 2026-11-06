@@ -49,7 +49,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(MENU_KEY);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			while (MENU_KEY.consumeClick()) {
-				client.setScreen(new com.mystaria.showtime.gui.SettingsScreen(null));
+				client.setScreen(new com.mystaria.showtime.gui.ShowtimeMenuScreen(null));
 			}
 			BattleCinematic.tick();
 			BattleShowtime.tick();

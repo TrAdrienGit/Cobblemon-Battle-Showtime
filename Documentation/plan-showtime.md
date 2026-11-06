@@ -51,6 +51,10 @@
   reculant au-delà de la distance d'affichage des entités.
 - `LivingEntityRendererFacingMixin` : pendant le combat, chaque dresseur est dessiné tourné vers son adversaire.
 
+## Menu (Adrien 2026-11-06)
+
+`gui/ShowtimeMenuScreen`, sur la touche N et par Mod Menu : un menu propre à Showtime, organisé comme une app web (catégories à gauche, sections, liste de choix). Il reprend de Cobblemon la palette, les flèches et le bouton retour, pas la disposition de son PC. Pour les animations et les ambiances, une fenêtre sur le vrai monde (`gui/MenuPreview`) montre le dresseur avec la sélection. Pas d'aperçu pendant un combat. À terme, les commandes `/showtime preview` disparaîtront : ce sont des commandes de debug.
+
 ## Reste à faire
 
 - **Ambiance vue de loin** (Adrien 2026-11-02, fait 2026-11-03, validé 2026-11-06) : un joueur qui voit le terrain d'un combat sans le regarder reçoit son ambiance (`BattleFieldAmbiance`) ; `BattleAmbiance.startDistant` la joue autour du terrain seulement, et ce qui change tout le monde (heure, ciel, brouillard, météo, filtre, son, monde caché de Cosmos) seulement quand il se tient dans le cercle du terrain. Limite : avec Sodium, effacer les blocs **à l'intérieur** du cercle seulement n'est pas possible simplement — Cosmos cache tout le monde dès qu'on entre dans le cercle.

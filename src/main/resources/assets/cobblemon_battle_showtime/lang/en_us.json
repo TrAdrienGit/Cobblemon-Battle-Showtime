@@ -72,5 +72,11 @@
   "cobblemon_battle_showtime.ambiance.cosmos": "Cosmos",
   "cobblemon_battle_showtime.ambiance.silver_screen": "Silver screen",
   "cobblemon_battle_showtime.ambiance.arcade": "Arcade",
-  "cobblemon_battle_showtime.ambiance.corrupted": "Corrupted"
+  "cobblemon_battle_showtime.ambiance.corrupted": "Corrupted",
+  "cobblemon_battle_showtime.menu.category.settings": "Settings",
+  "cobblemon_battle_showtime.menu.category.animations": "Animations",
+  "cobblemon_battle_showtime.menu.category.ambiances": "Ambiances",
+  "cobblemon_battle_showtime.menu.category.music": "Music",
+  "cobblemon_battle_showtime.menu.preview": "Preview",
+  "cobblemon_battle_showtime.menu.no_preview": "No preview during a battle"
 }

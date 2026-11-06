@@ -22,6 +22,7 @@ abstract class LivingEntityRendererFacingMixin {
 	private void showtime$faceOpponent(Args args) {
 		LivingEntity entity = args.get(0);
 		float bodyYaw = args.get(3);
-		args.set(3, TrainerEmotes.facingYaw(entity, bodyYaw));
+		Float preview = com.mystaria.showtime.gui.MenuPreview.facingYaw(entity);
+		args.set(3, preview != null ? preview : TrainerEmotes.facingYaw(entity, bodyYaw));
 	}
 }
