@@ -53,7 +53,7 @@
 
 ## Reste à faire
 
-- **Ambiance vue de loin** (Adrien 2026-11-02, fait 2026-11-03) : un joueur qui voit le terrain d'un combat sans le regarder reçoit son ambiance (`BattleFieldAmbiance`) ; `BattleAmbiance.startDistant` la joue autour du terrain seulement, et ce qui change tout le monde (heure, ciel, brouillard, météo, filtre, son, monde caché de Cosmos) seulement quand il se tient dans le cercle du terrain. Limite : avec Sodium, effacer les blocs **à l'intérieur** du cercle seulement n'est pas possible simplement — Cosmos cache tout le monde dès qu'on entre dans le cercle.
+- **Ambiance vue de loin** (Adrien 2026-11-02, fait 2026-11-03, validé 2026-11-06) : un joueur qui voit le terrain d'un combat sans le regarder reçoit son ambiance (`BattleFieldAmbiance`) ; `BattleAmbiance.startDistant` la joue autour du terrain seulement, et ce qui change tout le monde (heure, ciel, brouillard, météo, filtre, son, monde caché de Cosmos) seulement quand il se tient dans le cercle du terrain. Limite : avec Sodium, effacer les blocs **à l'intérieur** du cercle seulement n'est pas possible simplement — Cosmos cache tout le monde dès qu'on entre dans le cercle.
 
 - Plan « Vos regards se croisent » **supprimé** (Adrien 2026-11-01 : les dresseurs y restaient invisibles chez lui) :
   l'intro commence directement à son balayage, depuis la vue du joueur.
@@ -61,10 +61,13 @@
   moyen de garder les flexions apparaît.
 - Spectateurs d'un combat Ghost : leur transmettre l'ambiance du lobby.
 
-## Points à vérifier
+## Points vérifiés (validés le 2026-11-06)
 
 - Emotecraft / bibliothèque d'animation : jouer une animation sur un **autre** joueur (et sur un avatar de Hub)
   côté client, sans passer par le serveur.
+- Shaders (Iris) : les ambiances restent correctes avec et sans shaders.
+
+## Point à vérifier
+
 - Effets d'attaque Cobblemon : les « action effects » sont des données serveur ; sur un serveur multijoueur, les
   nôtres ne peuvent que s'y ajouter si le client ne peut pas les couper.
-- Shaders (Iris) : les ambiances doivent rester correctes avec et sans shaders.
