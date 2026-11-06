@@ -35,6 +35,7 @@ public final class BattleCameraDirector {
 	private static final float ACTION_HOLD_SECONDS = 3.2f;
 	private static final float FOCUS_HOLD_SECONDS = 2.6f;
 	private static final float KNOCK_OUT_HOLD_SECONDS = 3.0f;
+	private static final float OPENING_HOLD_SECONDS = 3.6f;
 
 	private enum Kind { ORBIT, DOLLY, CRANE, SHOULDER, CLOSE_UP, SWEEP, LOW_ANGLE, SPIRAL }
 
@@ -52,6 +53,9 @@ public final class BattleCameraDirector {
 	private static boolean battleActive;
 	private static BattleStage stage;
 	private static boolean enabled = true;
+	private static com.mystaria.showtime.config.ShowtimeConfig.Kind battleKind;
+	/** The match's first throw hasn't been filmed yet. */
+	private static boolean openingPending;
 
 	private static Shot shot;
 	private static long shotStart;
@@ -79,6 +83,8 @@ public final class BattleCameraDirector {
 	/** Same, for this kind of battle: the camera starts staged or free as the player set it (settings screen). */
 	public static void start(BattleStage battleStage, com.mystaria.showtime.config.ShowtimeConfig.Kind kind) {
 		enabled = com.mystaria.showtime.config.ShowtimeConfig.battle(kind).stagedCamera;
+		battleKind = kind;
+		openingPending = true;
 		stage = battleStage;
 		battleActive = battleStage != null;
 		shot = null;
@@ -148,14 +154,33 @@ public final class BattleCameraDirector {
 
 	/** A Pokémon is knocked out: the moment of the match, cut straight to it. */
 	public static void onKnockOut(Entity entity) {
-		if (!battleActive || entity == null) {
-			return;
+		if (battleActive && entity != null) {
+			cutTo(following(entity), KNOCK_OUT_HOLD_SECONDS, true);
 		}
-		cutTo((field, t) -> {
+	}
+
+	/**
+	 * A ball is thrown: the match's first is filmed. An intro or Phantasmon's filmed send-outs keep the camera meanwhile
+	 * (they come first in {@code CameraMixin}): this shot simply isn't seen then.
+	 */
+	public static void onThrow(Entity entity) {
+		if (battleActive && openingPending && entity != null) {
+			openingPending = false;
+			cutTo(following(entity), OPENING_HOLD_SECONDS, true);
+		}
+	}
+
+	private static Shot following(Entity entity) {
+		return (field, t) -> {
 			Vec3 at = entity.position();
 			Vec3 other = at.distanceToSqr(field.local()) < at.distanceToSqr(field.opponent()) ? field.opponent() : field.local();
 			return closeUpPose(at, other, entity, t);
-		}, KNOCK_OUT_HOLD_SECONDS, true);
+		};
+	}
+
+	/** Whether this battle plays the Ball effects (a battle seen from afar, with no settings of its own, does). */
+	public static boolean ballEffects() {
+		return !battleActive || battleKind == null || com.mystaria.showtime.config.ShowtimeConfig.battle(battleKind).ballEffects;
 	}
 
 	// =====================================================================

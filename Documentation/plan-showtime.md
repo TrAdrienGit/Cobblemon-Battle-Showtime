@@ -70,6 +70,8 @@
 
 **P1.4, K.O. (validé 2026-11-06)** : un rappel alors qu'un Pokémon actif est à 0 PV est un K.O. (`BallSignals`, Cobblemon ne l'annonce qu'après le rappel). `BallRecall` joue alors un éclat blanc, trois ondes lourdes et des cendres, et `BattleCameraDirector.onKnockOut` coupe sur un plan rapproché de 3 s. Pas de vraie chute du modèle : c'est l'animation de Cobblemon.
 
+**P1.5 et P1.6 (faits 2026-11-06, à valider en jeu)** : les combats Ghost filmaient déjà leurs sorties (`BattleCinematic`). `BattleCameraDirector.onThrow` filme le premier lancer d'un combat classique ; en PvP avec intro, le serveur lance pendant l'intro, donc ce plan n'est pas vu. Interrupteur « Effets de Ball » dans Réglages, par type de combat : il coupe l'ouverture et le rappel, pas les animations du dresseur ni les plans.
+
 ## Reste à faire
 
 - **Ambiance vue de loin** (Adrien 2026-11-02, fait 2026-11-03, validé 2026-11-06) : un joueur qui voit le terrain d'un combat sans le regarder reçoit son ambiance (`BattleFieldAmbiance`) ; `BattleAmbiance.startDistant` la joue autour du terrain seulement, et ce qui change tout le monde (heure, ciel, brouillard, météo, filtre, son, monde caché de Cosmos) seulement quand il se tient dans le cercle du terrain. Limite : avec Sodium, effacer les blocs **à l'intérieur** du cercle seulement n'est pas possible simplement — Cosmos cache tout le monde dès qu'on entre dans le cercle.

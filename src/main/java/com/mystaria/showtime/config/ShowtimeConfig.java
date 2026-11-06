@@ -40,6 +40,7 @@ public final class ShowtimeConfig {
 		public boolean stagedCamera = true;
 		public boolean intro = true;
 		public boolean music = true;
+		public boolean ballEffects = true;
 	}
 
 	/** The file's content. */

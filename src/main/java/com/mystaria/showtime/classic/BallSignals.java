@@ -56,7 +56,11 @@ public final class BallSignals {
 		// The owner alone doesn't tell: it can reach this client after the beam mode, on a Pokémon sent out for a walk.
 		boolean inBattle = entity.isBattling()
 				|| owner == null && com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() != null;
+		boolean effects = inBattle && com.mystaria.showtime.battle.BattleCameraDirector.ballEffects();
 		if (mode == THROWN && inBattle) {
+			com.mystaria.showtime.battle.BattleCameraDirector.onThrow(entity);
+		}
+		if (mode == THROWN && effects) {
 			com.mystaria.showtime.move.BallOpening.start(entity);
 		}
 		Moment moment = mode == THROWN ? Moment.SEND_OUT : mode == RECALLED ? Moment.RECALL : null;
@@ -67,7 +71,9 @@ public final class BallSignals {
 		Entity thrower = entity.level().getEntity(entity.getPhasingTargetId());
 		if (mode == RECALLED && inBattle) {
 			boolean knockedOut = knockedOut();
-			com.mystaria.showtime.move.BallRecall.start(entity, thrower, knockedOut);
+			if (effects) {
+				com.mystaria.showtime.move.BallRecall.start(entity, thrower, knockedOut);
+			}
 			if (knockedOut) {
 				com.mystaria.showtime.battle.BattleCameraDirector.onKnockOut(entity);
 			}

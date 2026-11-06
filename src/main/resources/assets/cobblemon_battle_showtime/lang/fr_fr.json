@@ -78,5 +78,6 @@
   "cobblemon_battle_showtime.menu.category.ambiances": "Ambiances",
   "cobblemon_battle_showtime.menu.category.music": "Musique",
   "cobblemon_battle_showtime.menu.preview": "Aperçu",
-  "cobblemon_battle_showtime.menu.no_preview": "Pas d'aperçu en combat"
+  "cobblemon_battle_showtime.menu.no_preview": "Pas d'aperçu en combat",
+  "cobblemon_battle_showtime.settings.ball_effects": "Effets de Ball"
 }

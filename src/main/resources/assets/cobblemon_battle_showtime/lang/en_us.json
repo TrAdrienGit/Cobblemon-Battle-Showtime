@@ -78,5 +78,6 @@
   "cobblemon_battle_showtime.menu.category.ambiances": "Ambiances",
   "cobblemon_battle_showtime.menu.category.music": "Music",
   "cobblemon_battle_showtime.menu.preview": "Preview",
-  "cobblemon_battle_showtime.menu.no_preview": "No preview during a battle"
+  "cobblemon_battle_showtime.menu.no_preview": "No preview during a battle",
+  "cobblemon_battle_showtime.settings.ball_effects": "Ball effects"
 }
