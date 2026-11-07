@@ -670,9 +670,8 @@ public final class BattleAmbiance {
 
 	private static void drawRifts(PoseStack pose, MultiBufferSource buffers, Ambiance.Rifts rifts, float partialTick) {
 		int color = Ambiance.color(rifts.color, 0xB400FF);
-		VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
-		VertexConsumer core = buffers.getBuffer(RenderType.entityCutoutNoCull(
-				ResourceLocation.withDefaultNamespace("textures/block/black_concrete.png")));
+		// One buffer at a time: asking for another render type finishes the previous one (without Iris at least).
+		RenderType coreType = RenderType.entityCutoutNoCull(ResourceLocation.withDefaultNamespace("textures/block/black_concrete.png"));
 		Matrix4f m = pose.last().pose();
 		for (int i = 0; i < RIFT_ANGLES.size(); i++) {
 			float open = riftOpening(i, partialTick);
@@ -694,8 +693,12 @@ public final class BattleAmbiance {
 				left[s] = mid.add(across.scale(-wide / 2));
 				right[s] = mid.add(across.scale(wide / 2));
 			}
+			VertexConsumer core = buffers.getBuffer(coreType);
 			for (int s = 0; s < steps; s++) {
 				coreQuad(core, m, left[s], right[s], right[s + 1], left[s + 1]);
+			}
+			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+			for (int s = 0; s < steps; s++) {
 				// The burning rim, out on both sides.
 				Vec3 outL = across.scale(-0.35 * open);
 				Vec3 outR = across.scale(0.35 * open);
@@ -774,9 +777,7 @@ public final class BattleAmbiance {
 	/** A solar system: shaded spheres (lit from the first sun) turning around the field, suns glowing, rings. */
 	private static void drawPlanets(PoseStack pose, MultiBufferSource buffers, float time) {
 		Matrix4f m = pose.last().pose();
-		VertexConsumer solid = buffers.getBuffer(RenderType.entityCutoutNoCull(
-				ResourceLocation.withDefaultNamespace("textures/block/white_concrete.png")));
-		VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		RenderType solidType = RenderType.entityCutoutNoCull(ResourceLocation.withDefaultNamespace("textures/block/white_concrete.png"));
 		List<Vec3> places = new ArrayList<>();
 		Vec3 sun = null;
 		for (Ambiance.Planet planet : active.planets) {
@@ -792,8 +793,12 @@ public final class BattleAmbiance {
 			Vec3 at = places.get(p);
 			int color = Ambiance.color(planet.color, 0x9FB8FF);
 			Vec3 light = sun == null || planet.glow ? new Vec3(0, 1, 0) : sun.subtract(at).normalize();
-			sphere(planet.glow ? glow : solid, m, at, planet.size, color, light, planet.glow);
+			if (!planet.glow) {
+				sphere(buffers.getBuffer(solidType), m, at, planet.size, color, light, false);
+			}
+			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 			if (planet.glow) {
+				sphere(glow, m, at, planet.size, color, light, true);
 				// Its halo: a bigger, faint glowing sphere.
 				sphere(glow, m, at, planet.size * 1.6f, color, light, true);
 			}
