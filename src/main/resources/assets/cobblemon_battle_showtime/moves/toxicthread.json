@@ -1,0 +1,29 @@
+{
+  "category": "status",
+  "color": "#A040D0",
+  "accent": "#E8A0FF",
+  "layers": [
+    {
+      "motif": "lob",
+      "phase": "travel"
+    },
+    {
+      "motif": "splat",
+      "phase": "hit",
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    },
+    {
+      "motif": "cloud",
+      "phase": "hit",
+      "duration": 16,
+      "size": 0.8,
+      "particles": [
+        "minecraft:witch",
+        "minecraft:squid_ink"
+      ]
+    }
+  ]
+}

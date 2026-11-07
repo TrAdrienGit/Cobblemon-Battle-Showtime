@@ -1,0 +1,89 @@
+{
+  "category": "physical",
+  "color": "#6A40FF",
+  "accent": "#C8B0FF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 20,
+      "size": 2,
+      "particles": [
+        "minecraft:dragon_breath"
+      ]
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "bite",
+      "phase": "hit",
+      "size": 2.2,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "size": 2,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    }
+  ],
+  "size": 1.6
+}

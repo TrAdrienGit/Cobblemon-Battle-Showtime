@@ -1,0 +1,23 @@
+{
+  "category": "special",
+  "color": "#7A4CC8",
+  "accent": "#D0B0FF",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "beam",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ]
+}

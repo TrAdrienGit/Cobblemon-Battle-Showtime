@@ -1,0 +1,14 @@
+{
+  "category": "status",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "heal",
+      "phase": "self",
+      "particles": [
+        "minecraft:happy_villager"
+      ]
+    }
+  ]
+}

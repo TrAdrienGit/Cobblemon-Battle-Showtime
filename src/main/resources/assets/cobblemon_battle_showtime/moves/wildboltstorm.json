@@ -1,0 +1,16 @@
+{
+  "category": "special",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 22,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

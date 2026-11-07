@@ -1,0 +1,20 @@
+{
+  "category": "special",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "sound_rings",
+      "phase": "travel",
+      "duration": 14
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "category": "status",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "bolt",
+      "phase": "travel"
+    },
+    {
+      "motif": "sparks_on",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

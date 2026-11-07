@@ -1,0 +1,83 @@
+{
+  "category": "physical",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "orb",
+      "phase": "travel",
+      "size": 2.6
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "duration": 28,
+      "size": 2.2,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "heat_wave",
+      "phase": "hit",
+      "duration": 20,
+      "size": 1.8,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:lava"
+      ]
+    }
+  ],
+  "size": 1.6
+}

@@ -1,0 +1,27 @@
+{
+  "category": "physical",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "freeze",
+      "phase": "hit",
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    }
+  ]
+}

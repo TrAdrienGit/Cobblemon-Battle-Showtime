@@ -1,0 +1,87 @@
+{
+  "category": "physical",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "sparks_on",
+      "phase": "wind",
+      "duration": 20,
+      "size": 2
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "size": 2.4,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    },
+    {
+      "motif": "sky_bolt",
+      "phase": "hit",
+      "duration": 20,
+      "size": 2,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ],
+  "size": 1.6
+}

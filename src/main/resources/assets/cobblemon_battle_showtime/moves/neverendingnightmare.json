@@ -1,0 +1,83 @@
+{
+  "category": "physical",
+  "color": "#7A4CC8",
+  "accent": "#D0B0FF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "dark_rings",
+      "phase": "travel",
+      "duration": 18,
+      "size": 2
+    },
+    {
+      "motif": "shadow_hand",
+      "phase": "hit",
+      "size": 2,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    },
+    {
+      "motif": "wisps",
+      "phase": "hit",
+      "duration": 30,
+      "size": 2,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ],
+  "size": 1.6
+}

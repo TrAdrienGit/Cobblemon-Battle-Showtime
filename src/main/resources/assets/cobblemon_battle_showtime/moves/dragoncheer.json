@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#6A40FF",
+  "accent": "#C8B0FF",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "hit",
+      "duration": 20,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    }
+  ]
+}

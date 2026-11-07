@@ -1,0 +1,14 @@
+{
+  "category": "status",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:end_rod"
+      ]
+    }
+  ]
+}

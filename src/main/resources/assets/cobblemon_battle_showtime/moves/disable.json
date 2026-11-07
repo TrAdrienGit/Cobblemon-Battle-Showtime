@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#E8E2D0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "taunt",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "category": "status",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:electric_spark"
+      ]
+    }
+  ]
+}

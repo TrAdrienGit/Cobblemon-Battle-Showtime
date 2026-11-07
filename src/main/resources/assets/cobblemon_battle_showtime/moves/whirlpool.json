@@ -1,0 +1,16 @@
+{
+  "category": "special",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 22,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

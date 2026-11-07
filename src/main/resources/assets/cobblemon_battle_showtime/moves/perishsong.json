@@ -1,0 +1,21 @@
+{
+  "category": "status",
+  "color": "#E8E2D0",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "sound_rings",
+      "phase": "travel",
+      "duration": 14
+    },
+    {
+      "motif": "notes",
+      "phase": "hit",
+      "duration": 16,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

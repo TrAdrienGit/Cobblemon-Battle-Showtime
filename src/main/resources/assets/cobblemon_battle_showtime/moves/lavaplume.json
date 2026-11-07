@@ -1,0 +1,12 @@
+{
+  "category": "special",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "heat_wave",
+      "phase": "travel",
+      "duration": 20
+    }
+  ]
+}

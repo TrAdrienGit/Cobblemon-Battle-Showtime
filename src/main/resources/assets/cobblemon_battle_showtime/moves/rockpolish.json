@@ -1,0 +1,18 @@
+{
+  "category": "status",
+  "color": "#B8A058",
+  "accent": "#F0E0A8",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "dance",
+      "phase": "self"
+    }
+  ]
+}

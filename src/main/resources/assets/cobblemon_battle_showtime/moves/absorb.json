@@ -1,0 +1,29 @@
+{
+  "category": "special",
+  "color": "#48C840",
+  "accent": "#D0FF88",
+  "layers": [
+    {
+      "motif": "orb_leaves",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    },
+    {
+      "motif": "heal",
+      "phase": "hit",
+      "delay": 6,
+      "duration": 16,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:composter"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "category": "special",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "psy_shards",
+      "phase": "travel"
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "size": 0.7,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "category": "status",
+  "color": "#6A40FF",
+  "accent": "#C8B0FF",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:dragon_breath"
+      ]
+    },
+    {
+      "motif": "shell",
+      "phase": "self",
+      "duration": 12,
+      "delay": 14
+    }
+  ]
+}

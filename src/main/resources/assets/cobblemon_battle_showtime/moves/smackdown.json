@@ -1,0 +1,16 @@
+{
+  "category": "physical",
+  "color": "#B8A058",
+  "accent": "#F0E0A8",
+  "layers": [
+    {
+      "motif": "fall_rocks",
+      "phase": "hit",
+      "count": 5,
+      "duration": 22,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "category": "status",
+  "color": "#7A4CC8",
+  "accent": "#D0B0FF",
+  "layers": [
+    {
+      "motif": "psy_shards",
+      "phase": "travel"
+    },
+    {
+      "motif": "notes",
+      "phase": "hit",
+      "duration": 20,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ]
+}

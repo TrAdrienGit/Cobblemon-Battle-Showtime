@@ -1,0 +1,20 @@
+{
+  "category": "special",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "sound_rings",
+      "phase": "travel",
+      "duration": 14
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "category": "special",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "wave",
+      "phase": "travel",
+      "duration": 20
+    },
+    {
+      "motif": "splash",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

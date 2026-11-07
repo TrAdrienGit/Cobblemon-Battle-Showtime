@@ -1,0 +1,18 @@
+{
+  "category": "status",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "cloud",
+      "phase": "self",
+      "size": 2.0,
+      "duration": 24
+    },
+    {
+      "motif": "rays",
+      "phase": "self",
+      "duration": 16
+    }
+  ]
+}

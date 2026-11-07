@@ -1,0 +1,29 @@
+{
+  "category": "physical",
+  "color": "#A8D020",
+  "accent": "#F0FF90",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "heal",
+      "phase": "hit",
+      "delay": 6,
+      "duration": 16,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    }
+  ]
+}

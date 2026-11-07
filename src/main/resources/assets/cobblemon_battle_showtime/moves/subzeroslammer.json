@@ -1,0 +1,84 @@
+{
+  "category": "physical",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "ice_beam",
+      "phase": "travel",
+      "size": 2
+    },
+    {
+      "motif": "fall_rocks",
+      "phase": "hit",
+      "count": 8,
+      "block": "minecraft:packed_ice",
+      "duration": 26,
+      "size": 2,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "freeze",
+      "phase": "hit",
+      "size": 2.2,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:snowflake",
+        "minecraft:end_rod"
+      ]
+    }
+  ],
+  "size": 1.6
+}

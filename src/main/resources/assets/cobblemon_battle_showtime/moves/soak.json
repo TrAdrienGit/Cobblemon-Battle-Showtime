@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "hit",
+      "duration": 20,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

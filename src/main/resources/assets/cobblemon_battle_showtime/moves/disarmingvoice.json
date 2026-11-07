@@ -1,0 +1,20 @@
+{
+  "category": "special",
+  "color": "#FF8CD8",
+  "accent": "#FFE4F6",
+  "layers": [
+    {
+      "motif": "sound_rings",
+      "phase": "travel",
+      "duration": 14
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    }
+  ]
+}

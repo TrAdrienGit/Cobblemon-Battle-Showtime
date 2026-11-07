@@ -1,0 +1,83 @@
+{
+  "category": "physical",
+  "color": "#A8D020",
+  "accent": "#F0FF90",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "web",
+      "phase": "travel",
+      "duration": 14,
+      "size": 1.8
+    },
+    {
+      "motif": "spin",
+      "phase": "hit",
+      "duration": 20,
+      "size": 1.6,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "size": 1.8,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    }
+  ],
+  "size": 1.6
+}

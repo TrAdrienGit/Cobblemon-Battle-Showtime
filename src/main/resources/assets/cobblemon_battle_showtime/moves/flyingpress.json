@@ -1,0 +1,28 @@
+{
+  "category": "physical",
+  "color": "#E8502A",
+  "accent": "#FFC080",
+  "layers": [
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "wings",
+      "phase": "hit",
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "size": 0.5,
+      "particles": [
+        "minecraft:crit",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

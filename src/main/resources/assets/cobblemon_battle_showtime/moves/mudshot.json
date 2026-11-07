@@ -1,0 +1,18 @@
+{
+  "category": "special",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "orb",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

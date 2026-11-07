@@ -1,0 +1,20 @@
+{
+  "category": "physical",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "jets_water",
+      "phase": "travel",
+      "count": 2
+    },
+    {
+      "motif": "splash",
+      "phase": "hit",
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ]
+}

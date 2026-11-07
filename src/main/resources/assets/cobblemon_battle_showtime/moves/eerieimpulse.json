@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#FFD81A",
+  "accent": "#FFFFB0",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "hit",
+      "duration": 20,
+      "particles": [
+        "minecraft:electric_spark",
+        "minecraft:wax_off"
+      ]
+    }
+  ]
+}

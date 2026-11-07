@@ -1,0 +1,82 @@
+{
+  "category": "physical",
+  "color": "#2E8BFF",
+  "accent": "#B8ECFF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "wave",
+      "phase": "travel",
+      "duration": 22,
+      "size": 1.8
+    },
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 22,
+      "size": 1.6,
+      "particles": [
+        "minecraft:splash"
+      ]
+    },
+    {
+      "motif": "splash",
+      "phase": "hit",
+      "size": 2.2,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
+    }
+  ],
+  "size": 1.6
+}

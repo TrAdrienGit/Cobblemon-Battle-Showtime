@@ -1,0 +1,79 @@
+{
+  "category": "special",
+  "color": "#FF8CD8",
+  "accent": "#FFE4F6",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "fall_rocks",
+      "phase": "hit",
+      "count": 1,
+      "block": "minecraft:chiseled_stone_bricks",
+      "duration": 30,
+      "size": 4,
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "size": 2.4,
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:end_rod",
+        "minecraft:cherry_leaves"
+      ]
+    }
+  ],
+  "size": 1.6
+}

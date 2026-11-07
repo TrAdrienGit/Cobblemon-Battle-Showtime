@@ -1,0 +1,36 @@
+{
+  "category": "physical",
+  "color": "#6A40FF",
+  "accent": "#C8B0FF",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 20,
+      "particles": [
+        "minecraft:dragon_breath"
+      ]
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "size": 1.2,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "category": "special",
+  "color": "#B8A058",
+  "accent": "#F0E0A8",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "beam",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "category": "status",
+  "color": "#B0D0FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "glare",
+      "phase": "hit",
+      "duration": 20,
+      "particles": [
+        "minecraft:cloud",
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

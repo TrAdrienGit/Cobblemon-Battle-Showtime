@@ -1,0 +1,15 @@
+{
+  "category": "special",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "tornado",
+      "phase": "hit",
+      "duration": 22,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

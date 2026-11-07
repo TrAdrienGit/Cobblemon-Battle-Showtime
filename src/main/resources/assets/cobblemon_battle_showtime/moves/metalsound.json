@@ -1,0 +1,12 @@
+{
+  "category": "status",
+  "color": "#B8C8D8",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "sound_rings",
+      "phase": "travel",
+      "duration": 14
+    }
+  ]
+}

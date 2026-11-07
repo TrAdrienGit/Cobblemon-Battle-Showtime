@@ -1,0 +1,78 @@
+{
+  "category": "physical",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "cracks",
+      "phase": "travel",
+      "duration": 14,
+      "size": 1.8
+    },
+    {
+      "motif": "pillars",
+      "phase": "hit",
+      "size": 2,
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "duration": 26,
+      "size": 1.6,
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:poof"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ],
+  "size": 1.6
+}

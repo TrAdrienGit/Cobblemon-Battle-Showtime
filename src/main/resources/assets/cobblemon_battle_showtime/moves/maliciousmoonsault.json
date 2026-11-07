@@ -1,0 +1,87 @@
+{
+  "category": "physical",
+  "color": "#6A3060",
+  "accent": "#E05A90",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "lift",
+      "phase": "wind",
+      "duration": 16,
+      "size": 1.6
+    },
+    {
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "size": 2.4,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "flames_on",
+      "phase": "hit",
+      "duration": 24,
+      "size": 2,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:squid_ink",
+        "minecraft:smoke"
+      ]
+    }
+  ],
+  "size": 1.6
+}

@@ -1,0 +1,11 @@
+{
+  "category": "physical",
+  "color": "#FF6A1A",
+  "accent": "#FFD040",
+  "layers": [
+    {
+      "motif": "stream_fire",
+      "phase": "travel"
+    }
+  ]
+}

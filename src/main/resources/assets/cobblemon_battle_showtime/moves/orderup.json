@@ -1,0 +1,24 @@
+{
+  "category": "physical",
+  "color": "#6A40FF",
+  "accent": "#C8B0FF",
+  "layers": [
+    {
+      "motif": "gather",
+      "phase": "wind"
+    },
+    {
+      "motif": "beam",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "size": 1.2,
+      "particles": [
+        "minecraft:dragon_breath",
+        "minecraft:reverse_portal"
+      ]
+    }
+  ]
+}

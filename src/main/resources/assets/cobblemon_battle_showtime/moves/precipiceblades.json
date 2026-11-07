@@ -1,0 +1,19 @@
+{
+  "category": "physical",
+  "color": "#C89A48",
+  "accent": "#F0D890",
+  "layers": [
+    {
+      "motif": "quake",
+      "phase": "travel",
+      "duration": 22
+    },
+    {
+      "motif": "cracks",
+      "phase": "hit",
+      "particles": [
+        "minecraft:poof"
+      ]
+    }
+  ]
+}

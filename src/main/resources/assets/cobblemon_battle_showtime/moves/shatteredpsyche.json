@@ -1,0 +1,87 @@
+{
+  "category": "physical",
+  "color": "#FF4FA8",
+  "accent": "#FFC0E8",
+  "layers": [
+    {
+      "motif": "engulf",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "rays",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.8
+    },
+    {
+      "motif": "gather",
+      "phase": "wind",
+      "duration": 30,
+      "size": 1.6
+    },
+    {
+      "motif": "lift",
+      "phase": "hit",
+      "duration": 24,
+      "size": 1.8,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    },
+    {
+      "motif": "psy_shards",
+      "phase": "hit",
+      "size": 2.2,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    },
+    {
+      "motif": "impact",
+      "phase": "hit",
+      "delay": 16,
+      "size": 2,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    },
+    {
+      "motif": "rays",
+      "phase": "hit",
+      "delay": 4,
+      "duration": 26,
+      "size": 2.2,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "delay": 6,
+      "size": 2.4,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    },
+    {
+      "motif": "quake",
+      "phase": "hit",
+      "delay": 8,
+      "duration": 20,
+      "size": 1.2,
+      "particles": [
+        "minecraft:enchant",
+        "minecraft:glow"
+      ]
+    }
+  ],
+  "size": 1.6
+}

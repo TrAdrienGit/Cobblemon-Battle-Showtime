@@ -1,0 +1,14 @@
+{
+  "category": "status",
+  "color": "#A040D0",
+  "accent": "#E8A0FF",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:witch"
+      ]
+    }
+  ]
+}

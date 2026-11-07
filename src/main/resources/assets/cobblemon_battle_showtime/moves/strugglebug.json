@@ -1,0 +1,19 @@
+{
+  "category": "special",
+  "color": "#A8D020",
+  "accent": "#F0FF90",
+  "layers": [
+    {
+      "motif": "orb",
+      "phase": "travel"
+    },
+    {
+      "motif": "burst",
+      "phase": "hit",
+      "particles": [
+        "minecraft:happy_villager",
+        "minecraft:crit"
+      ]
+    }
+  ]
+}

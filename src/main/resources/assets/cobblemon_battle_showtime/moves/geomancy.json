@@ -1,0 +1,20 @@
+{
+  "category": "status",
+  "color": "#FF8CD8",
+  "accent": "#FFE4F6",
+  "layers": [
+    {
+      "motif": "aura",
+      "phase": "self",
+      "particles": [
+        "minecraft:crit"
+      ]
+    },
+    {
+      "motif": "shell",
+      "phase": "self",
+      "duration": 12,
+      "delay": 14
+    }
+  ]
+}

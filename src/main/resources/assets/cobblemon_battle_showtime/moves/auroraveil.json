@@ -1,0 +1,12 @@
+{
+  "category": "status",
+  "color": "#7FE6FF",
+  "accent": "#FFFFFF",
+  "layers": [
+    {
+      "motif": "wall",
+      "phase": "self",
+      "duration": 20
+    }
+  ]
+}
