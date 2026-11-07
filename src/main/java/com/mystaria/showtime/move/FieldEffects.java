@@ -134,6 +134,15 @@ public final class FieldEffects {
 
 	// ---------------------------------------------------------------- where
 
+	/**
+	 * How far ahead of its side's Pokémon a screen stands: clear of the model, one block past its hitbox (at least the
+	 * 2.2 blocks that clear a small one; Adrien 2026-11-07).
+	 */
+	private static double wallDistance(BattleStage stage, Side side) {
+		Entity active = stage == null ? null : stage.activePokemon(side == Side.ALLY);
+		return active == null ? 2.2 : Math.max(2.2, active.getBbWidth() / 2 + 1.5);
+	}
+
 	private static Vec3 sideAnchor(BattleStage stage, Side side) {
 		Vec3 found = null;
 		if (stage != null) {
@@ -274,7 +283,7 @@ public final class FieldEffects {
 			}
 			Vec3 forward = other == null ? new Vec3(0, 0, 1) : other.subtract(anchor).multiply(1, 0, 1).normalize();
 			for (Map.Entry<String, Integer> effect : entry.getValue().entrySet()) {
-				drawSide(pose, buffers, camera, anchor, forward, effect.getKey(), effect.getValue(), t);
+				drawSide(pose, buffers, camera, anchor, forward, wallDistance(stage, entry.getKey()), effect.getKey(), effect.getValue(), t);
 			}
 		}
 		buffers.endBatch();
@@ -446,7 +455,7 @@ public final class FieldEffects {
 		}
 	}
 
-	private static void drawSide(PoseStack pose, MultiBufferSource buffers, Vec3 camera, Vec3 anchor, Vec3 forward, String effect,
+	private static void drawSide(PoseStack pose, MultiBufferSource buffers, Vec3 camera, Vec3 anchor, Vec3 forward, double wallDistance, String effect,
 			int layers, float t) {
 		Matrix4f m = pose.last().pose();
 		Vec3 side = forward.cross(new Vec3(0, 1, 0)).normalize();
@@ -492,7 +501,7 @@ public final class FieldEffects {
 					default -> 0x80FFD0;
 				};
 				VertexConsumer glow = buffers.getBuffer(Draw.GLOW);
-				Vec3 wall = anchor.add(forward.scale(1.2)).add(0, 1.2, 0);
+				Vec3 wall = anchor.add(forward.scale(wallDistance)).add(0, 1.2, 0);
 				float shimmer = 0.75f + 0.25f * Mth.sin(t * 0.12f + effect.hashCode());
 				if (effect.equals("auroraveil")) {
 					for (int i = 0; i < 16; i++) {
