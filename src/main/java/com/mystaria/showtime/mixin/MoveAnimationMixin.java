@@ -23,5 +23,6 @@ public abstract class MoveAnimationMixin {
 			at = @At("HEAD"))
 	private void showtime$moveStarts(PlayPosableAnimationPacket packet, Minecraft client, CallbackInfo ci) {
 		MoveEffects.onAnimation(packet);
+		com.mystaria.showtime.move.MoveLunge.onAnimation(packet);
 	}
 }

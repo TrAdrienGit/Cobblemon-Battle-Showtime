@@ -178,6 +178,7 @@ public final class MoveEffects {
 	}
 
 	public static void tick() {
+		MoveLunge.tick();
 		PLAYING.removeIf(effect -> {
 			effect.tick();
 			return effect.finished();
@@ -185,6 +186,7 @@ public final class MoveEffects {
 	}
 
 	public static void reset() {
+		MoveLunge.reset();
 		PLAYING.clear();
 	}
 
