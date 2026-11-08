@@ -152,6 +152,13 @@ public final class BattleAmbiance {
 		begin(Ambiances.get(id), mc.player == null ? List.of() : List.of(mc.player.getUUID()), PREVIEW_TICKS);
 	}
 
+	/** The menu's preview is over: ended, but never a battle's ambiance (one seen from afar included). */
+	public static void endPreview() {
+		if (previewLeft > 0) {
+			end();
+		}
+	}
+
 	public static void end() {
 		stopSound();
 		if (filterOn) {

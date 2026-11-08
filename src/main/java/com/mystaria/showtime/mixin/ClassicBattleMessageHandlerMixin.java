@@ -13,10 +13,10 @@ import net.minecraft.client.Minecraft;
 import com.mystaria.showtime.classic.ClassicBattles;
 
 /** Battle messages: moves filmed, Mega / Z / Tera staged ({@link ClassicBattles}), once Cobblemon's own handler has run. */
-@Mixin(value = BattleMessageHandler.class, remap = false)
+@Mixin(value = BattleMessageHandler.class, remap = false, priority = 500)
 public abstract class ClassicBattleMessageHandlerMixin {
 
-	@Inject(method = "handle(Lcom/cobblemon/mod/common/net/messages/client/battle/BattleMessagePacket;Lnet/minecraft/client/Minecraft;)V", at = @At("RETURN"))
+	@Inject(method = "handle(Lcom/cobblemon/mod/common/net/messages/client/battle/BattleMessagePacket;Lnet/minecraft/client/Minecraft;)V", at = @At("HEAD"))
 	private void showtime$stage(BattleMessagePacket packet, Minecraft client, CallbackInfo ci) {
 		ClassicBattles.onMessages(packet.getMessages());
 	}

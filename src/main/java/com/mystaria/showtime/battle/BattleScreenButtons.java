@@ -28,14 +28,24 @@ import com.mystaria.showtime.config.ShowtimeConfig;
  */
 public final class BattleScreenButtons {
 
+	/**
+	 * One compact card (Adrien 2026-11-08: fewer boxes on screen, room for Cobblemon Battle Extras): the track and
+	 * "next" on one row, the volume under it, then the buttons, thinner. Cobblemon's colours, as Showtime's menu.
+	 */
 	private static final int W = 124;
-	private static final int H = 18;
-	/** The player's control row. */
-	private static final int CONTROLS_H = 14;
-	private static final int GAP = 3;
-	private static final int RIGHT_INSET = 12;
-	/** Under Cobblemon's opponent tile (inset 10, tile 40 high). */
-	private static final int TOP = 58;
+	private static final int H = 14;
+	/** The volume row. */
+	private static final int CONTROLS_H = 10;
+	private static final int GAP = 2;
+	private static final int PAD = 3;
+	/** Under Cobblemon's opponent tile (inset 10, tile 40 high)... */
+	private static final int TOP_COBBLEMON = 56;
+	/** ...or under Cobblemon Battle Extras' taller one, with its stat stages. */
+	private static final int TOP_BATTLE_EXTRAS = 68;
+	private static final boolean BATTLE_EXTRAS = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("cobblemon-battle-extras");
+	private static final int TOP = (BATTLE_EXTRAS ? TOP_BATTLE_EXTRAS : TOP_COBBLEMON) + PAD;
+	/** Clear of the screen edge, or of Battle Extras' column of the opponent's team down the right edge (26 wide). */
+	private static final int RIGHT_INSET = BATTLE_EXTRAS ? 36 : 10;
 	/** The track list, left of the column. */
 	private static final int LIST_W = 160;
 	private static final int ROW = 12;
@@ -43,16 +53,23 @@ public final class BattleScreenButtons {
 	private static final int SMALL = 16;
 	private static final int NEXT_W = 22;
 
-	private static final int BG_TOP = 0xE0123A55;
-	private static final int BG_BOTTOM = 0xE00B2236;
-	private static final int BG_HOVER_TOP = 0xF01C5274;
-	private static final int BG_HOVER_BOTTOM = 0xF0123A55;
+	// Cobblemon's greys and teal, as Showtime's menu.
+	private static final int CARD = 0xE02F2F2F;
+	private static final int EDGE = 0xFF676767;
+	private static final int BG_TOP = 0xFF4B4B4B;
+	private static final int BG_BOTTOM = 0xFF3D3D3D;
+	private static final int BG_HOVER_TOP = 0xFF5A5A5A;
+	private static final int BG_HOVER_BOTTOM = 0xFF4B4B4B;
+	private static final int SHINE = 0x30FFFFFF;
 
 	private static boolean listOpen;
 	private static int listScroll;
 
 	private BattleScreenButtons() {
 	}
+
+	private static final net.minecraft.resources.ResourceLocation EARLY =
+			net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("cobblemon_battle_showtime", "early");
 
 	public static void register() {
 		ShowtimeHooks.addButton(new BattleButton(BattleButton.CAMERA_ORDER, () -> true,
@@ -63,7 +80,10 @@ public final class BattleScreenButtons {
 			if (!"BattleGUI".equals(screen.getClass().getSimpleName())) {
 				return;
 			}
-			ScreenEvents.afterRender(screen).register((current, graphics, mouseX, mouseY, tickDelta) -> {
+			// Drawn before the other mods' overlays (Battle Extras' team tooltips must cover the panel, Adrien 2026-11-08).
+			var afterRender = ScreenEvents.afterRender(screen);
+			afterRender.addPhaseOrdering(EARLY, net.fabricmc.fabric.api.event.Event.DEFAULT_PHASE);
+			afterRender.register(EARLY, (current, graphics, mouseX, mouseY, tickDelta) -> {
 				if (BattleCameraDirector.inBattle() && !BattleShowtime.playing()) {
 					render(current, graphics, mouseX, mouseY);
 				}
@@ -89,12 +109,16 @@ public final class BattleScreenButtons {
 	}
 
 	private static int controlsY() {
-		return TOP + H;
+		return TOP + H + GAP;
 	}
 
 	/** Top of the button column, under the player. */
 	private static int buttonsTop() {
-		return controlsY() + CONTROLS_H + GAP + 2;
+		return controlsY() + CONTROLS_H + GAP + 1;
+	}
+
+	private static int titleW() {
+		return W - NEXT_W - GAP;
 	}
 
 	private static int buttonY(int index) {
@@ -140,7 +164,14 @@ public final class BattleScreenButtons {
 			}
 			return true;
 		}
-		if (in(mouseX, mouseY, x, TOP, W, H)) {
+		if (in(mouseX, mouseY, x + titleW() + GAP, TOP, NEXT_W, H)) {
+			if (BattleMusic.skippable()) {
+				BattleMusic.skip();
+			}
+			sound();
+			return true;
+		}
+		if (in(mouseX, mouseY, x, TOP, titleW(), H)) {
 			listOpen = !listOpen && !tracks().isEmpty();
 			listScroll = 0;
 			sound();
@@ -148,16 +179,14 @@ public final class BattleScreenButtons {
 		}
 		int cy = controlsY();
 		if (in(mouseX, mouseY, x, cy, W, CONTROLS_H)) {
-			int barX = x + SMALL;
-			int barW = W - SMALL * 2 - NEXT_W;
+			int barX = x + SMALL + GAP;
+			int barW = W - (SMALL + GAP) * 2;
 			if (mouseX < barX) {
 				setVolume(ShowtimeConfig.musicVolume() - 0.1f);
 			} else if (mouseX < barX + barW) {
 				setVolume((float) ((mouseX - barX) / barW));
-			} else if (mouseX < barX + barW + SMALL) {
+			} else {
 				setVolume(ShowtimeConfig.musicVolume() + 0.1f);
-			} else if (BattleMusic.skippable()) {
-				BattleMusic.skip();
 			}
 			sound();
 			return true;
@@ -196,29 +225,38 @@ public final class BattleScreenButtons {
 		g.pose().pushPose();
 		g.pose().translate(0, 0, 400);
 
-		// The player: title (opens the list), then − volume + and next.
+		List<BattleButton> shown = shown();
+		// One card behind everything.
+		int bottom = buttonY(shown.size()) - GAP;
+		g.fill(x - PAD, TOP - PAD, x + W + PAD, bottom + PAD, CARD);
+		outline(g, x - PAD, TOP - PAD, W + PAD * 2, bottom - TOP + PAD * 2, EDGE);
+
+		// The player: title (opens the list) and next, then − volume +.
 		ResourceLocation current = BattleMusic.current();
 		String title = current == null ? Component.translatable("cobblemon_battle_showtime.player.none").getString()
 				: "♪ " + BattleMusic.title(current);
 		boolean hasList = !tracks().isEmpty();
-		button(g, font, x, TOP, W, H, in(mouseX, mouseY, x, TOP, W, H) && hasList, title + (hasList ? (listOpen ? " ▲" : " ▼") : ""),
+		button(g, font, x, TOP, titleW(), H, in(mouseX, mouseY, x, TOP, titleW(), H) && hasList, title + (hasList ? (listOpen ? " ▲" : " ▼") : ""),
 				current == null ? BattleButton.DIM : BattleButton.CYAN);
-		int cy = controlsY();
-		int barX = x + SMALL;
-		int barW = W - SMALL * 2 - NEXT_W;
-		button(g, font, x, cy, SMALL, CONTROLS_H, in(mouseX, mouseY, x, cy, SMALL, CONTROLS_H), "−", BattleButton.CYAN);
-		g.fill(barX, cy, barX + barW, cy + CONTROLS_H, BG_TOP);
-		int filled = Math.round(barW * ShowtimeConfig.musicVolume());
-		g.fill(barX + 1, cy + 4, barX + Math.max(1, filled - 1), cy + CONTROLS_H - 4, BattleButton.GREEN);
-		String percent = Math.round(ShowtimeConfig.musicVolume() * 100) + " %";
-		g.drawString(font, percent, barX + (barW - font.width(percent)) / 2, cy + 3, 0xFFFFFFFF, true);
-		button(g, font, barX + barW, cy, SMALL, CONTROLS_H, in(mouseX, mouseY, barX + barW, cy, SMALL, CONTROLS_H), "+", BattleButton.CYAN);
-		int nextX = barX + barW + SMALL;
-		button(g, font, nextX, cy, NEXT_W, CONTROLS_H, in(mouseX, mouseY, nextX, cy, NEXT_W, CONTROLS_H) && BattleMusic.skippable(),
+		int nextX = x + titleW() + GAP;
+		button(g, font, nextX, TOP, NEXT_W, H, in(mouseX, mouseY, nextX, TOP, NEXT_W, H) && BattleMusic.skippable(),
 				"⏭", BattleMusic.skippable() ? BattleButton.CYAN : BattleButton.DIM);
+		int cy = controlsY();
+		int barX = x + SMALL + GAP;
+		int barW = W - (SMALL + GAP) * 2;
+		button(g, font, x, cy, SMALL, CONTROLS_H, in(mouseX, mouseY, x, cy, SMALL, CONTROLS_H), "−", BattleButton.CYAN);
+		g.fill(barX, cy, barX + barW, cy + CONTROLS_H, 0xFF1A1A1A);
+		int filled = Math.round((barW - 2) * ShowtimeConfig.musicVolume());
+		g.fill(barX + 1, cy + 1, barX + 1 + filled, cy + CONTROLS_H - 1, BattleButton.GREEN);
+		String percent = Math.round(ShowtimeConfig.musicVolume() * 100) + " %";
+		g.pose().pushPose();
+		g.pose().translate(barX + barW / 2f, cy + 1.5f, 0);
+		g.pose().scale(0.8f, 0.8f, 1f);
+		g.drawString(font, percent, -font.width(percent) / 2, 0, 0xFFFFFFFF, true);
+		g.pose().popPose();
+		button(g, font, barX + barW + GAP, cy, SMALL, CONTROLS_H, in(mouseX, mouseY, barX + barW + GAP, cy, SMALL, CONTROLS_H), "+", BattleButton.CYAN);
 
 		// The other buttons.
-		List<BattleButton> shown = shown();
 		for (int i = 0; i < shown.size(); i++) {
 			BattleButton button = shown.get(i);
 			int y = buttonY(i);
@@ -235,7 +273,7 @@ public final class BattleScreenButtons {
 				int lx = listX(screen);
 				int rows = Math.min(LIST_ROWS, tracks.size());
 				g.fillGradient(lx, TOP, lx + LIST_W, TOP + rows * ROW + 4, BG_TOP, BG_BOTTOM);
-				outline(g, lx, TOP, LIST_W, rows * ROW + 4, BattleButton.CYAN);
+				outline(g, lx, TOP, LIST_W, rows * ROW + 4, EDGE);
 				for (int i = 0; i < rows; i++) {
 					ResourceLocation file = tracks.get(listScroll + i);
 					int ry = TOP + 2 + i * ROW;
@@ -258,10 +296,13 @@ public final class BattleScreenButtons {
 	}
 
 	private static void button(GuiGraphics g, Font font, int x, int y, int w, int h, boolean hovered, String label, int accent) {
+		// A raised Cobblemon-grey key: light top edge, dark bottom edge, the accent on a thin left bar.
 		g.fillGradient(x, y, x + w, y + h, hovered ? BG_HOVER_TOP : BG_TOP, hovered ? BG_HOVER_BOTTOM : BG_BOTTOM);
-		outline(g, x, y, w, h, accent);
-		String text = font.width(label) > w - 8 ? font.plainSubstrByWidth(label, w - 12) + "…" : label;
-		g.drawString(font, text, x + (w - font.width(text)) / 2, y + (h - 8) / 2, accent, true);
+		g.fill(x, y, x + w, y + 1, SHINE);
+		g.fill(x, y + h - 1, x + w, y + h, 0x60000000);
+		g.fill(x, y, x + 2, y + h, accent);
+		String text = font.width(label) > w - 10 ? font.plainSubstrByWidth(label, w - 14) + "…" : label;
+		g.drawString(font, text, x + 2 + (w - 2 - font.width(text)) / 2, y + (h - 8) / 2 + 1, hovered ? 0xFFFFFFFF : accent, true);
 	}
 
 	private static void outline(GuiGraphics g, int x, int y, int w, int h, int color) {

@@ -36,6 +36,10 @@ public final class ClassicEmotes {
 
 	/** The battle starts: its player trainers send out their first Pokémon. */
 	public static void onInitialize(BattleInitializePacket packet) {
+		// A battle ended without its end packet (server stopped, connection cut) left its hazards and screens: a new
+		// battle starts clean (audit 2026-11-08).
+		com.mystaria.showtime.move.FieldEffects.reset();
+		com.mystaria.showtime.move.PokemonEffects.reset();
 		List<BattleInitializePacket.BattleActorDTO> actors = new ArrayList<>(packet.getSide1().getActors());
 		actors.addAll(packet.getSide2().getActors());
 		if (actors.stream().anyMatch(actor -> actor.getType() == ActorType.WILD)) {

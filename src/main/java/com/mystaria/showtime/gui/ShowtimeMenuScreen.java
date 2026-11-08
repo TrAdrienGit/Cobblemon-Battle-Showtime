@@ -346,7 +346,7 @@ private static final int BLACK = 0xFF1A1A1A;
 		if (category == Category.AMBIANCES) {
 			BattleAmbiance.preview(ShowtimeConfig.ambiance());
 		} else {
-			BattleAmbiance.end();
+			BattleAmbiance.endPreview();
 		}
 	}
 
@@ -366,7 +366,7 @@ private static final int BLACK = 0xFF1A1A1A;
 		ShowtimeConfig.save();
 		if (canPreview()) {
 			TrainerEmotes.stopPreview();
-			BattleAmbiance.end();
+			BattleAmbiance.endPreview();
 		}
 		if (hidGui && minecraft != null) {
 			minecraft.options.hideGui = savedHideGui;

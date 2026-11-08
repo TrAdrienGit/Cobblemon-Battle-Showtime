@@ -70,8 +70,7 @@ public final class MusicSettings {
 	private static void save() {
 		Path path = path();
 		try {
-			Files.createDirectories(path.getParent());
-			Files.writeString(path, GSON.toJson(new Stored(disabled)), StandardCharsets.UTF_8);
+			com.mystaria.showtime.config.ShowtimeConfig.write(path, GSON.toJson(new Stored(disabled)));
 		} catch (IOException ex) {
 			LOG.warn("Cannot save {}", path, ex);
 		}

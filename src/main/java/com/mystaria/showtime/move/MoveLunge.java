@@ -105,13 +105,29 @@ public final class MoveLunge {
 		};
 	}
 
+	/**
+	 * Per model, whether it has an animation of that name: evaluated once (audit 2026-11-08). A model whose data names
+	 * an animation it lacks (Moltres' "special") logged an error at every move, and the check repeated it.
+	 */
+	private static final Map<PosableModel, Map<String, Boolean>> KNOWN = new WeakHashMap<>();
+
 	private static boolean hasAnimation(PokemonClientDelegate delegate, Set<String> animation) {
 		PosableModel model = delegate.getCurrentModel();
 		if (model == null) {
 			return false;
 		}
+		Map<String, Boolean> known = KNOWN.computeIfAbsent(model, ignored -> new java.util.HashMap<>());
 		for (String name : animation) {
-			if (model.getAnimation(delegate, name, delegate.getRuntime()) != null) {
+			Boolean has = known.get(name);
+			if (has == null) {
+				try {
+					has = model.getAnimation(delegate, name, delegate.getRuntime()) != null;
+				} catch (RuntimeException ex) {
+					has = false;
+				}
+				known.put(name, has);
+			}
+			if (has) {
 				return true;
 			}
 		}

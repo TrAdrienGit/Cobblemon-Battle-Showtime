@@ -196,6 +196,11 @@ public final class TrainerEmotes {
 			return fallback;
 		}
 		Minecraft mc = Minecraft.getInstance();
+		// Only the trainer in the world: the intro's stand-ins share its UUID but are drawn at their own angle
+		// (they showed their back, Adrien 2026-11-08).
+		if (mc.level == null || mc.level.getEntity(entity.getId()) != entity) {
+			return fallback;
+		}
 		for (UUID uuid : state.opponents) {
 			Entity opponent = ShowtimeHooks.player(mc.level, uuid);
 			if (opponent == null && mc.level != null) {

@@ -13,10 +13,10 @@ import net.minecraft.client.Minecraft;
 import com.mystaria.showtime.classic.ClassicBattles;
 
 /** Players choose again: back to the choosing shots ({@link ClassicBattles}), once Cobblemon's own handler has run. */
-@Mixin(value = BattleMakeChoiceHandler.class, remap = false)
+@Mixin(value = BattleMakeChoiceHandler.class, remap = false, priority = 500)
 public abstract class ClassicBattleMakeChoiceHandlerMixin {
 
-	@Inject(method = "handle(Lcom/cobblemon/mod/common/net/messages/client/battle/BattleMakeChoicePacket;Lnet/minecraft/client/Minecraft;)V", at = @At("RETURN"))
+	@Inject(method = "handle(Lcom/cobblemon/mod/common/net/messages/client/battle/BattleMakeChoicePacket;Lnet/minecraft/client/Minecraft;)V", at = @At("HEAD"))
 	private void showtime$stage(BattleMakeChoicePacket packet, Minecraft client, CallbackInfo ci) {
 		ClassicBattles.onChoosing();
 	}

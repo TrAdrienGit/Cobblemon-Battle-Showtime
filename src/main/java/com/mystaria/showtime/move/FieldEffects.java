@@ -96,10 +96,24 @@ public final class FieldEffects {
 			}
 			case "weather" -> {
 				if (p.length >= 3) {
+					String id = weatherLook(p[1]);
 					if (p[2].equals("start")) {
-						weather = p[1];
-					} else if (p[2].equals("end") && p[1].equals(weather)) {
+						weather = id;
+					} else if (p[2].equals("end") && java.util.Objects.equals(id, weather)) {
 						weather = null;
+					}
+				}
+			}
+			case "activate" -> {
+				// Court Change swaps every side's effects; Cobblemon sends no side message for it (audit 2026-11-08).
+				if (p.length >= 2 && p[1].equals("courtchange")) {
+					Map<String, Integer> ally = SIDES.remove(Side.ALLY);
+					Map<String, Integer> opponent = SIDES.remove(Side.OPPONENT);
+					if (opponent != null) {
+						SIDES.put(Side.ALLY, opponent);
+					}
+					if (ally != null) {
+						SIDES.put(Side.OPPONENT, ally);
 					}
 				}
 			}
@@ -118,6 +132,19 @@ public final class FieldEffects {
 			default -> {
 			}
 		}
+	}
+
+	/**
+	 * The weather drawn for Showdown's: the primal ones look like the weather they strengthen (Desolate Land shone as
+	 * snow before, audit 2026-11-08); a weather Showtime doesn't draw is null.
+	 */
+	private static String weatherLook(String id) {
+		return switch (id) {
+			case "desolateland" -> "sunnyday";
+			case "primordialsea" -> "raindance";
+			case "sunnyday", "raindance", "sandstorm", "snow", "hail" -> id;
+			default -> null;
+		};
 	}
 
 	public static void reset() {

@@ -29,21 +29,36 @@ public final class BallSignals {
 	private BallSignals() {
 	}
 
-	/** A recall with a Pokémon at 0 HP still on the field is its K.O.: Cobblemon only announces it after the recall. */
-	private static boolean knockedOut() {
+	/**
+	 * A recall of a Pokémon at 0 HP is its K.O.: Cobblemon only announces it after the recall. This Pokémon's own HP
+	 * when it is found on the field (audit 2026-11-08: any Pokémon at 0 HP counted, so a switch beside a fainted one, in
+	 * a double battle or after a U-turn, played a K.O.); otherwise whether one there is at 0 HP.
+	 */
+	private static boolean knockedOut(PokemonEntity entity) {
 		var battle = com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle();
 		if (battle == null) {
 			return false;
 		}
+		UUID own = null;
+		try {
+			own = entity.getPokemon().getUuid();
+		} catch (RuntimeException notYet) {
+			// No Pokémon synced yet: judged by the field alone.
+		}
+		boolean anyDown = false;
 		for (var side : battle.getSides()) {
 			for (var active : side.getActiveClientBattlePokemon()) {
 				var pokemon = active.getBattlePokemon();
-				if (pokemon != null && pokemon.getHpValue() <= 0) {
-					return true;
+				if (pokemon == null) {
+					continue;
 				}
+				if (own != null && own.equals(pokemon.getUuid())) {
+					return pokemon.getHpValue() <= 0;
+				}
+				anyDown |= pokemon.getHpValue() <= 0;
 			}
 		}
-		return false;
+		return anyDown;
 	}
 
 	private static boolean inBattle(PokemonEntity entity) {
@@ -87,7 +102,7 @@ public final class BallSignals {
 		// The ball's trainer, which Ghost battles name; the server's order of these two values isn't known: else the owner.
 		Entity thrower = entity.level().getEntity(entity.getPhasingTargetId());
 		if (mode == RECALLED && inBattle) {
-			boolean knockedOut = knockedOut();
+			boolean knockedOut = knockedOut(entity);
 			if (effects) {
 				com.mystaria.showtime.move.BallRecall.start(entity, thrower, knockedOut);
 			}

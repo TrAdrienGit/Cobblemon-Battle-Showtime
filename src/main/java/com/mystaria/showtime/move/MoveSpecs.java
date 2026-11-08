@@ -48,7 +48,9 @@ public final class MoveSpecs {
 					String move = path.substring("moves/".length(), path.length() - ".json".length());
 					try (Reader reader = entry.getValue().openAsReader()) {
 						MoveSpec spec = GSON.fromJson(reader, MoveSpec.class);
-						if (spec != null) {
+						// Without a layer it would draw nothing and still hide Cobblemon's particles: another mod's
+						// unrelated "moves" file, or a broken one (audit 2026-11-08).
+						if (spec != null && spec.layers != null && !spec.layers.isEmpty() && !move.contains("/")) {
 							read.put(move, spec);
 						}
 					} catch (Exception ex) {

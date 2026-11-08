@@ -132,10 +132,24 @@ public final class ShowtimeConfig {
 	public static void save() {
 		Path path = path();
 		try {
-			Files.createDirectories(path.getParent());
-			Files.writeString(path, GSON.toJson(get()), StandardCharsets.UTF_8);
+			write(path, GSON.toJson(get()));
 		} catch (IOException ex) {
 			LOG.warn("Cannot save {}", path, ex);
+		}
+	}
+
+	/**
+	 * Written whole or not at all: to a temporary file, then moved over the old one. Written in place, a game that
+	 * stopped mid-write left a cut file, read as defaults and saved over (audit 2026-11-08).
+	 */
+	public static void write(Path path, String content) throws IOException {
+		Files.createDirectories(path.getParent());
+		Path temporary = path.resolveSibling(path.getFileName() + ".tmp");
+		Files.writeString(temporary, content, StandardCharsets.UTF_8);
+		try {
+			Files.move(temporary, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+		} catch (java.nio.file.AtomicMoveNotSupportedException ex) {
+			Files.move(temporary, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 		}
 	}
 

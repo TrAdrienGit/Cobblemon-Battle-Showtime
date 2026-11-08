@@ -57,10 +57,19 @@ public final class ClassicBattles {
 		return !ShowtimeHooks.handlingForeignPacket() && stage != null && BattleCameraDirector.stage() == stage;
 	}
 
+	/** A battle start not staged yet (see {@code ClassicBattleInitializeHandlerMixin}), or null. */
+	private static BattleInitializePacket pendingInitialize;
+
+	/** Before Cobblemon's handler: our own battles only (another mod's are told apart now, not later). */
+	public static void initializing(BattleInitializePacket packet) {
+		pendingInitialize = ShowtimeHooks.handlingForeignPacket() ? null : packet;
+	}
+
 	public static void onInitialize(BattleInitializePacket packet) {
 		if (ShowtimeHooks.handlingForeignPacket()) {
 			return;
 		}
+		pendingInitialize = null;
 		try {
 			end();
 			List<BattleInitializePacket.BattleActorDTO> actors = new ArrayList<>(packet.getSide1().getActors());
@@ -139,8 +148,13 @@ public final class ClassicBattles {
 		return replaced;
 	}
 
-	/** Every client tick: Cobblemon's battle screen back after the PvP intro. */
+	/** Every client tick: a start whose handler was cancelled, and Cobblemon's battle screen back after the PvP intro. */
 	public static void tick() {
+		if (pendingInitialize != null && CobblemonClient.INSTANCE.getBattle() != null) {
+			BattleInitializePacket packet = pendingInitialize;
+			pendingInitialize = null;
+			onInitialize(packet);
+		}
 		if (!reopenBattleScreen || BattleCinematic.introPlaying()) {
 			return;
 		}
@@ -162,6 +176,7 @@ public final class ClassicBattles {
 	/** Disconnected: forget the battle (the director and the set pieces are cleared by the caller). */
 	public static void reset() {
 		stage = null;
+		pendingInitialize = null;
 		outcomePlayed = false;
 		BattleMusic.setKind(null);
 		reopenBattleScreen = false;
@@ -254,18 +269,32 @@ public final class ClassicBattles {
 		return arg == null ? "normal" : (arg instanceof Component c ? c.getString() : arg.toString()).toLowerCase(Locale.ROOT);
 	}
 
-	/** The battle position of the active Pokémon named by the message's argument {@code index}, or null. */
+	/**
+	 * The battle position of the active Pokémon named by the message's argument {@code index}, or null. A trainer's
+	 * Pokémon (a player's, an NPC's) is named "Owner's Pokémon" ({@code cobblemon.battle.owned_pokemon}, owner first):
+	 * compared whole with the Pokémon's own name it never matched, so no move was filmed and no Mega / Z / Tera set
+	 * piece played in Cobblemon's own battles (audit 2026-11-08).
+	 */
 	static String pnxNamed(Object[] args, int index) {
 		if (args.length <= index) {
 			return null;
 		}
+		String owner = null;
 		String name = args[index] instanceof Component component ? component.getString() : String.valueOf(args[index]);
+		if (args[index] instanceof Component component && component.getContents() instanceof TranslatableContents owned
+				&& "cobblemon.battle.owned_pokemon".equals(owned.getKey()) && owned.getArgs().length > 1) {
+			owner = owned.getArgs()[0] instanceof Component c ? c.getString() : String.valueOf(owned.getArgs()[0]);
+			name = owned.getArgs()[1] instanceof Component c ? c.getString() : String.valueOf(owned.getArgs()[1]);
+		}
 		ClientBattle battle = CobblemonClient.INSTANCE.getBattle();
 		if (battle == null) {
 			return null;
 		}
 		for (ClientBattleSide side : battle.getSides()) {
 			for (ClientBattleActor actor : side.getActors()) {
+				if (owner != null && !actor.getDisplayName().getString().equals(owner)) {
+					continue;
+				}
 				char letter = 'a';
 				for (ActiveClientBattlePokemon active : actor.getActivePokemon()) {
 					ClientBattlePokemon pokemon = active.getBattlePokemon();

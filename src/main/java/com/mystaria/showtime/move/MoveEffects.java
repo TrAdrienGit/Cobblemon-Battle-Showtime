@@ -42,6 +42,18 @@ public final class MoveEffects {
 			"shadowball", ShadowBall::new);
 
 	private static final List<MoveEffect> PLAYING = new ArrayList<>();
+	/** Set while Showtime itself plays one of Cobblemon's particles (Magma Storm's hurt): never dropped. */
+	private static boolean ownSpawn;
+
+	/** Plays a Cobblemon particle through its own handler, past {@link #intercept}. Client thread only. */
+	public static void spawnCobblemonParticle(SpawnSnowstormEntityParticlePacket packet) {
+		ownSpawn = true;
+		try {
+			com.cobblemon.mod.common.client.net.effect.SpawnSnowstormEntityParticleHandler.INSTANCE.handle(packet, Minecraft.getInstance());
+		} finally {
+			ownSpawn = false;
+		}
+	}
 
 	private MoveEffects() {
 	}
@@ -81,6 +93,9 @@ public final class MoveEffects {
 
 	/** Whether this Cobblemon particle belongs to a redrawn move (then it is dropped); feeds the move's effect. */
 	public static boolean intercept(SpawnSnowstormEntityParticlePacket packet) {
+		if (ownSpawn) {
+			return false;
+		}
 		ResourceLocation id = packet.getEffectId();
 		if (!"cobblemon".equals(id.getNamespace())) {
 			return false;
@@ -112,8 +127,14 @@ public final class MoveEffects {
 		String part = path.substring(split + 1);
 		MoveEffect effect = playing(move, source, targeted);
 		if (effect == null) {
-			if (source == null || !part.startsWith("actor")) {
+			// Another redrawn move borrowing this one's particles (Pyro Ball's burst is Flamethrower's): dropped.
+			if (anyPlaying(source, targeted)) {
 				return true;
+			}
+			// Not a move being played: an end-of-turn hurt (Leech Seed, Fire Spin, Infestation) or an ability's cue
+			// named after a move. Cobblemon draws it (audit 2026-11-08: with every move redrawn, they had vanished).
+			if (source == null || !part.startsWith("actor")) {
+				return false;
 			}
 			effect = create(move, source);
 			if (effect == null) {
@@ -155,6 +176,17 @@ public final class MoveEffects {
 			}
 		}
 		return null;
+	}
+
+	/** Whether any move being drawn involves these entities. */
+	private static boolean anyPlaying(Entity source, Entity targeted) {
+		for (MoveEffect effect : PLAYING) {
+			if (!effect.finished() && (effect.user == source || effect.user == targeted
+					|| effect.target != null && (effect.target == source || effect.target == targeted))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static MoveEffect playingFor(String move, Entity user) {

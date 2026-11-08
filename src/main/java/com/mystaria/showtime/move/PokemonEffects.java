@@ -89,6 +89,10 @@ public final class PokemonEffects {
 			return;
 		}
 		String[] p = contents.getKey().substring("cobblemon.battle.".length()).split("\\.");
+		if (p.length == 2 && p[0].equals("damage") && p[1].equals("magmastorm")) {
+			magmaStormHurt(contents.getArgs());
+			return;
+		}
 		if (p.length != 2 || !KNOWN.contains(p[1])) {
 			return;
 		}
@@ -118,6 +122,28 @@ public final class PokemonEffects {
 			Lasting now = LASTING.get(key);
 			now.count = args.length > 1 ? parseCount(args[1], now.count) : now.count;
 		}
+	}
+
+	/**
+	 * Magma Storm's end-of-turn hurt: Cobblemon has an action effect for Fire Spin's ({@code damage_firespin}) but none
+	 * for Magma Storm's, so nothing showed. Fire Spin's is played on the hurt Pokémon instead (Adrien 2026-11-08).
+	 */
+	private static void magmaStormHurt(Object[] args) {
+		BattleStage stage = BattleCameraDirector.stage();
+		String pnx = pnxOf(args.length > 0 ? args[0] : null);
+		Entity entity = stage == null || pnx == null ? null : stage.pokemonAt(pnx);
+		Minecraft mc = Minecraft.getInstance();
+		if (entity == null || mc.level == null) {
+			return;
+		}
+		// Past Showtime's own filter: the hurt comes while a redrawn move still plays on that Pokémon, which dropped it.
+		MoveEffects.spawnCobblemonParticle(
+				new com.cobblemon.mod.common.net.messages.client.effect.SpawnSnowstormEntityParticlePacket(
+						net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("cobblemon", "firespin_target"),
+						entity.getId(), List.of("root"), null, List.of()));		net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.getOptional(
+				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("cobblemon", "move.firespin.target"))
+				.ifPresent(sound -> mc.level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), sound,
+						net.minecraft.sounds.SoundSource.NEUTRAL, 1f, 1f, false));
 	}
 
 	private static int parseCount(Object arg, int fallback) {

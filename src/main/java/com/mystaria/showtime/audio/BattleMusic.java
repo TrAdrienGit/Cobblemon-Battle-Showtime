@@ -292,8 +292,33 @@ public final class BattleMusic {
 	/** Namespaces whose {@code sounds/music/} count: Showtime's own, its former name's and Phantasmon's, for packs made before the rename and the split. */
 	private static final java.util.Set<String> NAMESPACES = java.util.Set.of("cobblemon_battle_showtime", "cobblemon_spectacle", "phantasmon");
 
+	/**
+	 * Each track's files, listed once per resource reload: listing every pack's resources is costly, and the battle
+	 * screen's player asked for them every frame (audit 2026-11-08).
+	 */
+	private static final java.util.Map<Track, List<ResourceLocation>> FILES = new java.util.EnumMap<>(Track.class);
+
+	static {
+		net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(net.minecraft.server.packs.PackType.CLIENT_RESOURCES)
+				.registerReloadListener(new net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener() {
+					@Override
+					public ResourceLocation getFabricId() {
+						return ResourceLocation.fromNamespaceAndPath("cobblemon_battle_showtime", "battle_music");
+					}
+
+					@Override
+					public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager manager) {
+						FILES.clear();
+					}
+				});
+	}
+
 	/** The track's files, as sound locations ({@code cobblemon_battle_showtime:music/battle/foo} for {@code sounds/music/battle/foo.ogg}). */
 	private static List<ResourceLocation> files(Track wanted) {
+		return FILES.computeIfAbsent(wanted, BattleMusic::listFiles);
+	}
+
+	private static List<ResourceLocation> listFiles(Track wanted) {
 		List<ResourceLocation> files = new ArrayList<>();
 		String root = "sounds/music/" + wanted.folder;
 		Minecraft.getInstance().getResourceManager()
@@ -306,7 +331,7 @@ public final class BattleMusic {
 					files.add(ResourceLocation.fromNamespaceAndPath(location.getNamespace(),
 							path.substring("sounds/".length(), path.length() - ".ogg".length())));
 				});
-		return files;
+		return List.copyOf(files);
 	}
 
 	/** One music file played as is (streamed, not positional), with a fade-out. */

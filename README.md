@@ -1,76 +1,104 @@
 # Cobblemon Battle Showtime
 
-Mod client Fabric (Minecraft 1.21.1, Cobblemon 1.8.1) qui met en scène les combats Pokémon : caméra de cinéma, intros
-dessinées, attaques redessinées, Poké Balls, effets de terrain, ambiances, dresseurs animés, Méga-Évolution, Retour
-primal, capacités Z et Téracristallisation en grand spectacle, musiques de combat tirées d'un pack de ressources.
+**Turn every Cobblemon battle into a show.** A client-side Fabric mod for Minecraft 1.21.1 and Cobblemon 1.8.1: a
+cinematic camera, drawn intros, 883 redrawn moves, grand Z-Moves, Mega Evolution and Terastallization set pieces,
+animated trainers, battle ambiances and your own battle music.
 
-Il marche seul, sur n'importe quel serveur Cobblemon, sans rien installer côté serveur, et avec
-[Phantasmon](https://github.com/TrAdrienGit/Phantasmon-Client), qui s'appuie sur lui pour ses propres combats.
-Sa seule dépendance est Cobblemon ; Emotecraft est facultatif (sans lui, les dresseurs ne s'animent pas).
+It is **client-side only**: install it on your game and it works on any Cobblemon server, with nothing to add on the
+server and nothing for the other players to install.
 
-## Ce qui est mis en scène
+## Features
 
-| Combat | Intro | Caméra | Musique | Attaques, Balls, effets | Méga / Z / Téra |
+- **Cinematic camera**: the camera frames each move, follows the attacker to its target, closes in on hits and
+  knock-outs. Switch to the free camera at any time with one click.
+- **Battle intros**: player-versus-player battles open on a drawn intro, picked at random.
+- **883 redrawn moves**: every move gets its own effect, built from Minecraft particles, blocks and items (no asset
+  taken from the games). 180 are hand-made; the rest are composed from each move's own data: type, category, punch,
+  bite, sound, wave, projectile, healing… Pokémon without an attack animation lunge, recoil or hop instead, and
+  sometimes cry.
+- **34 grand Z-Moves**, in three acts and far bigger than any move.
+- **Mega Evolution, Primal Reversion, Z-Power and Terastallization** get their own set piece.
+- **Poké Balls**: trainers throw and recall in time with Cobblemon; send-out, recall and knock-out have their effects,
+  tinted after the ball.
+- **Lasting effects drawn on the field**: weather, terrains, Trick Room and the other rooms, entry hazards, screens on
+  each side, effects on a Pokémon (Substitute, Leech Seed, confusion…) and end-of-turn damage.
+- **Ten battle ambiances**: disco, cosmos, storm, spectral, nature, night, arcade, fairy, silver screen, corrupted.
+  Resource packs can add more.
+- **Animated trainers** (with Player Animation Library): guard, throw, recall, attack order, victory and defeat, with
+  several animation profiles to pick from.
+- **Your own battle music**: drop `.ogg` files in a resource pack for the lobby, intro, battle, victory and defeat; pick,
+  skip and set the volume right from the battle screen.
+
+| Battle | Intro | Camera | Music | Moves, balls, effects | Mega / Z / Tera |
 |---|---|---|---|---|---|
-| Joueur contre joueur | Oui, tirée au hasard | Oui | Oui | Oui | Oui |
-| Dresseur PNJ | Non | Oui | Oui | Oui | Oui |
-| Pokémon sauvage | Non | Non | Non | Non | Non |
-| Combat Phantasmon | Oui | Oui | Oui | Oui | Oui |
+| Player vs player | Yes | Yes | Yes | Yes | Yes |
+| NPC trainer | No | Yes | Yes | Yes | Yes |
+| Wild Pokémon | No | No | No | No | No |
 
-Le serveur n'attend pas la mise en scène : en PvP, le combat démarre pendant l'intro (l'écran de combat revient à la
-fin), et les spectacles se jouent pendant que le combat continue.
+Mega, Z and Tera set pieces play when the server allows these mechanics (base Cobblemon does not; servers such as Cobblemon Academy do). The server never waits for the show: battles run at their usual pace and the show plays alongside.
 
-- **Attaques** : 883 attaques redessinées en particules, vrais blocs et objets de Minecraft (aucun asset tiré des
-  jeux) : 180 composées à la main, les autres d'après leurs propres données (type, catégorie, coup de poing, morsure,
-  son, onde, projectile, soin…), et les 34 capacités Z en trois temps, bien plus grandes. Un Pokémon dont le modèle n'a
-  pas d'animation d'attaque se rue, recule ou bondit à la place, et pousse parfois son cri.
-- **Poké Balls** : le dresseur lance et rappelle au rythme de Cobblemon ; ouverture, rappel et K.O. ont leurs effets,
-  teintés selon la Ball.
-- **Effets persistants** : terrains, météo, Distorsion et autres salles, pièges, écrans de chaque camp, effets sur un
-  Pokémon (Clonage, Vampigraine, confusion…).
-- **Ambiances** : dix ambiances de combat (disco, cosmos, orage, spectral…), choisies dans le menu ; un pack de
-  ressources peut en ajouter.
-- **Dresseurs** : garde, lancer, rappel, ordre d'attaque, victoire et défaite animés, profil d'animation au choix.
+## Installation
 
-## Menu
+1. Install [Fabric Loader](https://fabricmc.net/use/) 0.18.1 or later for Minecraft 1.21.1.
+2. Put in your `mods` folder:
+   - [Fabric API](https://modrinth.com/mod/fabric-api)
+   - [Cobblemon](https://modrinth.com/mod/cobblemon) 1.8.1 or later
+   - Cobblemon Battle Showtime
+3. Optional:
+   - [Player Animation Library](https://modrinth.com/mod/playeranimator) (also bundled in Emotecraft): animated
+     trainers. Without it, everything else works.
+   - [Mod Menu](https://modrinth.com/mod/modmenu): opens the settings from the mod list.
+   - [Cobblemon Battle Extras](https://modrinth.com/mod/cobblemon-battle-extras): works alongside; Showtime's battle
+     panel moves aside to make room for it.
 
-Une seule touche, **N** (réglable dans Options → Commandes), et aucune commande : profil d'animation du dresseur,
-ambiance, musiques et réglages, avec un aperçu sur le vrai monde. Aussi par Mod Menu.
+## How to use it
 
-## Musiques
+Press **N** (rebind it in Options → Controls) to open the Showtime menu: trainer animation profile, ambiance, music
+and settings, with a live preview in your own world.
 
-1. Copier le modèle `resourcepack-template/Cobblemon Battle Showtime Music` dans le dossier `resourcepacks` de l'instance.
-2. Déposer des `.ogg` dans `assets/cobblemon_battle_showtime/sounds/music/<lobby|intro|battle|victory|defeat>/` (voir son
-   `LISEZ-MOI.txt`), activer le pack, F3 + T pour recharger.
+In battle, the panel at the top right of the battle screen gives you:
 
-Un ancien pack « Phantasmon Music » (`assets/phantasmon/…`) marche aussi. Quand le pack fournit une musique, elle
-remplace celle que le serveur fait jouer à Cobblemon ; sinon celle de Cobblemon reste.
+- the track playing: click it for the list of tracks (scroll with the mouse wheel), click a track to play it;
+- `−` / bar / `+`: music volume (click on the bar to set it);
+- `⏭`: next track;
+- the camera button: cinematic ⇄ free.
 
-**En combat**, en haut à droite de l'écran de combat :
+### Settings
 
-- le titre du morceau : un clic ouvre la liste des morceaux du moment (molette pour la faire défiler), un clic sur un
-  morceau le joue ;
-- `−` / barre / `+` : volume des musiques (un clic sur la barre le règle directement) ;
-- `⏭` : morceau suivant ;
-- en dessous : caméra cinéma ⇄ libre (et, avec Phantasmon, le chrono).
+For each kind of battle (player vs player, NPC trainer): cinematic camera at the start or free camera, intro, music,
+Poké Ball effects. Plus the music volume, on top of Minecraft's Music slider. Everything is in the menu, and saved in
+`config/cobblemon_battle_showtime.json`.
 
-## Réglages
+### Adding your own music
 
-Dans le menu (N), ou `config/cobblemon_battle_showtime.json`. Pour chaque type de combat (Phantasmon, joueur contre
-joueur, dresseur PNJ) : caméra cinéma au départ ou libre, intro (pas pour Phantasmon, où elle synchronise les deux
-joueurs), musique, effets de Ball. Plus le volume des musiques (qui s'ajoute au curseur « Musique » de Minecraft). Les
-morceaux décochés sont dans `config/cobblemon_battle_showtime-music.json`.
+1. Copy `resourcepack-template/Cobblemon Battle Showtime Music` (from the
+   [GitHub repository](https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime)) into your `resourcepacks` folder.
+2. Drop `.ogg` files in `assets/cobblemon_battle_showtime/sounds/music/` under `lobby`, `intro`, `battle`, `victory`
+   or `defeat`.
+3. Enable the pack in game (or press F3 + T if it is already on).
 
-## Développement
+A track from the pack replaces the music the server plays through Cobblemon; with no pack, Cobblemon's music stays.
 
-- JDK 25 pour Gradle (Loom), bytecode Java 21. `./gradlew build publishToMavenLocal` : Phantasmon se compile contre
-  le jar publié dans le Maven local.
-- Attaques : `python tools/moves.py` réécrit `assets/cobblemon_battle_showtime/moves/` depuis `tools/move_data.json`
-  (extrait du moteur de combat de Cobblemon). Un pack de ressources peut ajouter ou remplacer une attaque.
-- Plan et état des phases : [`Documentation/plan-showtime.md`](Documentation/plan-showtime.md).
-- Règle : toute évolution garde les combats Phantasmon intacts. Phantasmon n'utilise que l'API publique (paquet
-  `api` et méthodes publiques de `BattleCinematic`, `BattleCameraDirector`, `BattleShowtime`).
+## Compatibility
+
+- Client-side only; any Cobblemon server, vanilla or modded.
+- Works with shaders (Iris).
+- [Phantasmon](https://github.com/TrAdrienGit/Phantasmon-Client) uses it for its own battles.
+
+## Development
+
+- JDK 25 to run Gradle (Loom), Java 21 bytecode. `./gradlew build publishToMavenLocal`: Phantasmon builds against the
+  jar published to Maven local.
+- Moves: `python tools/moves.py` rewrites `assets/cobblemon_battle_showtime/moves/` from `tools/move_data.json`
+  (taken from Cobblemon's battle engine). A resource pack can add or replace a move.
+- Plan and phases: [`Documentation/plan-showtime.md`](Documentation/plan-showtime.md).
+- Rule: every change keeps Phantasmon battles intact. Phantasmon uses only the public API (the `api` package and the
+  public methods of `BattleCinematic`, `BattleCameraDirector`, `BattleShowtime`).
 
 ## License
 
-Apache License 2.0 — see [`LICENSE`](./LICENSE). Free to use, modify and redistribute; forks and redistributions must keep [`NOTICE`](./NOTICE) and credit the original author.
+Apache License 2.0, see [`LICENSE`](./LICENSE). Free to use, modify and redistribute; forks and redistributions must
+keep [`NOTICE`](./NOTICE) and credit the original author.
+
+Cobblemon Battle Showtime is a fan project, not affiliated with Nintendo, The Pokémon Company, Game Freak or the
+Cobblemon team.
