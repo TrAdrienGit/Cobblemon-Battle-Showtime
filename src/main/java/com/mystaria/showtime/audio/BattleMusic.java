@@ -21,7 +21,7 @@ import net.minecraft.util.valueproviders.ConstantFloat;
 import com.mystaria.showtime.config.ShowtimeConfig;
 
 /**
- * Battle music from a resource pack (Adrien 2026-10-05; part of Cobblemon Battle Showtime since 2026-10-29, D-37) — no
+ * Battle music from a resource pack (2026-10-05; part of Cobblemon Battle Showtime since 2026-10-29, D-37) — no
  * JSON to write: every {@code .ogg} found in {@code assets/cobblemon_battle_showtime/sounds/music/<folder>/} of any active
  * resource pack is a candidate, one is picked at random (packs made for Phantasmon, under {@code assets/phantasmon/},
  * still count).
@@ -34,7 +34,7 @@ public final class BattleMusic {
 
 	public enum Track {
 		LOBBY("lobby", true, 0), INTRO("intro", false, 0), BATTLE("battle", true, 0),
-		// End-of-battle jingles: 10 s at most, whatever the file's length (Adrien 2026-10-05).
+		// End-of-battle jingles: 10 s at most, whatever the file's length (2026-10-05).
 		VICTORY("victory", false, 10), DEFEAT("defeat", false, 10);
 
 		final String folder;
@@ -152,7 +152,7 @@ public final class BattleMusic {
 	}
 
 	/**
-	 * Skip key (Adrien 2026-10-05): another file of the same folder right away (never the same one when there's a
+	 * Skip key (2026-10-05): another file of the same folder right away (never the same one when there's a
 	 * choice); the intro hands over to the battle music. The new title shows in the action bar.
 	 */
 	public static void skip() {

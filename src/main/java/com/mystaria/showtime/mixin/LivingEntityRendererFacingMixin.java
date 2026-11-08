@@ -11,7 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import com.mystaria.showtime.emote.TrainerEmotes;
 
 /**
- * A battle's trainers are drawn turned to their opponent (Adrien 2026-10-30: they look each other in the eyes), on this
+ * A battle's trainers are drawn turned to their opponent (2026-10-30: they look each other in the eyes), on this
  * client only, whatever their player looks at ({@link TrainerEmotes#facingYaw}).
  */
 @Mixin(LivingEntityRenderer.class)

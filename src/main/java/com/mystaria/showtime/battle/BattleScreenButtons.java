@@ -21,7 +21,7 @@ import com.mystaria.showtime.config.ShowtimeConfig;
 
 /**
  * Over Cobblemon's battle screen while a battle is filmed, right side under the opponent's tile: a small music player
- * (Adrien 2026-10-29: the title, which opens the list of the folder's tracks to pick one; volume − / bar / +; next
+ * (2026-10-29: the title, which opens the list of the folder's tracks to pick one; volume − / bar / +; next
  * track), then a column of buttons — Showtime's staged / free camera, plus those other mods add
  * ({@link ShowtimeHooks#addButton}: Phantasmon's turn timer). Drawn over the screen and clicked through Fabric's
  * screen events rather than added as widgets: Cobblemon rebuilds its own widgets at every sub-screen.
@@ -29,7 +29,7 @@ import com.mystaria.showtime.config.ShowtimeConfig;
 public final class BattleScreenButtons {
 
 	/**
-	 * One compact card (Adrien 2026-11-08: fewer boxes on screen, room for Cobblemon Battle Extras): the track and
+	 * One compact card (2026-11-08: fewer boxes on screen, room for Cobblemon Battle Extras): the track and
 	 * "next" on one row, the volume under it, then the buttons, thinner. Cobblemon's colours, as Showtime's menu.
 	 */
 	private static final int W = 124;
@@ -80,7 +80,7 @@ public final class BattleScreenButtons {
 			if (!"BattleGUI".equals(screen.getClass().getSimpleName())) {
 				return;
 			}
-			// Drawn before the other mods' overlays (Battle Extras' team tooltips must cover the panel, Adrien 2026-11-08).
+			// Drawn before the other mods' overlays (Battle Extras' team tooltips must cover the panel, 2026-11-08).
 			var afterRender = ScreenEvents.afterRender(screen);
 			afterRender.addPhaseOrdering(EARLY, net.fabricmc.fabric.api.event.Event.DEFAULT_PHASE);
 			afterRender.register(EARLY, (current, graphics, mouseX, mouseY, tickDelta) -> {

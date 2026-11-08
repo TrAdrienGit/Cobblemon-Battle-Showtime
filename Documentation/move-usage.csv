@@ -1,0 +1,182 @@
+﻿type;category;power;name_fr;name_en;id;usage_ou_pct;usage_natdex_pct;redrawn;motifs
+Steel;Physical;160;Marteau Mastoc;Gigaton Hammer;gigatonhammer;0.37;0.04;yes;hammer + quake
+Steel;Physical;80;Tête de Fer;Iron Head;ironhead;4.5;2.91;yes;engulf + dash + impact + burst
+Steel;Physical;40;Pisto-Poing;Bullet Punch;bulletpunch;0.4;1.49;yes;dash + fist
+Steel;Physical;;Tacle Lourd;Heavy Slam;heavyslam;1.93;1.45;yes;dash + hammer + quake
+Steel;Special;140;Métalaser;Steel Beam;steelbeam;0.23;0.14;yes;engulf + beam + burst
+Steel;Special;120;Ruée d'Or;Make It Rain;makeitrain;3.72;2.32;yes;coins + coins
+Steel;Special;80;Luminocanon;Flash Cannon;flashcannon;0.4;0.85;yes;gather + beam_rings + burst
+Steel;Status;;Mur de Fer;Iron Defense;irondefense;2.74;1.88;yes;shell
+Fighting;Physical;120;Close Combat;Close Combat;closecombat;6.82;8.87;yes;dash + barrage + kick
+Fighting;Physical;120;Surpuissance;Superpower;superpower;0.33;1.44;yes;engulf + dash + barrage + impact
+Fighting;Physical;90;Lame Sainte;Sacred Sword;sacredsword;0.51;1.11;yes;dash + sword + rays
+Fighting;Physical;80;Big Splash;Body Press;bodypress;4.03;3.3;yes;dash + impact + quake + burst
+Fighting;Physical;75;Vampi-Poing;Drain Punch;drainpunch;1.44;1.0;yes;dash + fist + heal
+Fighting;Physical;40;Mach Punch;Mach Punch;machpunch;0.09;0.14;yes;dash + fist
+Fighting;Physical;;Balayage;Low Kick;lowkick;3.27;1.83;yes;dash + kick
+Fighting;Special;120;Exploforce;Focus Blast;focusblast;3.22;4.82;yes;gather + orb_rings + burst
+Fighting;Special;80;Aurasphère;Aura Sphere;aurasphere;0.41;0.84;yes;gather + homing + burst
+Fighting;Status;;Détection;Detect;detect;0.0;0.04;yes;dome + glare
+Fighting;Status;;Gonflette;Bulk Up;bulkup;1.47;0.91;yes;aura + shell
+Dragon;Physical;120;Colère;Outrage;outrage;0.74;1.36;yes;engulf + dash + barrage + impact
+Dragon;Physical;80;Draco-Griffe;Dragon Claw;dragonclaw;0.11;0.72;yes;dash + claw
+Dragon;Physical;60;Draco-Queue;Dragon Tail;dragontail;1.13;0.93;yes;tail
+Dragon;Physical;50;Draco-Flèches;Dragon Darts;dragondarts;0.8;0.0;yes;psy_shards + impact + impact
+Dragon;Physical;25;Rafale Écailles;Scale Shot;scaleshot;0.99;1.09;yes;psy_shards + impact
+Dragon;Special;130;Draco-Météore;Draco Meteor;dracometeor;4.8;3.59;yes;gather + meteors
+Dragon;Special;85;Draco-Choc;Dragon Pulse;dragonpulse;2.93;0.79;yes;gather + beam_rings + burst
+Dragon;Status;;Danse Draco;Dragon Dance;dragondance;3.57;3.45;yes;dance + engulf
+Water;Physical;120;Aquatacle;Wave Crash;wavecrash;0.14;0.11;yes;wave + impact + splash
+Water;Physical;85;Aqua-Brèche;Liquidation;liquidation;0.7;1.14;yes;dash + stab + splash
+Water;Physical;80;Cascade;Waterfall;waterfall;0.41;0.88;yes;engulf + dash + splash + impact
+Water;Physical;75;Coqui-Lame;Razor Shell;razorshell;1.37;0.98;yes;dash + slash + splash
+Water;Physical;60;Eau Revoir;Flip Turn;flipturn;3.71;5.26;yes;engulf + dash + splash
+Water;Physical;40;Aqua-Jet;Aqua Jet;aquajet;1.01;1.63;yes;engulf + dash + splash
+Water;Physical;25;Torrent de Coups;Surging Strikes;surgingstrikes;0.0;1.43;yes;dash + barrage + splash
+Water;Special;110;Hydrocanon;Hydro Pump;hydropump;0.27;0.53;yes;gather + jets_water + jets_water + splash
+Water;Special;90;Surf;Surf;surf;2.02;0.97;yes;wave + splash
+Water;Special;80;Ébullition;Scald;scald;0.84;2.7;yes;jets_water + splash + cloud
+Fire;Physical;120;Ballon Brûlant;Pyro Ball;pyroball;2.2;0.73;yes;engulf + lob + star_fire
+Fire;Physical;120;Boutefeu;Flare Blitz;flareblitz;0.29;1.1;yes;engulf + dash + impact + flames_on + burst
+Fire;Physical;100;Feu Sacré;Sacred Fire;sacredfire;0.01;0.03;yes;stream_fire + flames_on + rays
+Fire;Physical;90;Lame en Peine;Bitter Blade;bitterblade;1.33;0.8;yes;dash + sword + flames_on + heal
+Fire;Physical;75;Poing Feu;Fire Punch;firepunch;1.26;1.76;yes;dash + fist + flames_on
+Fire;Special;130;Surchauffe;Overheat;overheat;0.81;0.59;yes;engulf + stream_fire + star_fire
+Fire;Special;110;Déflagration;Fire Blast;fireblast;0.38;0.79;yes;orb + star_fire + flames_on
+Fire;Special;95;Canicule;Heat Wave;heatwave;0.84;2.14;yes;heat_wave + flames_on
+Fire;Special;90;Lance-Flammes;Flamethrower;flamethrower;3.46;5.46;yes;gather + stream_fire + stream_fire + flames_on
+Fire;Special;80;Danse du Feu;Fiery Dance;fierydance;1.63;0.77;yes;dance + stream_fire + flames_on
+Fire;Special;75;Feu Ensorcelé;Mystical Fire;mysticalfire;1.37;3.3;yes;stream_fire + glare + flames_on
+Fire;Special;60;;Hidden Power Fire;hiddenpowerfire;0.0;1.42;yes;orb + flames_on
+Fire;Status;;Feu Follet;Will-O-Wisp;willowisp;4.69;2.21;yes;wisps
+Fairy;Physical;90;Câlinerie;Play Rough;playrough;1.71;1.39;yes;dash + barrage + rays
+Fairy;Special;95;Pouvoir Lunaire;Moonblast;moonblast;6.16;6.03;yes;moon + beam + rays
+Fairy;Special;80;Éclat Magique;Dazzling Gleam;dazzlinggleam;1.88;1.35;yes;rays + rays + burst
+Fairy;Special;50;Vampibaiser;Draining Kiss;drainingkiss;1.92;1.91;yes;orb + heal
+Fairy;Status;;Rayon Lune;Moonlight;moonlight;1.7;0.29;yes;moon + heal
+Ice;Physical;85;Chute Glace;Icicle Crash;iciclecrash;0.13;0.16;yes;fall_rocks
+Ice;Physical;80;Cryo-Pirouette;Ice Spinner;icespinner;6.3;4.32;yes;spin + dash + impact + freeze
+Ice;Physical;75;Poing Glace;Ice Punch;icepunch;1.03;1.98;yes;dash + fist + freeze
+Ice;Physical;40;Éclats Glace;Ice Shard;iceshard;0.55;0.43;yes;fall_rocks + impact
+Ice;Physical;20;Triple Axel;Triple Axel;tripleaxel;0.71;1.03;yes;dash + kick + freeze
+Ice;Special;110;Blizzard;Blizzard;blizzard;0.57;0.27;yes;tornado + freeze
+Ice;Special;90;Laser Glace;Ice Beam;icebeam;4.59;4.55;yes;gather + ice_beam + freeze
+Ice;Special;70;Lyophilisation;Freeze-Dry;freezedry;2.39;1.91;yes;ice_beam + freeze + cloud
+Ice;Special;60;;Hidden Power Ice;hiddenpowerice;0.0;1.69;yes;orb + freeze
+Ice;Status;;Buée Noire;Haze;haze;0.33;0.65;yes;cloud
+Ice;Status;;Neigeux de Mots;Chilly Reception;chillyreception;1.76;1.32;yes;tornado
+Bug;Physical;90;Escarmouche;First Impression;firstimpression;0.68;0.12;yes;dash + bite + impact
+Bug;Physical;80;Plaie Croix;X-Scissor;xscissor;0.06;0.05;yes;dash + cross_slash
+Bug;Physical;70;Demi-Tour;U-turn;uturn;12.43;11.97;yes;dash + impact + wings
+Bug;Special;90;Bourdon;Bug Buzz;bugbuzz;0.14;1.21;yes;sound_rings + burst
+Bug;Status;;Papillodanse;Quiver Dance;quiverdance;0.09;1.42;yes;dance + wings
+Bug;Status;;Toile Gluante;Sticky Web;stickyweb;1.1;0.57;yes;web
+Normal;Physical;120;Damoclès;Double-Edge;doubleedge;0.03;0.1;yes;engulf + dash + impact + burst
+Normal;Physical;85;Plaquage;Body Slam;bodyslam;0.46;0.16;yes;dash + impact + quake
+Normal;Physical;80;Vitesse Extrême;Extreme Speed;extremespeed;2.48;1.36;yes;dash + impact + impact + rays
+Normal;Physical;70;Façade;Facade;facade;1.2;0.8;yes;engulf + dash + impact + burst
+Normal;Physical;50;Tour Rapide;Rapid Spin;rapidspin;8.18;7.35;yes;spin + dash + impact
+Normal;Physical;40;Bluff;Fake Out;fakeout;0.02;1.2;yes;burst + fist
+Normal;Special;140;Bang Sonique;Boomburst;boomburst;0.05;0.07;yes;sound_rings + rays + burst
+Normal;Special;120;Pluie Térastrale;Tera Starstorm;terastarstorm;0.0;2.53;yes;gather + meteors
+Normal;Special;90;Mégaphone;Hyper Voice;hypervoice;0.07;0.52;yes;sound_rings + burst
+Normal;Special;80;Téra Explosion;Tera Blast;terablast;0.0;0.02;yes;gather + beam + rays + burst
+Normal;Special;50;Ball'Météo;Weather Ball;weatherball;2.66;1.91;yes;orb_rings + burst
+Normal;Status;;Abri;Protect;protect;4.42;5.96;yes;dome
+Normal;Status;;Balance;Pain Split;painsplit;1.4;0.69;yes;glare + heal
+Normal;Status;;Bâillement;Yawn;yawn;0.0;0.17;yes;cloud + notes
+Normal;Status;;Change-Côté;Court Change;courtchange;2.02;0.6;yes;wall + rays
+Normal;Status;;Clonage;Substitute;substitute;3.62;5.56;yes;shell + burst
+Normal;Status;;Cyclone;Whirlwind;whirlwind;1.84;1.1;yes;tornado
+Normal;Status;;Danse Lames;Swords Dance;swordsdance;12.72;11.09;yes;swords
+Normal;Status;;Encore;Encore;encore;4.78;1.54;yes;notes
+Normal;Status;;Exuviation;Shell Smash;shellsmash;0.12;0.18;yes;shell + rays
+Normal;Status;;Hurlement;Roar;roar;2.2;0.55;yes;sound_rings
+Normal;Status;;Paresse;Slack Off;slackoff;0.28;0.6;yes;heal + notes
+Normal;Status;;Regard Médusant;Glare;glare;0.13;0.27;yes;glare
+Normal;Status;;Soin;Recover;recover;5.99;6.46;yes;heal
+Normal;Status;;Vœu;Wish;wish;1.28;2.71;yes;meteors + heal
+Grass;Physical;120;Martobois;Wood Hammer;woodhammer;0.62;0.65;yes;hammer + burst
+Grass;Physical;120;Mégafouet;Power Whip;powerwhip;1.38;2.18;yes;whip
+Grass;Physical;100;Massue Liane;Ivy Cudgel;ivycudgel;4.27;2.48;yes;hammer + seeds
+Grass;Physical;55;Gliss'Herbe;Grassy Glide;grassyglide;1.13;0.7;yes;engulf + dash + impact + cracks
+Grass;Special;130;Tempête Verte;Leaf Storm;leafstorm;0.25;0.54;yes;tornado
+Grass;Special;120;Lance-Soleil;Solar Beam;solarbeam;0.2;1.12;yes;solar_charge + beam + burst
+Grass;Special;90;Éco-Sphère;Energy Ball;energyball;0.99;0.54;yes;gather + orb_leaves + burst
+Grass;Special;75;Giga-Sangsue;Giga Drain;gigadrain;0.89;1.67;yes;orb_leaves + heal
+Grass;Status;;Spore;Spore;spore;0.0;0.14;yes;cloud + notes
+Grass;Status;;Synthèse;Synthesis;synthesis;0.92;0.95;yes;solar_charge + heal
+Grass;Status;;Vampigraine;Leech Seed;leechseed;0.15;1.8;yes;lob + seeds
+Grass;Status;;Vole-Force;Strength Sap;strengthsap;0.64;0.17;yes;seeds + heal
+Poison;Physical;120;Détricanon;Gunk Shot;gunkshot;0.63;0.29;yes;lob + splat
+Poison;Physical;80;Direct Toxik;Poison Jab;poisonjab;0.72;1.2;yes;dash + stab + splat
+Poison;Physical;30;Toupie Éclat;Mortal Spin;mortalspin;1.81;0.32;yes;spin + splat + cloud
+Poison;Special;100;Chaîne Malsaine;Malignant Chain;malignantchain;1.05;0.72;yes;whip + cloud + splat
+Poison;Special;95;Cradovague;Sludge Wave;sludgewave;2.09;1.08;yes;wave + splat
+Poison;Special;90;Bombe Beurk;Sludge Bomb;sludgebomb;4.1;2.27;yes;lob + splat
+Poison;Status;;Pics Toxik;Toxic Spikes;toxicspikes;0.57;0.86;yes;caltrops
+Poison;Status;;Toxik;Toxic;toxic;2.77;7.83;yes;lob + cloud
+Psychic;Special;120;Prescience;Future Sight;futuresight;1.62;2.32;yes;glare + orb_rings + rays
+Psychic;Special;90;Psyko;Psychic;psychic;0.91;2.18;yes;glare + lift
+Psychic;Special;80;Choc Psy;Psyshock;psyshock;2.3;2.88;yes;gather + psy_shards + burst
+Psychic;Special;80;Vaste Pouvoir;Expanding Force;expandingforce;0.67;0.27;yes;rays + lift + burst
+Psychic;Special;75;Dissonance Psy;Psychic Noise;psychicnoise;3.36;1.62;yes;sound_rings + lift
+Psychic;Special;20;Force Ajoutée;Stored Power;storedpower;1.15;0.72;yes;aura + psy_shards + burst
+Psychic;Special;;Voile Miroir;Mirror Coat;mirrorcoat;0.82;1.3;yes;dome + rays
+Psychic;Status;;Distorsion;Trick Room;trickroom;0.89;1.11;yes;wall + rays
+Psychic;Status;;Hâte;Agility;agility;0.93;0.32;yes;dance + dash
+Psychic;Status;;Mur Lumière;Light Screen;lightscreen;1.17;0.68;yes;wall
+Psychic;Status;;Plénitude;Calm Mind;calmmind;6.49;4.0;yes;aura + glare
+Psychic;Status;;Protection;Reflect;reflect;1.2;0.67;yes;wall
+Psychic;Status;;Repos;Rest;rest;1.22;1.17;yes;notes + heal
+Psychic;Status;;Tour de Magie;Trick;trick;2.98;1.45;yes;lift + knock_item
+Psychic;Status;;Téléport;Teleport;teleport;0.11;1.13;yes;aura + rays
+Psychic;Status;;Vœu Soin;Healing Wish;healingwish;2.04;0.73;yes;rays + heal
+Rock;Physical;150;Fracass'Tête;Head Smash;headsmash;0.44;0.3;yes;engulf + dash + impact + burst
+Rock;Physical;100;Lame de Roc;Stone Edge;stoneedge;2.68;4.92;yes;cracks + rise_rocks
+Rock;Physical;100;Orage Adamantin;Diamond Storm;diamondstorm;0.0;1.18;yes;fall_rocks + rays
+Rock;Physical;75;Éboulement;Rock Slide;rockslide;0.41;0.95;yes;fall_rocks
+Rock;Status;;Piège de Roc;Stealth Rock;stealthrock;12.63;12.98;yes;rocks_float
+Ground;Physical;120;Assaut Frontal;Headlong Rush;headlongrush;5.52;2.78;yes;engulf + dash + impact + cracks + quake
+Ground;Physical;100;Séisme;Earthquake;earthquake;12.22;16.93;yes;quake + cracks + burst
+Ground;Physical;95;Cavalerie Lourde;High Horsepower;highhorsepower;0.33;0.3;yes;dash + impact + cracks + kick
+Ground;Physical;75;Trépignement;Stomping Tantrum;stompingtantrum;0.06;0.07;yes;quake + impact
+Ground;Physical;60;Piétisol;Bulldoze;bulldoze;0.02;0.04;yes;quake + cracks
+Ground;Special;90;Telluriforce;Earth Power;earthpower;7.52;6.95;yes;cracks + pillars
+Ground;Status;;Picots;Spikes;spikes;3.67;2.46;yes;caltrops
+Ghost;Physical;110;Esprit Frappeur;Poltergeist;poltergeist;1.14;1.26;yes;glare + knock_item + wisps
+Ghost;Physical;70;Griffe Ombre;Shadow Claw;shadowclaw;0.2;0.1;yes;dash + claw
+Ghost;Physical;40;Ombre Portée;Shadow Sneak;shadowsneak;1.24;0.64;yes;shadow_hand + claw
+Ghost;Special;80;Ball'Ombre;Shadow Ball;shadowball;8.31;4.33;yes;hand-made
+Ghost;Special;65;Châtiment;Hex;hex;1.39;1.27;yes;glare + wisps
+Dark;Physical;95;Tricherie;Foul Play;foulplay;0.89;0.39;yes;shadow_hand + claw + slash
+Dark;Physical;85;Génusection;Kowtow Cleave;kowtowcleave;3.23;0.27;yes;dash + sword + slash
+Dark;Physical;80;Exécu-Son;Throat Chop;throatchop;0.06;0.05;yes;dash + slash + impact
+Dark;Physical;80;Mâchouille;Crunch;crunch;3.25;2.83;yes;dash + bite
+Dark;Physical;70;Coup Bas;Sucker Punch;suckerpunch;7.22;3.81;yes;shadow_hand + fist
+Dark;Physical;65;Sabotage;Knock Off;knockoff;15.09;13.79;yes;dash + knock_item
+Dark;Physical;65;Vagues à Lames;Ceaseless Edge;ceaselessedge;2.43;1.41;yes;dash + sword + caltrops
+Dark;Physical;40;Poursuite;Pursuit;pursuit;0.0;2.75;yes;shadow_hand + claw
+Dark;Special;80;Vibrobscur;Dark Pulse;darkpulse;2.08;0.68;yes;gather + dark_rings + burst
+Dark;Special;;Cataclysme;Ruination;ruination;1.45;0.89;yes;gather + cloud + rays
+Dark;Status;;Dernier Mot;Parting Shot;partingshot;1.13;0.69;yes;taunt + glare
+Dark;Status;;Machination;Nasty Plot;nastyplot;4.64;3.1;yes;aura + glare
+Dark;Status;;Provoc;Taunt;taunt;4.15;2.94;yes;taunt
+Flying;Physical;120;Rapace;Brave Bird;bravebird;1.63;1.4;yes;engulf + dash + wings + impact
+Flying;Physical;55;Acrobatie;Acrobatics;acrobatics;0.72;0.34;yes;spin + dash + kick + wings
+Flying;Physical;40;Double Volée;Dual Wingbeat;dualwingbeat;0.08;0.61;yes;dash + wings + wings
+Flying;Special;110;Vent Violent;Hurricane;hurricane;2.6;3.02;yes;tornado
+Flying;Special;75;Lame d'Air;Air Slash;airslash;0.17;0.7;yes;crescents + slash
+Flying;Status;;Anti-Brume;Defog;defog;2.37;7.24;yes;tornado
+Flying;Status;;Atterrissage;Roost;roost;7.05;10.28;yes;wings + heal
+Flying;Status;;Vent Arrière;Tailwind;tailwind;0.08;0.12;yes;dance
+Electric;Physical;90;Éclair Fou;Wild Charge;wildcharge;0.12;0.1;yes;engulf + dash + impact + sparks_on
+Electric;Physical;75;Poing Éclair;Thunder Punch;thunderpunch;0.15;1.27;yes;dash + fist + sparks_on
+Electric;Physical;20;Frotte-Frimousse;Nuzzle;nuzzle;1.3;0.79;yes;dash + impact + sparks_on
+Electric;Special;110;Fatal-Foudre;Thunder;thunder;0.61;0.35;yes;sky_bolt + sparks_on
+Electric;Special;90;Tonnerre;Thunderbolt;thunderbolt;4.29;4.3;yes;sparks_on + bolt + sparks_on + burst
+Electric;Special;80;Coup d'Jus;Discharge;discharge;0.54;0.34;yes;rays + sparks_on
+Electric;Special;70;Change Éclair;Volt Switch;voltswitch;2.31;4.77;yes;gather + orb + sparks_on
+Electric;Special;70;Monte-Tension;Rising Voltage;risingvoltage;0.02;0.15;yes;cracks + sky_bolt
+Electric;Special;70;Vif Éclair;Thunderclap;thunderclap;3.0;1.89;yes;sky_bolt
+Electric;Status;;Cage Éclair;Thunder Wave;thunderwave;3.3;2.98;yes;bolt + sparks_on

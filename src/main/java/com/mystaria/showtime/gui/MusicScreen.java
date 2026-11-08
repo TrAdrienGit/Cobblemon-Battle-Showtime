@@ -16,7 +16,7 @@ import com.mystaria.showtime.audio.MusicSettings;
 import com.mystaria.showtime.config.ShowtimeConfig;
 
 /**
- * Showtime's own music menu (Adrien 2026-10-29: for players without Phantasmon, which brings its own): one tab per
+ * Showtime's own music menu (2026-10-29: for players without Phantasmon, which brings its own): one tab per
  * folder of the resource pack, each file ticked or not (unticked files are never picked) and playable, the music
  * volume. Plain Minecraft widgets. Opened from Showtime's menu (key N), the settings screen, or by Mod Menu.
  */

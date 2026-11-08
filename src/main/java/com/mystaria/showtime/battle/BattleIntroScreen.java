@@ -890,7 +890,7 @@ public final class BattleIntroScreen extends Screen {
 
 	/**
 	 * The stand-in's shown skin parts (outer layer: hat, jacket, sleeves, trousers; cape) are synced entity data,
-	 * all off on a fresh entity — they come from the real player when loaded, else all on (Adrien 2026-10-05: the
+	 * all off on a fresh entity — they come from the real player when loaded, else all on (2026-10-05: the
 	 * intro showed neither the outer layer nor the cape). A subclass, for the protected accessors.
 	 */
 	private static final class IntroTrainer extends RemotePlayer {

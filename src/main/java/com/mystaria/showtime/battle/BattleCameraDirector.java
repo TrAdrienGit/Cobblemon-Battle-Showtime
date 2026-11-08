@@ -16,7 +16,7 @@ import net.minecraft.world.phys.Vec3;
 import com.mystaria.showtime.api.BattleStage;
 
 /**
- * Staged camera during a battle (Adrien 2026-10-05): the match is filmed, on the {@link BattleStage} its scene gives.
+ * Staged camera during a battle (2026-10-05): the match is filmed, on the {@link BattleStage} its scene gives.
  *
  * <ul>
  *   <li><b>Choosing</b> (players pick their moves): a sequence of shots round the field — its centre is halfway

@@ -17,7 +17,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Mth;
 
 /**
- * The player's settings (phase S3, Adrien 2026-10-29), in {@code config/cobblemon_battle_showtime.json}: per kind of battle,
+ * The player's settings (phase S3, 2026-10-29), in {@code config/cobblemon_battle_showtime.json}: per kind of battle,
  * whether the camera starts staged, whether the intro plays and whether our music plays; and the music's own volume,
  * on top of Minecraft's Music slider. Edited from the settings screen (Mod Menu) and the in-battle player. A missing
  * or broken file means the defaults: everything on, full volume. Also the trainer's animation profile (phase E2).

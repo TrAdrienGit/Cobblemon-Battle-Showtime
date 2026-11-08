@@ -3,10 +3,10 @@
 Each move stacks a few motifs (see Motifs.java) in phases: "wind" (the user winds up), "travel" (to the target),
 "hit" (on Cobblemon's hit cue), "self" (moves on the user alone). Physical moves are blows up close (a dash, then the
 blow: slash, fists, hammer, tail…), special ones travel (orbs, beams, jets, waves…), status ones play on the user or
-the target (Adrien 2026-11-01: each move its own look). Colours default to the move's type.
+the target (2026-11-01: each move its own look). Colours default to the move's type.
 
 The list: every move at 1 % or more in Smogon's Gen 9 OU and National Dex usage (October 2026, see tools/move_table.py
-and Documentation/attaques.csv) plus other common ones. Shadow Ball is hand-made (ShadowBall.java) and has no file.
+and Documentation/move-usage.csv) plus other common ones. Shadow Ball is hand-made (ShadowBall.java) and has no file.
 Run: python tools/moves.py
 """
 import json
@@ -261,7 +261,7 @@ MOVES = {
 
 CATEGORY_FALLBACK = {P: "physical", S: "special", T: "status"}
 
-# ---------------------------------------------------------------- every other move (Adrien 2026-11-07)
+# ---------------------------------------------------------------- every other move (2026-11-07)
 # The moves above are composed by hand. Every other move of the battle engine is composed here from its own data
 # (tools/move_data.json, exported from Cobblemon's Showdown: type, category, flags, target, effects) and its name,
 # so each still gets a look that matches what it is: a punch is a fist, a sound move rings, a pulse throws rings, a
@@ -453,7 +453,7 @@ def auto_moves():
     return moves
 
 
-# ---------------------------------------------------------------- Z-Moves (Adrien 2026-11-07: grandiose)
+# ---------------------------------------------------------------- Z-Moves (2026-11-07: grandiose)
 # Each Z-Move stacks three acts, bigger and longer than any ordinary move: the user charges up in a pillar of its
 # type (aura, rays, gathering light), a huge attack crosses the field, then the target is struck by a finale (a
 # ring of rays, a giant burst, the ground shaking) — twice the size of a normal move.

@@ -26,7 +26,7 @@ import com.mystaria.showtime.emote.TrainerEmotes;
 import com.mystaria.showtime.emote.TrainerEmotes.Moment;
 
 /**
- * Showtime's own menu (key N and Mod Menu, Adrien 2026-11-06), laid out like a web app: a sidebar of categories, then
+ * Showtime's own menu (key N and Mod Menu, 2026-11-06), laid out like a web app: a sidebar of categories, then
  * sections, then a list of choices. It borrows Cobblemon's palette, arrows and back button, not its PC's layout. For
  * animations and ambiances, a window on the real world shows the trainer playing the selection ({@link MenuPreview}).
  */

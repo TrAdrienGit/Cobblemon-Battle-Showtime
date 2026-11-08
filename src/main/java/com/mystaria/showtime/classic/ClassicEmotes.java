@@ -141,7 +141,7 @@ public final class ClassicEmotes {
 
 	/**
 	 * The trainer of the Pokémon named by a move message's first argument: a player's Pokémon is named "X's Pokémon"
-	 * ({@code cobblemon.battle.owned_pokemon}, the owner first — Adrien's test 2026-10-30: comparing that with the
+	 * ({@code cobblemon.battle.owned_pokemon}, the owner first — in-game test 2026-10-30: comparing that with the
 	 * Pokémon's own name never matched), any other by its name alone.
 	 */
 	private static UUID trainerOfUser(Object[] args) {

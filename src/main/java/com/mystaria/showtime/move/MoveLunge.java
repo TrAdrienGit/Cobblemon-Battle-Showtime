@@ -21,7 +21,7 @@ import net.minecraft.world.entity.Entity;
 
 /**
  * Most Cobblemon models have no attack animation, and then a Pokémon stands still when it uses a move. This moves the
- * whole model instead (Adrien 2026-11-07): it works on any model, since it needs none of its bones. Physical: a rush
+ * whole model instead (2026-11-07): it works on any model, since it needs none of its bones. Physical: a rush
  * forward; special: a recoil and a thrust; status: a hop. A cry goes with it now and then, so that it doesn't get
  * repetitive.
  */

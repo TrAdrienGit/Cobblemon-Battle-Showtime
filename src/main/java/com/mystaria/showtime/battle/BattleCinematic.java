@@ -25,7 +25,7 @@ import com.mystaria.showtime.audio.BattleMusic;
 
 
 /**
- * Battle launch cinematic (Adrien 2026-10-04, after Pokémon X/Y's trainer battle intro), in two parts:
+ * Battle launch cinematic (2026-10-04, after Pokémon X/Y's trainer battle intro), in two parts:
  *
  * <ol>
  *   <li><b>Intro</b>, played by both players as soon as the battle session starts ({@link #INTRO_END} ms, the
@@ -82,7 +82,7 @@ public final class BattleCinematic {
 	}
 
 	/**
-	 * The intros (TODO-26, Adrien 2026-10-06), each after a Pokémon game; the backend draws one per battle
+	 * The intros (TODO-26, 2026-10-06), each after a Pokémon game; the backend draws one per battle
 	 * ({@code BattleSessionStarted.intro}, the ordinal) so that both players watch the same.
 	 */
 	public enum Intro {
@@ -113,12 +113,12 @@ public final class BattleCinematic {
 
 	/**
 	 * Battle session started: plays the intro, with the intro music, then the battle music when the intro ends (not
-	 * when its file does, Adrien). {@code onIntroEnd} runs on the client thread when the intro is over; may be null.
+	 * when its file does). {@code onIntroEnd} runs on the client thread when the intro is over; may be null.
 	 */
 	public static void startIntro(UUID opponent, String name, int teamSize, int ownSize, Intro which, Runnable onIntroEnd) {
 		introEndAction = onIntroEnd;
 		ownTeamSize = Mth.clamp(ownSize, 0, 6);
-		// The "eyes meet" shot is gone (Adrien 2026-11-01): the intro starts at its wipe, from the player's own view.
+		// The "eyes meet" shot is gone (2026-11-01): the intro starts at its wipe, from the player's own view.
 		introStart = System.currentTimeMillis() - EYES_MEET_END;
 		intro = which == null ? Intro.XY : which;
 		opponentUuid = opponent;
@@ -317,7 +317,7 @@ public final class BattleCinematic {
 		Vec3 direction = gap < 1.0E-3 ? horizontal(self.getViewVector(partialTick)) : axis.scale(1 / gap);
 		Vec3 side = new Vec3(-direction.z, 0, direction.x);
 		// Far apart: over our shoulder, looking at the opponent — a wide side shot made both trainers specks seen from
-		// high up (Adrien's recording 2026-10-30, the "invisible" trainers).
+		// high up (a recording 2026-10-30, the "invisible" trainers).
 		if (gap > SIDE_SHOT_MAX_GAP) {
 			Vec3 right = new Vec3(-direction.z, 0, direction.x);
 			Vec3 feet = self.getPosition(partialTick);
@@ -414,7 +414,7 @@ public final class BattleCinematic {
 
 	/**
 	 * {@code EntityRendererCinematicMixin}: the two trainers are drawn during the intro whatever the distance — the
-	 * camera backs far off to fit them both, beyond the game's entity distance (Adrien 2026-10-30: both invisible).
+	 * camera backs far off to fit them both, beyond the game's entity distance (2026-10-30: both invisible).
 	 */
 	public static boolean forcedVisible(net.minecraft.world.entity.Entity entity) {
 		if (!introPlaying() || !(entity instanceof Player)) {
@@ -430,7 +430,7 @@ public final class BattleCinematic {
 
 	/**
 	 * EntityCulling (in the modpack) decides what is visible in the background, from where the camera was: the camera
-	 * jumping far away for the intro left the trainers hidden (Adrien 2026-10-30). Its own API keeps them drawn a while;
+	 * jumping far away for the intro left the trainers hidden (2026-10-30). Its own API keeps them drawn a while;
 	 * called by name, Showtime doesn't need it.
 	 */
 	private static void keepVisible(net.minecraft.world.entity.Entity entity) {

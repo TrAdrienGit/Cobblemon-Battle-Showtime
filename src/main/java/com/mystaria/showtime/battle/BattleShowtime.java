@@ -33,7 +33,7 @@ import com.mystaria.showtime.api.ShowtimeHooks;
 import com.mystaria.showtime.api.Transformation;
 
 /**
- * The battle gimmicks as set pieces (Adrien 2026-10-06: "un effet whoua"), on both clients' scene. While one plays,
+ * The battle gimmicks as set pieces (2026-10-06), on both clients' scene. While one plays,
  * the camera is taken ({@code CameraMixin}, {@code GameRendererShowtimeMixin}), Cobblemon's battle screen and the HUD are
  * hidden, the 2D layer is drawn by {@link ShowtimeOverlay}, and a battle that can wait for it does (Phantasmon's
  * host engine, {@link #pauseSeconds}).

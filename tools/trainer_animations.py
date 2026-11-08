@@ -1,8 +1,8 @@
-"""Writes the trainers' default animations (plan-showtime.md, phase E1) as playerAnimator / Emotecraft JSON.
+"""Writes the trainers' default animations (phase E1) as playerAnimator / Emotecraft JSON.
 
 Each animation is a list of poses (tick, easing, {part: {axis: value}}); a part left out of a pose holds its previous
 value. Radians; an arm or leg with a negative pitch swings forward, a positive head pitch looks down, z negative is in
-front. "torso" moves the WHOLE player (Adrien's test 2026-10-30): a positive pitch tilts it backwards, a positive y
+front. "torso" moves the WHOLE player (in-game test 2026-10-30): a positive pitch tilts it backwards, a positive y
 lifts it off the ground — so it only leans a little forward (negative pitch) and never moves up. The head's rotation
 replaces the player's own look: yaw 0 keeps the eyes on the opponent the body is turned to.
 
@@ -26,12 +26,12 @@ DEFAULTS = {
     "leftLeg": {"x": 1.9, "y": 12, "z": -0.1, "pitch": 0, "yaw": 0, "roll": 0, "bend": 0},
 }
 
-# Elbows and knees bend (bendy-lib, shipped with Emotecraft). Signs checked in game by Adrien 2026-10-30.
+# Elbows and knees bend (bendy-lib, shipped with Emotecraft). Signs checked in game 2026-10-30.
 ELBOW = -1
 FULL_TURN = 6.2832
 KNEE = 1
 
-# The battle guard (Battle Revolution, Adrien's references and feedback 2026-10-30): right foot a little forward, left a
+# The battle guard (Battle Revolution, references and feedback 2026-10-30): right foot a little forward, left a
 # little back — legs stay under the hips —, knees softly bent, elbows bent with loose fists at chest height apart from
 # each other (not a sword grip). Every axis the moments change is set here, so coming back to it resets them.
 GUARD = {

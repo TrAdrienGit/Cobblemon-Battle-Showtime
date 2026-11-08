@@ -1,4 +1,4 @@
-# Publishing on Modrinth and CurseForge: release sheet
+# Publishing on Modrinth and CurseForge: release checklist
 
 Page text for both sites: [`description.md`](description.md). Both accept Markdown; on CurseForge, pick the Markdown
 editor when pasting. Replace the `<!-- GIF / Screenshot -->` comments with your images, once they are uploaded to the
@@ -73,7 +73,6 @@ Record in 1920×1080 if you can, without other mods' overlays, and with the HUD 
 
 ## Before you publish
 
-- [ ] Commit the 2026-11-08 audit fixes once they are validated (they are in the jar to publish).
 - [ ] `./gradlew build` with JDK 25, then a final check of the jar in a clean instance: Fabric API + Cobblemon + Showtime
       only. Showtime must launch without Player Animation Library, Mod Menu and Phantasmon.
 - [ ] Publish a GitHub release `v1.0.0` with the jar, and the music pack template as a zip.

@@ -85,10 +85,10 @@ def post(name, program, uniforms=None):
 
 
 post("black_white", "color_convolve", {"Saturation": [0.0]})
-# Gentle (Adrien 2026-10-30: 4 colour levels and big blocks made the game unwatchable): fine pixels, many levels.
+# Gentle (2026-10-30: 4 colour levels and big blocks made the game unwatchable): fine pixels, many levels.
 post("pixels", "bits", {"Resolution": [24.0], "MosaicSize": [2.5]})
 post("glitch", "showtime_split")
-# The corrupted ambiance's lasting split, softer than a moment's glitch (Adrien 2026-10-30: twice asked lighter).
+# The corrupted ambiance's lasting split, softer than a moment's glitch (2026-10-30: twice asked lighter).
 post("glitch_soft", "showtime_split", {"Amount": [0.0022]})
 post("wobble", "showtime_wobble")
 post("old_tv", "showtime_old_tv")

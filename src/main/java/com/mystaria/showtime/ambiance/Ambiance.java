@@ -3,7 +3,7 @@ package com.mystaria.showtime.ambiance;
 import java.util.List;
 
 /**
- * A battle ambiance (plan-showtime.md, phase A1, Adrien 2026-10-30), read from
+ * A battle ambiance (phase A1, 2026-10-30), read from
  * {@code assets/<namespace>/ambiances/<id>.json}: layers of decoration, each optional, played on this client only
  * around the battle's field while it lasts. Gson fills the fields (snake_case in the file); colours are
  * {@code "#rrggbb"} strings, a lone value or a {@code [min, max]} pair where a range is allowed.
@@ -212,7 +212,7 @@ public final class Ambiance {
 	public FloatingBlocks floatingBlocks;
 	public Lightning lightning;
 	/**
-	 * No block of the world drawn at all (Adrien 2026-10-30): only the trainers, the Pokémon and the ambiance remain,
+	 * No block of the world drawn at all (2026-10-30): only the trainers, the Pokémon and the ambiance remain,
 	 * floating in its sky. The world itself is untouched (collisions, movements).
 	 */
 	public boolean hideWorld;

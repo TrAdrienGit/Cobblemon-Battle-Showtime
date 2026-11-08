@@ -1,4 +1,4 @@
-"""Writes Showtime's battle ambiances (plan-showtime.md, phase A2) as assets/cobblemon_battle_showtime/ambiances/*.json.
+"""Writes Showtime's battle ambiances (phase A2) as assets/cobblemon_battle_showtime/ambiances/*.json.
 
     python tools/ambiances.py
 
@@ -176,7 +176,7 @@ AMBIANCES = {
             {"color": "#3d7bff", "size": 2.4, "orbit": 30, "height": -36, "speed": 1.6},
             {"color": "#d9b77a", "size": 3.6, "orbit": 44, "height": -30, "speed": 0.8, "ring": "#e8d8b0"},
             {"color": "#7fd6ff", "size": 2.8, "orbit": 58, "height": -26, "speed": 0.5},
-            # Above too (Adrien 2026-10-30): a gas giant and a small moon passing over the field, a pale far sun.
+            # Above too (2026-10-30): a gas giant and a small moon passing over the field, a pale far sun.
             {"color": "#c46ad6", "size": 5, "orbit": 50, "height": 34, "speed": -0.4, "ring": "#f0c8ff"},
             {"color": "#d8dde8", "size": 1.6, "orbit": 26, "height": 22, "speed": -1.2},
             {"color": "#9fd8ff", "size": 3, "orbit": 70, "height": 48, "speed": 0.2, "glow": True},

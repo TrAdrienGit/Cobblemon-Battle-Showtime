@@ -40,7 +40,7 @@ import com.mystaria.showtime.api.ShowtimeHooks;
 import com.mystaria.showtime.config.ShowtimeConfig;
 
 /**
- * Plays an {@link Ambiance} around a battle's field (plan-showtime.md, phases A1-A2, Adrien 2026-10-30), on this
+ * Plays an {@link Ambiance} around a battle's field (phases A1-A2, 2026-10-30), on this
  * client only, from the battle's start to its end — then the world is exactly as before: everything is drawn or read
  * through here, nothing of the world is changed. The field is the middle of the player trainers, as wide as they are
  * apart. Which ambiance: one another mod imposes ({@link ShowtimeHooks#ambianceOverride}: Phantasmon's lobby, a
@@ -60,7 +60,7 @@ public final class BattleAmbiance {
 	private static Vec3 center;
 	private static float fieldRadius = 10f;
 	/**
-	 * A battle seen from afar, not watched (Adrien 2026-11-02): its decorations stand around its field only, and what
+	 * A battle seen from afar, not watched (2026-11-02): its decorations stand around its field only, and what
 	 * changes the whole world (time, sky, fog, weather, filter, sound, the world hidden) applies only while this player
 	 * stands inside the field's circle.
 	 */
@@ -646,7 +646,7 @@ public final class BattleAmbiance {
 			double turn = time / 1200.0 * lights.speed * Math.PI * 2 * (i % 2 == 0 ? 1 : -0.7);
 			double radius = fieldRadius * (0.25 + 0.6 * ((i * 0.37) % 1.0));
 			double angle = Math.PI * 2 * i / lights.count + turn;
-			// Well over the ground: at the blocks' own height they flickered with them (Adrien 2026-10-30).
+			// Well over the ground: at the blocks' own height they flickered with them (2026-10-30).
 			Vec3 at = new Vec3(Math.cos(angle) * radius, 0.12, Math.sin(angle) * radius);
 			int color = Ambiance.color(lights.colors.get(i % lights.colors.size()), 0xFFFFFF);
 			int segments = 20;
@@ -730,7 +730,7 @@ public final class BattleAmbiance {
 
 	/**
 	 * An aurora: hundreds of thin vertical rays along wavy bands high behind the field, each soft at its sides, fading
-	 * in from below and out above, flickering on its own — light, not cloth (Adrien 2026-10-30).
+	 * in from below and out above, flickering on its own — light, not cloth (2026-10-30).
 	 */
 	private static void drawAurora(PoseStack pose, MultiBufferSource buffers, Ambiance.Aurora aurora, float time) {
 		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
@@ -877,7 +877,7 @@ public final class BattleAmbiance {
 
 	/**
 	 * A beam of light: six planes around its axis, each bright on the axis and fading to nothing at its edges and its
-	 * far end — no hard-edged rectangle seen (Adrien 2026-10-30).
+	 * far end — no hard-edged rectangle seen (2026-10-30).
 	 */
 	private static void beam(VertexConsumer out, Matrix4f m, Vec3 from, Vec3 to, float startWidth, float endWidth, int color) {
 		Vec3 axis = to.subtract(from).normalize();

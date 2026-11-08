@@ -31,7 +31,7 @@ import com.mystaria.showtime.battle.BattleShowtime;
 import com.mystaria.showtime.config.ShowtimeConfig;
 
 /**
- * Cobblemon's own battles staged (phase S2, Adrien 2026-10-29): player against player and against NPC trainers, not
+ * Cobblemon's own battles staged (phase S2, 2026-10-29): player against player and against NPC trainers, not
  * wild Pokémon. Fed by Cobblemon's client battle handlers ({@code Classic*HandlerMixin}), after they ran, from the
  * packets the server sends: battle start, choices, switches, faints, move and gimmick messages, end. Packets another
  * mod hands to those handlers for a battle it stages itself (Phantasmon's Ghost battles) are left alone
@@ -75,7 +75,7 @@ public final class ClassicBattles {
 			List<BattleInitializePacket.BattleActorDTO> actors = new ArrayList<>(packet.getSide1().getActors());
 			actors.addAll(packet.getSide2().getActors());
 			if (actors.stream().anyMatch(actor -> actor.getType() == ActorType.WILD)) {
-				return; // Adrien: wild battles stay as they are
+				return; // wild battles stay as they are
 			}
 			boolean pvp = actors.stream().allMatch(actor -> actor.getType() == ActorType.PLAYER);
 			ShowtimeConfig.Kind kind = pvp ? ShowtimeConfig.Kind.PVP : ShowtimeConfig.Kind.NPC;

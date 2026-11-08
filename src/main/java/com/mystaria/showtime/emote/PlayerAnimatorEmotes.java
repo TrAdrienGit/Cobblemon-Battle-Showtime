@@ -86,7 +86,7 @@ final class PlayerAnimatorEmotes implements EmotePlayer {
 	}
 
 	/**
-	 * Elbows and knees bent by bendy-lib turned the outer skin layer black under shader packs (Adrien 2026-10-30,
+	 * Elbows and knees bent by bendy-lib turned the outer skin layer black under shader packs (2026-10-30,
 	 * Complementary + Euphoria Patches): while one is on (Iris), the limbs stay straight; the rest of the animation plays.
 	 */
 	private static final class NoBendWithShaders extends dev.kosmx.playerAnim.api.layered.modifier.AbstractModifier {

@@ -37,7 +37,7 @@ public abstract class GameRendererShowtimeMixin {
 		}
 	}
 
-	/** The cinema camera (battle shots, intro, set pieces) never shows the first-person hand (Adrien 2026-10-30). */
+	/** The cinema camera (battle shots, intro, set pieces) never shows the first-person hand (2026-10-30). */
 	@Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
 	private void showtime$noHand(Camera camera, float partialTick, org.joml.Matrix4f projection, CallbackInfo ci) {
 		if (com.mystaria.showtime.battle.BattleCinematic.cameraTaken()) {

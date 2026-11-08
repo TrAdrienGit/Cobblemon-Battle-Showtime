@@ -31,7 +31,7 @@ import com.mystaria.showtime.api.BattleStage;
 import com.mystaria.showtime.battle.BattleCameraDirector;
 
 /**
- * Lasting effects on the battlefield (Adrien 2026-11-02), drawn for as long as they last — whatever set them, a move or
+ * Lasting effects on the battlefield (2026-11-02), drawn for as long as they last — whatever set them, a move or
  * an ability. Cobblemon announces each start and end to the client as a battle message, read here:
  * <ul>
  * <li>the field ({@code cobblemon.battle.fieldstart|fieldend.<id>}): the four terrains (one at a time), Trick Room,
@@ -163,7 +163,7 @@ public final class FieldEffects {
 
 	/**
 	 * How far ahead of its side's Pokémon a screen stands: clear of the model, one block past its hitbox (at least the
-	 * 2.2 blocks that clear a small one; Adrien 2026-11-07).
+	 * 2.2 blocks that clear a small one; 2026-11-07).
 	 */
 	private static double wallDistance(BattleStage stage, Side side) {
 		Entity active = stage == null ? null : stage.activePokemon(side == Side.ALLY);
@@ -395,11 +395,11 @@ public final class FieldEffects {
 			}
 			return;
 		}
-		// A cube over the whole field (Adrien 2026-11-02: a cube, not a long box), walls tiled with squares as in the
+		// A cube over the whole field (2026-11-02: a cube, not a long box), walls tiled with squares as in the
 		// games — the tiles light up one after another; Trick Room in violet.
 		Vec3 along = half.lengthSqr() < 1.0E-4 ? new Vec3(0, 0, 1) : half.multiply(1, 0, 1).normalize();
 		Vec3 across = along.cross(new Vec3(0, 1, 0)).normalize();
-		float s = Math.max(5f, radius) * 1.5f; // 50 % bigger (Adrien 2026-11-02)
+		float s = Math.max(5f, radius) * 1.5f; // 50 % bigger (2026-11-02)
 		Vec3 base = ground.subtract(0, 0.02, 0);
 		Vec3 x = along.scale(s);
 		Vec3 z = across.scale(s);

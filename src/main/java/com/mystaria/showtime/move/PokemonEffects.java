@@ -35,7 +35,7 @@ import com.mystaria.showtime.api.BattleStage;
 import com.mystaria.showtime.battle.BattleCameraDirector;
 
 /**
- * Lasting effects on one Pokémon (Adrien 2026-11-02): Substitute, Leech Seed, confusion, Taunt, Encore, Yawn, Perish
+ * Lasting effects on one Pokémon (2026-11-02): Substitute, Leech Seed, confusion, Taunt, Encore, Yawn, Perish
  * Song, Stockpile, Curse, Ingrain, Aqua Ring, Focus Energy, Magnet Rise, Charge, Salt Cure, Protosynthesis and Quark
  * Drive… — read from Cobblemon's messages {@code cobblemon.battle.start|end|activate.<id>} (first argument: the
  * Pokémon), drawn on it while they last. They end with their end message, or when the Pokémon leaves the field
@@ -126,7 +126,7 @@ public final class PokemonEffects {
 
 	/**
 	 * Magma Storm's end-of-turn hurt: Cobblemon has an action effect for Fire Spin's ({@code damage_firespin}) but none
-	 * for Magma Storm's, so nothing showed. Fire Spin's is played on the hurt Pokémon instead (Adrien 2026-11-08).
+	 * for Magma Storm's, so nothing showed. Fire Spin's is played on the hurt Pokémon instead (2026-11-08).
 	 */
 	private static void magmaStormHurt(Object[] args) {
 		BattleStage stage = BattleCameraDirector.stage();

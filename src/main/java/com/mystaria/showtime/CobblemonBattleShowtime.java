@@ -15,12 +15,12 @@ import com.mystaria.showtime.classic.ClassicBattles;
 
 /**
  * Cobblemon Battle Showtime: the staging of battles (camera, intros, set pieces, music), on its own or for Phantasmon. Wires
- * the tick, the render passes, the battle screen's buttons and the trainers' emotes. No commands (Adrien 2026-11-06: one menu, one key).
+ * the tick, the render passes, the battle screen's buttons and the trainers' emotes. No commands (2026-11-06: one menu, one key).
  */
 public class CobblemonBattleShowtime implements ClientModInitializer {
 
 	/**
-	 * Showtime's only key (N, Adrien 2026-10-30: the modpack has keys enough): its menu — the trainer's animation
+	 * Showtime's only key (N, 2026-10-30: the modpack has keys enough): its menu — the trainer's animation
 	 * profile, the music (Phantasmon's own music menu when it is installed) and the settings.
 	 */
 	private static final net.minecraft.client.KeyMapping MENU_KEY = new net.minecraft.client.KeyMapping(

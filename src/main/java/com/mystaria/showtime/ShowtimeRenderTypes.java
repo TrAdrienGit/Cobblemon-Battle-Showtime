@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.RenderType;
 
 /**
  * Showtime's own render types. {@link #GLOW}: additive light like Minecraft's lightning, but <b>without writing
- * depth</b> and <b>without back-face culling</b> (Adrien's test 2026-11-02: drawn before translucent blocks, lightning's
+ * depth</b> and <b>without back-face culling</b> (in-game test 2026-11-02: drawn before translucent blocks, lightning's
  * depth hid the glass behind a weather haze; and flat shapes — walls, rings — showed from one side only).
  */
 public final class ShowtimeRenderTypes extends RenderType {

@@ -24,7 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import com.mystaria.showtime.api.ShowtimeHooks;
 
 /**
- * The trainers' emotes (plan-showtime.md, phase E1, Adrien 2026-10-30): during a battle each player trainer holds a
+ * The trainers' emotes (phase E1, 2026-10-30): during a battle each player trainer holds a
  * battle guard (one foot forward, knees bent, fists up, ready to spring), and acts the battle's moments — sending a
  * Pokémon out, calling it back (a switch is both), ordering an attack, winning, losing — then goes back to the guard.
  *
@@ -197,7 +197,7 @@ public final class TrainerEmotes {
 		}
 		Minecraft mc = Minecraft.getInstance();
 		// Only the trainer in the world: the intro's stand-ins share its UUID but are drawn at their own angle
-		// (they showed their back, Adrien 2026-11-08).
+		// (they showed their back, 2026-11-08).
 		if (mc.level == null || mc.level.getEntity(entity.getId()) != entity) {
 			return fallback;
 		}

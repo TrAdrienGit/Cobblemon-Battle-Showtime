@@ -28,7 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * The shapes moves are made of (M2, Adrien 2026-11-01: physical moves are blows up close, special ones travel; each move
+ * The shapes moves are made of (M2, 2026-11-01: physical moves are blows up close, special ones travel; each move
  * its own look). A move stacks a few of them ({@link MoveSpec.Layer}), each in one phase; {@code k} runs 0 → 1 over the
  * layer. Glowing shapes are additive light; rocks, hammers, swords, coins and ice are real blocks and items.
  *
@@ -634,7 +634,7 @@ final class Motifs {
 
 	/**
 	 * A rush: speed lines streaming back from the user, then converging on the target — no glow travelling between
-	 * them (it read as a projectile on a physical move: Adrien 2026-11-02).
+	 * them (it read as a projectile on a physical move: 2026-11-02).
 	 */
 	private static void dash(Context c) {
 		Vec3 from = c.userCentre();

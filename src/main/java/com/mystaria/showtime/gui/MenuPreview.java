@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 import com.mystaria.showtime.battle.BattleCinematic;
 
 /**
- * The camera of {@link ShowtimeMenuScreen}'s preview (Adrien 2026-11-06): the menu's portrait is an opening on the real
+ * The camera of {@link ShowtimeMenuScreen}'s preview (2026-11-06): the menu's portrait is an opening on the real
  * world, so the camera stands where the player appears exactly inside it, with the real effects around them.
  */
 public final class MenuPreview {

@@ -91,7 +91,7 @@ A track from the pack replaces the music the server plays through Cobblemon; wit
   jar published to Maven local.
 - Moves: `python tools/moves.py` rewrites `assets/cobblemon_battle_showtime/moves/` from `tools/move_data.json`
   (taken from Cobblemon's battle engine). A resource pack can add or replace a move.
-- Plan and phases: [`Documentation/plan-showtime.md`](Documentation/plan-showtime.md).
+- Developer documentation: [`Documentation/`](Documentation/README.md); coding agents start with [`CLAUDE.md`](CLAUDE.md).
 - Rule: every change keeps Phantasmon battles intact. Phantasmon uses only the public API (the `api` package and the
   public methods of `BattleCinematic`, `BattleCameraDirector`, `BattleShowtime`).
 

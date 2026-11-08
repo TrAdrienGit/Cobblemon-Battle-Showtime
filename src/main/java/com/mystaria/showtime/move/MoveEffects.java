@@ -20,7 +20,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Moves Showtime redraws (M1, M2 — Adrien 2026-11-01). Cobblemon's move animations are "action effects": timelines
+ * Moves Showtime redraws (M1, M2 — 2026-11-01). Cobblemon's move animations are "action effects": timelines
  * run by the <b>server</b>, which sends the clients the Pokémon's pose, sounds and particles
  * ({@link SpawnSnowstormEntityParticlePacket}). The pose and the sounds are kept; the particles of a redrawn move are
  * dropped on arrival ({@code MoveParticleOverrideMixin}) and Showtime draws its own effect instead, paced by those

@@ -17,7 +17,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * Which music files of the resource pack the player has unticked (Adrien 2026-10-05: everyone keeps the tracks they
+ * Which music files of the resource pack the player has unticked (2026-10-05: everyone keeps the tracks they
  * like). Stored per player in {@code config/cobblemon_battle_showtime-music.json} (read from Phantasmon's former
  * {@code config/phantasmon-music.json} until first saved); a file not listed is on, so new files dropped in the pack
  * play straight away.
