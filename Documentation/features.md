@@ -93,7 +93,9 @@ remove it from roadmap.md.
 - A pack track replaces the music the server plays through Cobblemon; without one, Cobblemon's stays.
 - In battle: current track (click → list, wheel to scroll, click to play), volume − / bar / +, next track.
 - Music page of the menu: filter by generation (All, Gen I to IX, Other for spin-offs and fan games), from the
-  `<game>_` prefix of the file names. Untick tracks there. Volume on top of Minecraft's Music slider.
+  `<game>_` prefix of the file names, and a Favourites filter. Untick tracks there, star favourites, enable or
+  disable every track shown at once, and "Only play my favourites" (a folder without a ticked favourite plays all its
+  ticked tracks). Volume on top of Minecraft's Music slider.
 
 ## Menu and settings (`gui/`, `config/`)
 

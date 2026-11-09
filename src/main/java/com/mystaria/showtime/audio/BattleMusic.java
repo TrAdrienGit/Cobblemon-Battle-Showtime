@@ -126,6 +126,12 @@ public final class BattleMusic {
 		track = wanted;
 		next = then;
 		if (!startRandom(wanted)) {
+			if (wanted.loops && available(wanted)) {
+				// Every track of the folder unticked: silence on purpose. The track stays held, so neither Minecraft's
+				// music nor Cobblemon's comes back; the next play() or stop() ends it.
+				next = null;
+				return;
+			}
 			track = then;
 			next = null;
 			if (then == null || !startRandom(then)) {
@@ -166,7 +172,9 @@ public final class BattleMusic {
 			next = null;
 		}
 		if (!startRandom(track)) {
-			track = null;
+			if (!(track.loops && available(track))) {
+				track = null; // a folder all unticked keeps its silence held, as in play()
+			}
 			return;
 		}
 		var player = Minecraft.getInstance().player;
@@ -220,8 +228,12 @@ public final class BattleMusic {
 	}
 
 	/** Whether a resource pack gives at least one ticked file for this track. */
+	/**
+	 * Whether the resource pack has this folder, ticked or not: then the pack decides, and Cobblemon's own music gives
+	 * way even when the player unticked everything there (silence wanted, 2026-11-09).
+	 */
 	public static boolean available(Track wanted) {
-		return files(wanted).stream().anyMatch(MusicSettings::enabled);
+		return !files(wanted).isEmpty();
 	}
 
 	/** Every file of a folder, ticked or not (the music screen). */
@@ -332,6 +344,10 @@ public final class BattleMusic {
 	private static boolean startRandom(Track wanted) {
 		List<ResourceLocation> files = new ArrayList<>(files(wanted));
 		files.removeIf(file -> !MusicSettings.enabled(file)); // unticked in the music screen
+		if (MusicSettings.onlyFavorites() && files.stream().anyMatch(MusicSettings::favorite)) {
+			// Only the favourites, where this folder has some; a folder without any keeps all its ticked tracks.
+			files.removeIf(file -> !MusicSettings.favorite(file));
+		}
 		if (files.isEmpty()) {
 			playing = null;
 			return false;

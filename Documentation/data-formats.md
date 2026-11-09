@@ -81,8 +81,8 @@ tracks to this convention (game acronym, then the title without "pokemon", "ost"
 }
 ```
 
-`ghost` is the settings of battles staged through the API. `config/cobblemon_battle_showtime-music.json` lists the
-unticked tracks. Both are written atomically; a missing or broken file means the defaults.
+`ghost` is the settings of battles staged through the API. `config/cobblemon_battle_showtime-music.json` holds the
+unticked tracks (`disabled`), the favourites (`favorites`) and `onlyFavorites`. Both are written atomically; a missing or broken file means the defaults.
 
 ## Artwork (`art/`)
 

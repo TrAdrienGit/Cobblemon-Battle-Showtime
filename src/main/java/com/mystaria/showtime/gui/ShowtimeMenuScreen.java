@@ -44,6 +44,7 @@ private static final int BLACK = 0xFF1A1A1A;
 	private static final int SHINE = 0x30FFFFFF;
 	private static final int SHADE = 0x50000000;
 	private static final int ACCENT_DIM = 0xFF1F7F7A;
+	private static final int STAR = 0xFFFFD84A;
 
 	private static final int HEADER_H = 24;
 	private static final int SIDEBAR_W = 88;
@@ -65,11 +66,19 @@ private static final int BLACK = 0xFF1A1A1A;
 	}
 
 	private enum Style {
-		NOTE, SELECT, SWITCH, SLIDER
+		NOTE, SELECT, SWITCH, SLIDER, BUTTONS
 	}
 
+	/** Music page filter: the favourite tracks. */
+	private static final int FAVORITES = -1;
+
 	/** A line of the list. {@code on}: selected or switched on; {@code value}: the slider's position. */
-	private record Row(Style style, Component text, boolean on, float value, Runnable click, Runnable side, Component sideText) {
+	private record Row(Style style, Component text, boolean on, float value, Runnable click, Runnable side, Component sideText,
+			Runnable star, boolean starred) {
+
+		Row(Style style, Component text, boolean on, float value, Runnable click, Runnable side, Component sideText) {
+			this(style, text, on, value, click, side, sideText, null, false);
+		}
 	}
 
 	private record Section(Component label, boolean selected, Runnable click) {
@@ -85,7 +94,7 @@ private static final int BLACK = 0xFF1A1A1A;
 	private BattleMusic.Track track = BattleMusic.Track.BATTLE;
 	/** Rows scrolled out of sight at the top, in pixels. */
 	private int scroll;
-	/** Music page: 0 = every game, 1 to 9 = that generation, or BattleMusic.OTHER. */
+	/** Music page: 0 = every game, 1 to 9 = that generation, BattleMusic.OTHER, or FAVORITES. */
 	private int generation;
 	private boolean draggingBar;
 	private int barGrab;
@@ -302,15 +311,23 @@ private static final int BLACK = 0xFF1A1A1A;
 		for (ResourceLocation file : all) {
 			present.add(BattleMusic.generation(file));
 		}
-		if (generation != 0 && !present.contains(generation)) {
+		boolean anyFavorite = all.stream().anyMatch(MusicSettings::favorite);
+		if (generation == FAVORITES ? !anyFavorite : generation != 0 && !present.contains(generation)) {
 			generation = 0;
 		}
-		if (present.size() > 1) {
+		if (present.size() > 1 || anyFavorite) {
 			filters.add(new Section(Component.translatable(KEY + "music.filter.all"), generation == 0, () -> {
 				generation = 0;
 				scroll = 0;
 				rebuild();
 			}));
+			if (anyFavorite) {
+				filters.add(new Section(Component.translatable(KEY + "music.filter.favorites"), generation == FAVORITES, () -> {
+					generation = FAVORITES;
+					scroll = 0;
+					rebuild();
+				}));
+			}
 			for (int each : present) {
 				Component label = each == BattleMusic.OTHER ? Component.translatable(KEY + "music.filter.other")
 						: Component.translatable(KEY + "music.filter.generation", ROMAN[each]);
@@ -322,10 +339,24 @@ private static final int BLACK = 0xFF1A1A1A;
 			}
 		}
 		List<ResourceLocation> files = generation == 0 ? all
+				: generation == FAVORITES ? all.stream().filter(MusicSettings::favorite).toList()
 				: all.stream().filter(file -> BattleMusic.generation(file) == generation).toList();
 		if (all.isEmpty()) {
 			note(Component.translatable(KEY + "music.screen.empty", "sounds/music/" + track.name().toLowerCase(Locale.ROOT)));
+			return;
 		}
+		rows.add(new Row(Style.SWITCH, Component.translatable(KEY + "music.only_favorites"), MusicSettings.onlyFavorites(), 0, () -> {
+			MusicSettings.setOnlyFavorites(!MusicSettings.onlyFavorites());
+			rebuild();
+		}, null, null));
+		// On the tracks shown: the filter narrows what "all" means.
+		rows.add(new Row(Style.BUTTONS, Component.translatable(KEY + "music.enable_all"), false, 0, () -> {
+			MusicSettings.setEnabled(files, true);
+			rebuild();
+		}, () -> {
+			MusicSettings.setEnabled(files, false);
+			rebuild();
+		}, Component.translatable(KEY + "music.disable_all")));
 		for (ResourceLocation file : files) {
 			rows.add(new Row(Style.SWITCH, Component.literal(BattleMusic.title(file)), MusicSettings.enabled(file), 0, () -> {
 				MusicSettings.setEnabled(file, !MusicSettings.enabled(file));
@@ -337,7 +368,10 @@ private static final int BLACK = 0xFF1A1A1A;
 					BattleMusic.preview(file);
 				}
 				rebuild();
-			}, Component.translatable(KEY + (BattleMusic.previewing(file) ? "music.screen.stop" : "music.screen.listen"))));
+			}, Component.translatable(KEY + (BattleMusic.previewing(file) ? "music.screen.stop" : "music.screen.listen")), () -> {
+				MusicSettings.setFavorite(file, !MusicSettings.favorite(file));
+				rebuild();
+			}, MusicSettings.favorite(file)));
 		}
 	}
 
@@ -727,6 +761,25 @@ private static final int BLACK = 0xFF1A1A1A;
 						centered(g, row.sideText(), sideX + 9, y + 5, 16, WHITE);
 						textW -= 22;
 					}
+					if (row.star() != null) {
+						int starX = x + w - 70;
+						boolean starHover = inside(mouseX, mouseY, starX, y, 18, ROW_H);
+						g.fillGradient(starX, y + 2, starX + 18, y + 16, starHover ? LIGHT : EDGE, starHover ? EDGE : RAISED);
+						raised(g, starX, y + 2, starX + 18, y + 16);
+						centered(g, Component.literal(row.starred() ? "★" : "☆"), starX + 9, y + 5, 16, row.starred() ? STAR : MUTED);
+						textW -= 22;
+					}
+				}
+				case BUTTONS -> {
+					int half = (w - 4) / 2;
+					for (int b = 0; b < 2; b++) {
+						int bx = x + b * (half + 4);
+						boolean hover = inside(mouseX, mouseY, bx, y, half, ROW_H);
+						g.fillGradient(bx, y, bx + half, y + ROW_H, hover ? LIGHT : EDGE, hover ? EDGE : RAISED);
+						raised(g, bx, y, bx + half, y + ROW_H);
+						centered(g, b == 0 ? row.text() : row.sideText(), bx + half / 2, y + 5, half - 6, WHITE);
+					}
+					continue;
 				}
 				case SLIDER -> {
 					int barY = y + ROW_H - 5;
@@ -820,8 +873,15 @@ private static final int BLACK = 0xFF1A1A1A;
 				setVolume(mouseX);
 				return true;
 			}
-			boolean onSide = row.side() != null && inside(mouseX, mouseY, x + w - 48, rowY(i), 18, ROW_H);
-			Runnable action = onSide ? row.side() : row.click();
+			Runnable action;
+			if (row.style() == Style.BUTTONS) {
+				action = mouseX < x + w / 2 ? row.click() : row.side();
+			} else if (row.star() != null && inside(mouseX, mouseY, x + w - 70, rowY(i), 18, ROW_H)) {
+				action = row.star();
+			} else {
+				boolean onSide = row.side() != null && inside(mouseX, mouseY, x + w - 48, rowY(i), 18, ROW_H);
+				action = onSide ? row.side() : row.click();
+			}
 			if (action != null) {
 				clickSound();
 				action.run();

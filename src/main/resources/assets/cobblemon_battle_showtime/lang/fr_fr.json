@@ -81,5 +81,9 @@
   "cobblemon_battle_showtime.settings.ball_effects": "Effets de Ball",
   "cobblemon_battle_showtime.music.filter.all": "Tous",
   "cobblemon_battle_showtime.music.filter.generation": "Gén. %s",
-  "cobblemon_battle_showtime.music.filter.other": "Autres"
+  "cobblemon_battle_showtime.music.filter.other": "Autres",
+  "cobblemon_battle_showtime.music.filter.favorites": "★ Favoris",
+  "cobblemon_battle_showtime.music.only_favorites": "Ne jouer que mes favoris",
+  "cobblemon_battle_showtime.music.enable_all": "Tout activer",
+  "cobblemon_battle_showtime.music.disable_all": "Tout désactiver"
 }
