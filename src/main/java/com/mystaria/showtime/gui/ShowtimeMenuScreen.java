@@ -299,7 +299,7 @@ private static final int BLACK = 0xFF1A1A1A;
 	}
 
 	private void music() {
-		for (BattleMusic.Track each : BattleMusic.Track.values()) {
+		for (BattleMusic.Track each : BattleMusic.shownTracks()) {
 			sections.add(new Section(Component.translatable(KEY + "music.tab." + each.name().toLowerCase(Locale.ROOT)),
 					each == track, () -> {
 						track = each;

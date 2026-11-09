@@ -87,8 +87,8 @@ remove it from roadmap.md.
 
 ## Music (`audio/`)
 
-- Tracks from resource packs per moment: battle (from the intro on), victory, defeat (jingles capped at 10 s), and lobby for mods that have
-  a battle lobby. The older
+- Tracks from resource packs per moment: battle (from the intro on), victory, defeat (jingles capped at 10 s). A mod
+  with a battle lobby can turn on a lobby track (see api.md). The older
   `assets/phantasmon/sounds/music/` layout is still read.
 - A pack track replaces the music the server plays through Cobblemon; without one, Cobblemon's stays.
 - In battle: current track (click → list, wheel to scroll, click to play), volume − / bar / +, next track.

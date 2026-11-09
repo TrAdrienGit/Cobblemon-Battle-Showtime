@@ -37,7 +37,7 @@ public final class MusicScreen extends Screen {
 	@Override
 	protected void init() {
 		int center = width / 2;
-		BattleMusic.Track[] tracks = BattleMusic.Track.values();
+		BattleMusic.Track[] tracks = BattleMusic.shownTracks();
 		int tabW = 70;
 		int tabsX = center - tracks.length * (tabW + 2) / 2;
 		for (int i = 0; i < tracks.length; i++) {

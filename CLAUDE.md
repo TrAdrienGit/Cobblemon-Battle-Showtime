@@ -81,12 +81,16 @@ published under another slug, change it there. Version numbers are compared nume
 them**, the repository only holds the empty template (`resourcepack-template/`). The full pack lives in the test
 instances' `resourcepacks/` folders.
 
-- **Folders:** `lobby` (encounter themes, for mods with a battle lobby), `battle` (from the intro to the end), `victory`,
-  `defeat`. There is no intro folder: the battle music starts with the intro.
+- **Folders:** `battle` (from the intro to the end), `victory`, `defeat`. There is no intro folder: the battle music
+  starts with the intro.
+- **Lobby music is not Showtime's.** Showtime alone has no lobby. A mod with one turns the `lobby` track on
+  (`ShowtimeHooks.enableLobbyMusic()`); only then does its tab show in the menus. Phantasmon does, and its own
+  "Phantasmon Resource Pack" brings the tracks (`assets/phantasmon/sounds/music/lobby/`, 101 encounter themes, v1).
+  Never mention the lobby in Showtime's player-facing texts.
 - **Names:** `<game>_<title>.ogg`, lower case, no "pokemon", "ost", quality tags or numbers (`oras_vs_wally.ogg`). Game
   codes and their generations are in `BattleMusic.GAMES` / `GENERATIONS`; the menu shows "ORAS · Vs Wally" and filters
   by generation. `tools/music_names.py` renames downloaded tracks to this convention.
-- **Version:** in `pack.mcmeta`'s description and the pack's `README.txt` (v1 = 281 tracks, 2026-11-09). Raise it when
+- **Version:** in `pack.mcmeta`'s description and the pack's `README.txt` (v1 = 281 tracks with the lobby; v2 = 180, the lobby moved to the Phantasmon pack, 2026-11-09). Raise it when
   tracks are added, removed, renamed or moved.
 - **Loudness:** every track is normalised to **−14 LUFS integrated, true peak ≤ −1.5 dBTP** (EBU R128) with
   `tools/normalize_music.py` (two-pass ffmpeg `loudnorm`, linear gain when the peak allows it, re-encoded as Ogg

@@ -26,7 +26,7 @@ server and nothing for the other players to install.
   Resource packs can add more.
 - **Animated trainers** (with Player Animation Library): guard, throw, recall, attack order, victory and defeat, with
   several animation profiles to pick from.
-- **Your own battle music**: drop `.ogg` files in a resource pack for battles, victories and defeats (and the lobby of mods that have one); pick,
+- **Your own battle music**: drop `.ogg` files in a resource pack for battles, victories and defeats; pick,
   skip and set the volume right from the battle screen.
 
 | Battle | Intro | Camera | Music | Moves, balls, effects | Mega / Z / Tera |
@@ -74,7 +74,7 @@ Poké Ball effects. Plus the music volume, on top of Minecraft's Music slider. E
 1. Copy `resourcepack-template/Cobblemon Battle Showtime Resource Pack` (from the
    [GitHub repository](https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime)) into your `resourcepacks` folder.
 2. Drop `.ogg` files in `assets/cobblemon_battle_showtime/sounds/music/` under `battle`, `victory`
-   or `defeat` (and `lobby`, for mods that have a battle lobby).
+   or `defeat`.
 3. Enable the pack in game (or press F3 + T if it is already on).
 
 A track from the pack replaces the music the server plays through Cobblemon; with no pack, Cobblemon's music stays.

@@ -29,6 +29,7 @@ Everything else is internal and may change at any time. All calls on the client 
 | `setTrainersListener(Consumer<Collection<UUID>>)` | Told which trainers a battle starts with (to fetch their profiles). |
 | `setAmbianceOverride(Supplier<String>)` | An ambiance id forced for the current battle, over the player's choice; null = the player's. |
 | `addButton(BattleButton)` | Add a button to the battle-screen panel. |
+| `enableLobbyMusic()` | Turn on the `lobby` music track for your battle lobby: its tab shows in the music menus, and `BattleMusic.play(BattleMusic.Track.LOBBY)` plays it (with fades, volume, favourites). Showtime alone never plays it. |
 
 ## `BattleStage`
 

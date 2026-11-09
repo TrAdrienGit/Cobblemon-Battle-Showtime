@@ -136,6 +136,20 @@ public final class ShowtimeHooks {
 		return ambianceOverride.get();
 	}
 
+	private static boolean lobbyMusic;
+
+	/**
+	 * For a mod with a battle lobby (Phantasmon): turns on the {@code lobby} music folder, which Showtime alone never
+	 * plays. Its tab then shows in the music menus; play it with {@code BattleMusic.play(BattleMusic.Track.LOBBY)}.
+	 */
+	public static void enableLobbyMusic() {
+		lobbyMusic = true;
+	}
+
+	public static boolean lobbyMusicEnabled() {
+		return lobbyMusic;
+	}
+
 	public static void addButton(BattleButton button) {
 		buttons.add(button);
 		buttons.sort(Comparator.comparingInt(BattleButton::order));

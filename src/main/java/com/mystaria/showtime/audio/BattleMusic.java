@@ -25,13 +25,16 @@ import com.mystaria.showtime.config.ShowtimeConfig;
  * JSON to write: every {@code .ogg} found in {@code assets/cobblemon_battle_showtime/sounds/music/<folder>/} of any active
  * resource pack is a candidate, one is picked at random (packs made for Phantasmon, under {@code assets/phantasmon/},
  * still count).
- * Folders: {@code lobby} (loops while a lobby is open, before the battle), {@code battle} (loops from the intro to the
- * end of the battle), {@code victory} / {@code defeat} (once at the end). An
+ * Folders: {@code battle} (loops from the intro to the end of the battle), {@code victory} / {@code defeat} (once at the end). An
  * empty or missing folder just means silence there. Played on the Music volume slider; Minecraft's own background
  * music is held while one plays ({@code MusicManagerMixin}). Client thread only.
  */
 public final class BattleMusic {
 
+	/**
+	 * {@code LOBBY} only plays for a mod with a battle lobby, which turns it on ({@link
+	 * com.mystaria.showtime.api.ShowtimeHooks#enableLobbyMusic}); it is hidden from the menus otherwise.
+	 */
 	public enum Track {
 		// No intro track since 2026-11-09: the battle music starts with the intro, right after the lobby.
 		LOBBY("lobby", true, 0), BATTLE("battle", true, 0),
@@ -68,6 +71,13 @@ public final class BattleMusic {
 	private static ShowtimeConfig.Kind kind = ShowtimeConfig.Kind.GHOST;
 
 	private BattleMusic() {
+	}
+
+	/** The tracks shown in the music menus: every one, but the lobby only when a mod turned it on. */
+	public static Track[] shownTracks() {
+		return java.util.Arrays.stream(Track.values())
+				.filter(each -> each != Track.LOBBY || com.mystaria.showtime.api.ShowtimeHooks.lobbyMusicEnabled())
+				.toArray(Track[]::new);
 	}
 
 	/** The track playing (looping or not), or null. */

@@ -1,12 +1,11 @@
 COBBLEMON BATTLE SHOWTIME RESOURCE PACK: battle music for Cobblemon Battle Showtime
 =================================================================================
-Version: v1
+Version: v2
 
 The resource pack of the Cobblemon Battle Showtime mod: it brings the battle music the mod plays.
 
 1. Put .ogg files in the folders of assets/cobblemon_battle_showtime/sounds/music/:
 
-   lobby/    before a battle, in mods that have a battle lobby (Phantasmon), looped, picked at random
    battle/   from the intro to the end of the battle, looped, picked at random
    victory/  on a win, played once
    defeat/   on a loss, played once
