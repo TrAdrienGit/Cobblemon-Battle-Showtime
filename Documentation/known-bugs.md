@@ -9,6 +9,7 @@ as a bug is found and not fixed right away.
 |---|---|
 | Mega / Z / Tera set pieces in classic battles | The fix (owned Pokémon names unwrapped, handlers at HEAD) can only be checked on a server that allows these mechanics, such as Cobblemon Academy with DeltaClient. Base Cobblemon has none. |
 | First-throw camera shot of a classic NPC battle | Written, never seen in game (in player vs player the intro hides it). |
+| Trainers not facing each other in a player vs player intro | Seen once (2026-11-09), not reproduced. If it comes back: note the intro and the scene, the stand-ins' angles are set per scene in `BattleIntroScreen`. |
 | Side effects for a spectator | Screens and hazards are placed "ally / opponent" from the local player's view; a spectator of a classic battle may see them swapped. Check what Cobblemon sends spectators; if needed, derive the side from the message's `p1` / `p2`. |
 
 ## Bugs

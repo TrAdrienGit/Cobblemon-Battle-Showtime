@@ -45,6 +45,53 @@ public final class MoveEffects {
 	/** Set while Showtime itself plays one of Cobblemon's particles (Magma Storm's hurt): never dropped. */
 	private static boolean ownSpawn;
 
+	private static final String[] POSITIONS = {"p1a", "p1b", "p1c", "p2a", "p2b", "p2c"};
+
+	/**
+	 * Who a move aims at when Cobblemon gave no target cue: a Pokémon of the battle, the opposing side first. Only
+	 * outside a staged battle the nearest Pokémon around (wild Pokémon wandering near the field took the hits).
+	 */
+	static Entity defaultTarget(Entity user, ClientLevel level) {
+		com.mystaria.showtime.api.BattleStage stage = com.mystaria.showtime.battle.BattleCameraDirector.stage();
+		if (stage != null) {
+			String side = null;
+			for (String pnx : POSITIONS) {
+				if (stage.pokemonAt(pnx) == user) {
+					side = pnx.substring(0, 2);
+				}
+			}
+			Entity best = null;
+			double bestScore = Double.MAX_VALUE;
+			for (String pnx : POSITIONS) {
+				Entity candidate = stage.pokemonAt(pnx);
+				if (candidate == null || candidate == user || candidate.isRemoved()) {
+					continue;
+				}
+				// Same side only if nothing stands on the other (a move on an ally is cued by Cobblemon anyway).
+				double score = candidate.distanceToSqr(user) + (side != null && pnx.startsWith(side) ? 1e6 : 0);
+				if (score < bestScore) {
+					bestScore = score;
+					best = candidate;
+				}
+			}
+			if (best != null) {
+				return best;
+			}
+		}
+		Entity best = null;
+		double bestDistance = 24 * 24;
+		for (Entity entity : level.entitiesForRendering()) {
+			if (entity != user && entity instanceof PokemonEntity) {
+				double distance = entity.distanceToSqr(user);
+				if (distance < bestDistance) {
+					bestDistance = distance;
+					best = entity;
+				}
+			}
+		}
+		return best;
+	}
+
 	/** Plays a Cobblemon particle through its own handler, past {@link #intercept}. Client thread only. */
 	public static void spawnCobblemonParticle(SpawnSnowstormEntityParticlePacket packet) {
 		ownSpawn = true;

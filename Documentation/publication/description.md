@@ -51,7 +51,7 @@ Needs Player Animation Library, which is also bundled in Emotecraft.
 
 ## 🎵 Your own battle music
 
-Drop `.ogg` files in a resource pack for the lobby, intro, battle, victory and defeat. Pick a track, skip it or set the
+Drop `.ogg` files in a resource pack for battles, victories and defeats. Pick a track, skip it or set the
 volume right from the battle screen. A ready-made pack template is on GitHub.
 
 ## What gets staged

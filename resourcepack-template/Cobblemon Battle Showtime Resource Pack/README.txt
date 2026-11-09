@@ -1,11 +1,13 @@
 COBBLEMON BATTLE SHOWTIME RESOURCE PACK: battle music for Cobblemon Battle Showtime
 =================================================================================
+Version: v1
+
+The resource pack of the Cobblemon Battle Showtime mod: it brings the battle music the mod plays.
 
 1. Put .ogg files in the folders of assets/cobblemon_battle_showtime/sounds/music/:
 
-   lobby/    before a battle (Phantasmon's battle lobby), looped, tracks picked at random
-   intro/    the battle intro, played once; the battle music follows when it ends
-   battle/   during the battle, looped, tracks picked at random
+   lobby/    before a battle, in mods that have a battle lobby (Phantasmon), looped, picked at random
+   battle/   from the intro to the end of the battle, looped, picked at random
    victory/  on a win, played once
    defeat/   on a loss, played once
 
@@ -25,3 +27,6 @@ Naming (optional, shown nicely in game): <game>_<title>.ogg, for example oras_vs
 Game codes: rb, rby, gsc, rse, frlg, dp, pt, dppt, hgss, bw, b2w2, xy, oras, sm, usum, lgpe, swsh, bdsp, pla, plza, sv,
 colosseum, xd, stadium, stadium2, pbr, pmdeos, pokken, puzzleleague, pinball, pinballrs, ranger, champions, reborn.
 tools/music_names.py in the mod's repository renames a folder of downloaded tracks to this convention.
+
+Versions: the version is in pack.mcmeta's description and on the Version line above. Raise it (v2, v3…) whenever
+tracks are added, removed, renamed or moved between folders.

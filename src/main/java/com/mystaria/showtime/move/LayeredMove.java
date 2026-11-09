@@ -73,7 +73,7 @@ final class LayeredMove extends MoveEffect {
 		}
 		if (!self) {
 			if (target == null && targetPoint == null && age == WIND) {
-				target = nearestOtherPokemon(level);
+				target = MoveEffects.defaultTarget(user, level);
 			}
 			if (targetPoint != null && age == ARRIVE) {
 				hit = true; // preview: always a hit
@@ -197,18 +197,4 @@ final class LayeredMove extends MoveEffect {
 		return user;
 	}
 
-	private Entity nearestOtherPokemon(ClientLevel level) {
-		Entity best = null;
-		double bestDistance = 24 * 24;
-		for (Entity entity : level.entitiesForRendering()) {
-			if (entity != user && entity instanceof PokemonEntity) {
-				double distance = entity.distanceToSqr(user);
-				if (distance < bestDistance) {
-					bestDistance = distance;
-					best = entity;
-				}
-			}
-		}
-		return best;
-	}
 }

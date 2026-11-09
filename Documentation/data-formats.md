@@ -60,7 +60,7 @@ ships its own.
 
 ## Music (resource pack)
 
-`assets/cobblemon_battle_showtime/sounds/music/<lobby|intro|battle|victory|defeat>/*.ogg`, no declaration needed. The
+`assets/cobblemon_battle_showtime/sounds/music/<lobby|battle|victory|defeat>/*.ogg`, no declaration needed. The
 older `assets/phantasmon/sounds/music/` is also read.
 File names follow `<game>_<title>.ogg` (`oras_vs_wally.ogg`): `BattleMusic.title` shows it as "ORAS · Vs Wally"
 (game codes in `BattleMusic.GAMES`); other names are shown as they are. `tools/music_names.py` renames downloaded

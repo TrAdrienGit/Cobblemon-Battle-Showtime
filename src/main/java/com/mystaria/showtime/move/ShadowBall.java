@@ -83,7 +83,7 @@ final class ShadowBall extends MoveEffect {
 		if (launchAge < 0) {
 			if (age >= LAUNCH_FALLBACK) {
 				if (target == null && targetPoint == null) {
-					target = nearestOtherPokemon(level);
+					target = MoveEffects.defaultTarget(user, level);
 				}
 				launch();
 			} else if (targetPoint != null && age >= CHARGE + 4) {
@@ -178,20 +178,6 @@ final class ShadowBall extends MoveEffect {
 		return user.position().add(user.getViewVector(1f).multiply(6, 0, 6)).add(0, user.getBbHeight() * 0.5, 0);
 	}
 
-	private Entity nearestOtherPokemon(ClientLevel level) {
-		Entity best = null;
-		double bestDistance = 24 * 24;
-		for (Entity entity : level.entitiesForRendering()) {
-			if (entity != user && entity instanceof PokemonEntity) {
-				double distance = entity.distanceToSqr(user);
-				if (distance < bestDistance) {
-					bestDistance = distance;
-					best = entity;
-				}
-			}
-		}
-		return best;
-	}
 
 	private Vec3 randomDirection() {
 		return new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).normalize();

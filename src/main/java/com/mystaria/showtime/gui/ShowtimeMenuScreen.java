@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Locale;
 
 import com.cobblemon.mod.common.client.gui.ExitButton;
-import com.cobblemon.mod.common.client.gui.pc.NavigationButton;
 import com.cobblemon.mod.common.client.render.RenderHelperKt;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -54,8 +53,12 @@ private static final int BLACK = 0xFF1A1A1A;
 	private static final int ROW_PITCH = 20;
 	private static final int CHIP_H = 14;
 	private static final int CHIP_COLUMNS = 3;
+	/** The music page's generation filters: All, I to IX, Other. */
+	private static final int FILTER_COLUMNS = 6;
+	private static final int BAR_W = 5;
 	private static final ResourceLocation UNIFORM = ResourceLocation.parse("uniform");
 	private static final String KEY = "cobblemon_battle_showtime.";
+	private static final String[] ROMAN = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"};
 
 	private enum Category {
 		SETTINGS, ANIMATIONS, AMBIANCES, MUSIC
@@ -75,11 +78,17 @@ private static final int BLACK = 0xFF1A1A1A;
 	private final Screen parent;
 	private final List<Row> rows = new ArrayList<>();
 	private final List<Section> sections = new ArrayList<>();
+	private final List<Section> filters = new ArrayList<>();
 	private Category category = Category.SETTINGS;
 	private ShowtimeConfig.Kind kind = ShowtimeConfig.Kind.PVP;
 	private Moment moment = Moment.GUARD;
 	private BattleMusic.Track track = BattleMusic.Track.BATTLE;
-	private int page;
+	/** Rows scrolled out of sight at the top, in pixels. */
+	private int scroll;
+	/** Music page: 0 = every game, 1 to 9 = that generation, or BattleMusic.OTHER. */
+	private int generation;
+	private boolean draggingBar;
+	private int barGrab;
 	private int left;
 	private int top;
 	private int right;
@@ -87,8 +96,6 @@ private static final int BLACK = 0xFF1A1A1A;
 	private boolean savedHideGui;
 	private boolean hidGui;
 	private boolean draggingVolume;
-	private NavigationButton previous;
-	private NavigationButton next;
 
 	public ShowtimeMenuScreen(Screen parent) {
 		super(Component.literal("Cobblemon Battle Showtime"));
@@ -133,20 +140,28 @@ private static final int BLACK = 0xFF1A1A1A;
 		return top + HEADER_H + 24;
 	}
 
-	private int rowsY() {
-		if (sections.isEmpty()) {
-			return chipsY();
-		}
+	private int filtersY() {
 		int lines = (sections.size() + CHIP_COLUMNS - 1) / CHIP_COLUMNS;
-		return chipsY() + lines * (CHIP_H + 3) + 5;
+		return chipsY() + lines * (CHIP_H + 3) + (sections.isEmpty() ? 0 : 2);
 	}
 
-	private int rowsPerPage() {
-		return Math.max(1, (bottom - 22 - rowsY()) / ROW_PITCH);
+	private int rowsY() {
+		int lines = (filters.size() + FILTER_COLUMNS - 1) / FILTER_COLUMNS;
+		int y = filtersY() + lines * (CHIP_H + 3);
+		return sections.isEmpty() && filters.isEmpty() ? y : y + 3;
 	}
 
-	private int pages() {
-		return Math.max(1, (rows.size() + rowsPerPage() - 1) / rowsPerPage());
+	private int rowsBottom() {
+		return bottom - 8;
+	}
+
+	private int maxScroll() {
+		return Math.max(0, rows.size() * ROW_PITCH - 2 - (rowsBottom() - rowsY()));
+	}
+
+	/** Rows leave room for the scrollbar when they don't all fit. */
+	private int rowsRight() {
+		return maxScroll() > 0 ? contentRight() - BAR_W - 4 : contentRight();
 	}
 
 	// ---------------------------------------------------------------- content
@@ -160,8 +175,6 @@ private static final int BLACK = 0xFF1A1A1A;
 		right = left + w;
 		bottom = top + h;
 		addRenderableWidget(new ExitButton(right - 32, top + 6, b -> onClose()));
-		previous = addRenderableWidget(new NavigationButton(0, bottom - 16, false, b -> turnPage(-1)));
-		next = addRenderableWidget(new NavigationButton(0, bottom - 16, true, b -> turnPage(1)));
 		if (inWorld() && !hidGui) {
 			hidGui = true;
 			savedHideGui = minecraft.options.hideGui;
@@ -171,17 +184,8 @@ private static final int BLACK = 0xFF1A1A1A;
 		applyPreview();
 	}
 
-	private void turnPage(int step) {
-		page = Mth.clamp(page + step, 0, pages() - 1);
-		placeArrows();
-	}
-
-	private void placeArrows() {
-		int center = (contentX() + contentRight()) / 2;
-		previous.setX(center - 34);
-		next.setX(center + 27);
-		previous.visible = page > 0;
-		next.visible = page < pages() - 1;
+	private void scrollTo(int pixels) {
+		scroll = Mth.clamp(pixels, 0, maxScroll());
 	}
 
 	private void select(Category chosen) {
@@ -189,7 +193,7 @@ private static final int BLACK = 0xFF1A1A1A;
 			return;
 		}
 		category = chosen;
-		page = 0;
+		scroll = 0;
 		BattleMusic.endPreview();
 		rebuild();
 		applyPreview();
@@ -198,14 +202,14 @@ private static final int BLACK = 0xFF1A1A1A;
 	private void rebuild() {
 		rows.clear();
 		sections.clear();
+		filters.clear();
 		switch (category) {
 			case SETTINGS -> settings();
 			case ANIMATIONS -> animations();
 			case AMBIANCES -> ambiances();
 			case MUSIC -> music();
 		}
-		page = Mth.clamp(page, 0, pages() - 1);
-		placeArrows();
+		scrollTo(scroll);
 	}
 
 	private void settings() {
@@ -216,7 +220,7 @@ private static final int BLACK = 0xFF1A1A1A;
 			sections.add(new Section(Component.translatable(KEY + "settings.kind." + each.name().toLowerCase(Locale.ROOT)),
 					each == kind, () -> {
 						kind = each;
-						page = 0;
+						scroll = 0;
 						rebuild();
 					}));
 		}
@@ -247,7 +251,7 @@ private static final int BLACK = 0xFF1A1A1A;
 		for (Moment each : Moment.values()) {
 			sections.add(new Section(Component.translatable(KEY + "profile.moment." + each.id()), each == moment, () -> {
 				moment = each;
-				page = 0;
+				scroll = 0;
 				rebuild();
 				applyPreview();
 			}));
@@ -288,13 +292,38 @@ private static final int BLACK = 0xFF1A1A1A;
 			sections.add(new Section(Component.translatable(KEY + "music.tab." + each.name().toLowerCase(Locale.ROOT)),
 					each == track, () -> {
 						track = each;
-						page = 0;
+						scroll = 0;
 						BattleMusic.endPreview();
 						rebuild();
 					}));
 		}
-		List<ResourceLocation> files = BattleMusic.allFiles(track);
-		if (files.isEmpty()) {
+		List<ResourceLocation> all = BattleMusic.allFiles(track);
+		java.util.Set<Integer> present = new java.util.TreeSet<>();
+		for (ResourceLocation file : all) {
+			present.add(BattleMusic.generation(file));
+		}
+		if (generation != 0 && !present.contains(generation)) {
+			generation = 0;
+		}
+		if (present.size() > 1) {
+			filters.add(new Section(Component.translatable(KEY + "music.filter.all"), generation == 0, () -> {
+				generation = 0;
+				scroll = 0;
+				rebuild();
+			}));
+			for (int each : present) {
+				Component label = each == BattleMusic.OTHER ? Component.translatable(KEY + "music.filter.other")
+						: Component.translatable(KEY + "music.filter.generation", ROMAN[each]);
+				filters.add(new Section(label, generation == each, () -> {
+					generation = each;
+					scroll = 0;
+					rebuild();
+				}));
+			}
+		}
+		List<ResourceLocation> files = generation == 0 ? all
+				: all.stream().filter(file -> BattleMusic.generation(file) == generation).toList();
+		if (all.isEmpty()) {
 			note(Component.translatable(KEY + "music.screen.empty", "sounds/music/" + track.name().toLowerCase(Locale.ROOT)));
 		}
 		for (ResourceLocation file : files) {
@@ -513,9 +542,7 @@ private static final int BLACK = 0xFF1A1A1A;
 		}
 		sections(g, mouseX, mouseY);
 		rows(g, mouseX, mouseY);
-		if (pages() > 1) {
-			centered(g, Component.literal((page + 1) + " / " + pages()), (contentX() + contentRight()) / 2, bottom - 16, 50, WHITE);
-		}
+		scrollbar(g, mouseX, mouseY);
 	}
 
 	private static Component categoryName(Category each) {
@@ -587,23 +614,85 @@ private static final int BLACK = 0xFF1A1A1A;
 			raised(g, x, y, x + w, y + CHIP_H);
 			centered(g, section.label(), x + w / 2, y + 3, w - 6, WHITE);
 		}
+		int fw = filterWidth();
+		for (int i = 0; i < filters.size(); i++) {
+			Section filter = filters.get(i);
+			int x = filterX(i);
+			int y = filterY(i);
+			boolean hovered = inside(mouseX, mouseY, x, y, fw, CHIP_H);
+			g.fill(x - 1, y - 1, x + fw + 1, y + CHIP_H + 1, BLACK);
+			g.fill(x, y, x + fw, y + CHIP_H, filter.selected() ? ACCENT_DIM : hovered ? RAISED : PANEL);
+			if (filter.selected()) {
+				g.fill(x, y + CHIP_H - 2, x + fw, y + CHIP_H, ACCENT);
+			}
+			centered(g, filter.label(), x + fw / 2, y + 3, fw - 4, filter.selected() ? WHITE : MUTED);
+		}
 	}
 
-	private int rowY(int visible) {
-		return rowsY() + visible * ROW_PITCH;
+	private int filterWidth() {
+		return (contentRight() - contentX() - (FILTER_COLUMNS - 1) * 3) / FILTER_COLUMNS;
+	}
+
+	private int filterX(int index) {
+		return contentX() + (index % FILTER_COLUMNS) * (filterWidth() + 3);
+	}
+
+	private int filterY(int index) {
+		return filtersY() + (index / FILTER_COLUMNS) * (CHIP_H + 3);
+	}
+
+	/** The thumb's top and height, for a list that doesn't fit; null when it does. */
+	private int[] thumb() {
+		int max = maxScroll();
+		if (max == 0) {
+			return null;
+		}
+		int view = rowsBottom() - rowsY();
+		int height = Math.max(16, view * view / (view + max));
+		return new int[] {rowsY() + Math.round((view - height) * (scroll / (float) max)), height};
+	}
+
+	private void scrollbar(GuiGraphics g, int mouseX, int mouseY) {
+		int[] thumb = thumb();
+		if (thumb == null) {
+			return;
+		}
+		int x = contentRight() - BAR_W;
+		g.fill(x, rowsY(), x + BAR_W, rowsBottom(), BLACK);
+		boolean hot = draggingBar || inside(mouseX, mouseY, x, thumb[0], BAR_W, thumb[1]);
+		g.fillGradient(x, thumb[0], x + BAR_W, thumb[0] + thumb[1], hot ? 0xFF7FF0E8 : ACCENT, ACCENT_DIM);
+		raised(g, x, thumb[0], x + BAR_W, thumb[0] + thumb[1]);
+	}
+
+	/** Moves the list so that the thumb's grabbed point follows the mouse. */
+	private void dragBar(double mouseY) {
+		int[] thumb = thumb();
+		if (thumb == null) {
+			return;
+		}
+		int view = rowsBottom() - rowsY() - thumb[1];
+		float t = view <= 0 ? 0 : (float) ((mouseY - barGrab - rowsY()) / view);
+		scrollTo(Math.round(t * maxScroll()));
+	}
+
+	private int rowY(int index) {
+		return rowsY() + index * ROW_PITCH - scroll;
+	}
+
+	private boolean rowVisible(int index) {
+		return rowY(index) + ROW_H > rowsY() && rowY(index) < rowsBottom();
 	}
 
 	private void rows(GuiGraphics g, int mouseX, int mouseY) {
 		int x = contentX();
-		int w = contentRight() - x;
-		int perPage = rowsPerPage();
-		for (int i = 0; i < perPage; i++) {
-			int index = page * perPage + i;
-			if (index >= rows.size()) {
-				break;
+		int w = rowsRight() - x;
+		g.enableScissor(x, rowsY(), contentRight(), rowsBottom());
+		for (int index = 0; index < rows.size(); index++) {
+			if (!rowVisible(index)) {
+				continue;
 			}
 			Row row = rows.get(index);
-			int y = rowY(i);
+			int y = rowY(index);
 			if (row.style() == Style.NOTE) {
 				text(g, row.text(), x, y + 5, w, MUTED);
 				continue;
@@ -652,6 +741,7 @@ private static final int BLACK = 0xFF1A1A1A;
 			}
 			text(g, row.text(), x + 7, row.style() == Style.SLIDER ? y + 2 : y + 5, textW, row.on() || row.style() != Style.SELECT ? WHITE : MUTED);
 		}
+		g.disableScissor();
 	}
 
 	private void text(GuiGraphics g, Component text, int x, int y, int maxWidth, int color) {
@@ -697,12 +787,31 @@ private static final int BLACK = 0xFF1A1A1A;
 				return true;
 			}
 		}
+		for (int i = 0; i < filters.size(); i++) {
+			if (inside(mouseX, mouseY, filterX(i), filterY(i), filterWidth(), CHIP_H)) {
+				clickSound();
+				filters.get(i).click().run();
+				return true;
+			}
+		}
+		int[] thumb = thumb();
+		int barX = contentRight() - BAR_W;
+		if (thumb != null && inside(mouseX, mouseY, barX - 1, rowsY(), BAR_W + 2, rowsBottom() - rowsY())) {
+			// On the thumb: held where it was grabbed; on the track: the thumb jumps under the mouse.
+			boolean onThumb = mouseY >= thumb[0] && mouseY < thumb[0] + thumb[1];
+			barGrab = onThumb ? (int) mouseY - thumb[0] : thumb[1] / 2;
+			draggingBar = true;
+			dragBar(mouseY);
+			return true;
+		}
+		if (mouseY < rowsY() || mouseY >= rowsBottom()) {
+			return false;
+		}
 		int x = contentX();
-		int w = contentRight() - x;
-		int perPage = rowsPerPage();
-		for (int i = 0; i < perPage; i++) {
-			int index = page * perPage + i;
-			if (index >= rows.size() || !inside(mouseX, mouseY, x, rowY(i), w, ROW_H)) {
+		int w = rowsRight() - x;
+		for (int index = 0; index < rows.size(); index++) {
+			int i = index;
+			if (!inside(mouseX, mouseY, x, rowY(index), w, ROW_H)) {
 				continue;
 			}
 			Row row = rows.get(index);
@@ -738,11 +847,16 @@ private static final int BLACK = 0xFF1A1A1A;
 			setVolume(mouseX);
 			return true;
 		}
+		if (draggingBar) {
+			dragBar(mouseY);
+			return true;
+		}
 		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 	}
 
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		draggingBar = false;
 		if (draggingVolume) {
 			draggingVolume = false;
 			ShowtimeConfig.save();
@@ -753,7 +867,7 @@ private static final int BLACK = 0xFF1A1A1A;
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-		turnPage(scrollY < 0 ? 1 : -1);
+		scrollTo(scroll - (int) Math.round(scrollY * ROW_PITCH * 2));
 		return true;
 	}
 }

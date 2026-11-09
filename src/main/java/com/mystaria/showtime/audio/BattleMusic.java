@@ -25,15 +25,16 @@ import com.mystaria.showtime.config.ShowtimeConfig;
  * JSON to write: every {@code .ogg} found in {@code assets/cobblemon_battle_showtime/sounds/music/<folder>/} of any active
  * resource pack is a candidate, one is picked at random (packs made for Phantasmon, under {@code assets/phantasmon/},
  * still count).
- * Folders: {@code lobby} (loops while the lobby is open), {@code intro} (the launch cinematic, then the battle music
- * when it ends), {@code battle} (loops for the whole battle), {@code victory} / {@code defeat} (once at the end). An
+ * Folders: {@code lobby} (loops while a lobby is open, before the battle), {@code battle} (loops from the intro to the
+ * end of the battle), {@code victory} / {@code defeat} (once at the end). An
  * empty or missing folder just means silence there. Played on the Music volume slider; Minecraft's own background
  * music is held while one plays ({@code MusicManagerMixin}). Client thread only.
  */
 public final class BattleMusic {
 
 	public enum Track {
-		LOBBY("lobby", true, 0), INTRO("intro", false, 0), BATTLE("battle", true, 0),
+		// No intro track since 2026-11-09: the battle music starts with the intro, right after the lobby.
+		LOBBY("lobby", true, 0), BATTLE("battle", true, 0),
 		// End-of-battle jingles: 10 s at most, whatever the file's length (2026-10-05).
 		VICTORY("victory", false, 10), DEFEAT("defeat", false, 10);
 
@@ -54,7 +55,7 @@ public final class BattleMusic {
 	private static final float FADE_SECONDS = 1.5f;
 
 	private static Track track;
-	/** What follows a non-looping track when it ends (INTRO → BATTLE), or null. */
+	/** What follows a non-looping track when it ends , or null. */
 	private static Track next;
 	private static MusicInstance playing;
 	private static ResourceLocation lastFile;
@@ -146,14 +147,14 @@ public final class BattleMusic {
 		return track != null || previewing || !fading.isEmpty();
 	}
 
-	/** Whether a looping track (lobby, battle) or the intro is playing — the skip key acts then. */
+	/** Whether a track is playing — the skip key acts then. */
 	public static boolean skippable() {
 		return track != null && !previewing;
 	}
 
 	/**
 	 * Skip key (2026-10-05): another file of the same folder right away (never the same one when there's a
-	 * choice); the intro hands over to the battle music. The new title shows in the action bar.
+	 * choice). The new title shows in the action bar.
 	 */
 	public static void skip() {
 		if (!skippable()) {
@@ -267,7 +268,31 @@ public final class BattleMusic {
 			java.util.Map.entry("ranger", "Ranger"), java.util.Map.entry("champions", "Champions"),
 			java.util.Map.entry("reborn", "Reborn"));
 
-	/** Every client tick: chains tracks (loops pick another file, INTRO hands over to BATTLE). */
+	/** The generation of each game code (1 to 9); spin-offs and fan games are absent: {@link #OTHER}. */
+	private static final java.util.Map<String, Integer> GENERATIONS = java.util.Map.ofEntries(
+			java.util.Map.entry("rb", 1), java.util.Map.entry("rby", 1), java.util.Map.entry("frlg", 3),
+			java.util.Map.entry("lgpe", 7), java.util.Map.entry("stadium", 1), java.util.Map.entry("gsc", 2),
+			java.util.Map.entry("hgss", 4), java.util.Map.entry("stadium2", 2), java.util.Map.entry("rse", 3),
+			java.util.Map.entry("oras", 6), java.util.Map.entry("colosseum", 3), java.util.Map.entry("xd", 3),
+			java.util.Map.entry("dp", 4), java.util.Map.entry("pt", 4), java.util.Map.entry("dppt", 4),
+			java.util.Map.entry("bdsp", 8), java.util.Map.entry("pla", 8), java.util.Map.entry("pbr", 4),
+			java.util.Map.entry("bw", 5), java.util.Map.entry("b2w2", 5), java.util.Map.entry("xy", 6),
+			java.util.Map.entry("sm", 7), java.util.Map.entry("usum", 7), java.util.Map.entry("swsh", 8),
+			java.util.Map.entry("sv", 9), java.util.Map.entry("plza", 9), java.util.Map.entry("champions", 9));
+
+	/** Generation filter value for files outside the main series' generations. */
+	public static final int OTHER = 10;
+
+	/** The generation a file's game belongs to (1 to 9), or {@link #OTHER} (spin-offs, fan games, other names). */
+	public static int generation(ResourceLocation file) {
+		String path = file.getPath();
+		String name = path.substring(path.lastIndexOf('/') + 1);
+		int split = name.indexOf('_');
+		Integer generation = split > 0 ? GENERATIONS.get(name.substring(0, split)) : null;
+		return generation == null ? OTHER : generation;
+	}
+
+	/** Every client tick: chains tracks (loops pick another file, a one-shot hands over to what follows). */
 	public static void tick() {
 		fading.removeIf(MusicInstance::isStopped);
 		if (track == null || playing == null) {

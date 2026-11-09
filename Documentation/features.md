@@ -87,17 +87,20 @@ remove it from roadmap.md.
 
 ## Music (`audio/`)
 
-- Tracks from resource packs per moment: lobby, intro, battle, victory, defeat (jingles capped at 10 s). The older
+- Tracks from resource packs per moment: battle (from the intro on), victory, defeat (jingles capped at 10 s), and lobby for mods that have
+  a battle lobby. The older
   `assets/phantasmon/sounds/music/` layout is still read.
 - A pack track replaces the music the server plays through Cobblemon; without one, Cobblemon's stays.
 - In battle: current track (click → list, wheel to scroll, click to play), volume − / bar / +, next track.
-- Untick tracks in the menu. Volume on top of Minecraft's Music slider.
+- Music page of the menu: filter by generation (All, Gen I to IX, Other for spin-offs and fan games), from the
+  `<game>_` prefix of the file names. Untick tracks there. Volume on top of Minecraft's Music slider.
 
 ## Menu and settings (`gui/`, `config/`)
 
 - One key (N, rebindable), also opened from Mod Menu; no commands.
 - Sections: trainer animation profile, ambiance, music, settings; live preview in the real world (not during a
   battle).
+- Lists scroll with the mouse wheel and a draggable scrollbar (click on its track to jump).
 - Settings per battle kind: cinematic camera at start, intro, music, ball effects. Saved atomically in
   `config/cobblemon_battle_showtime.json` and `config/cobblemon_battle_showtime-music.json`.
 - English and French translations.

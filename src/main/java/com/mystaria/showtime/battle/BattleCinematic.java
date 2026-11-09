@@ -129,7 +129,7 @@ public final class BattleCinematic {
 		exclamationSoundPlayed = false;
 		introEndDone = false;
 		previewing = false;
-		BattleMusic.play(BattleMusic.Track.INTRO, BattleMusic.Track.BATTLE);
+		BattleMusic.play(BattleMusic.Track.BATTLE);
 		Minecraft.getInstance().setScreen(new BattleIntroScreen());
 	}
 

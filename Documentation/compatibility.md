@@ -11,6 +11,7 @@ mixins into the same class before changing the logic.
 | **Without Iris** | Strict `MultiBufferSource` building. | Never hold a `VertexConsumer` across a call that asks for another buffer (rendering a block or item does): "Not building!" crash. |
 | **Player Animation Library / Emotecraft** | Optional; Emotecraft bundles the library. | Detected by mod id `playeranimator`; `PlayerAnimatorEmotes` loaded by name; our layer sits above Emotecraft's. Without it, no trainer animations, nothing else changes. |
 | **Cobblemon Battle Extras** | Draws team columns, a stat panel and tooltips over the battle screen. | The battle panel is compact and shifted when it is present, and drawn in an early `afterRender` phase so its tooltips cover the panel. |
+| **Cobblemon Battle Extras, own team column** | Shows Poké Balls; a Pokémon's portrait only on hover or when active. | Its own design, not Showtime's. Phantasmon forces portraits in its battles; Showtime leaves it alone. |
 | **Mod Menu** | Optional. | `ShowtimeModMenu` opens the N menu from the mod list. |
 | **catchindicator, ShoulderSurfing** | Hook Cobblemon's naming and the camera. | No conflict known; first suspects if names or the camera misbehave. |
 | **Phantasmon** | Drives its own battles through the API. | See api.md; its packets are flagged foreign, and the classic path skips them. |

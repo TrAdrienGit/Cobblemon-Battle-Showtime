@@ -141,7 +141,7 @@ public final class ClassicBattles {
 		if (!ours() || !BattleMusic.wanted()) {
 			return false; // music off for this kind of battle: Cobblemon's own plays
 		}
-		boolean replaced =BattleMusic.available(BattleMusic.Track.BATTLE) || BattleMusic.available(BattleMusic.Track.INTRO);
+		boolean replaced =BattleMusic.available(BattleMusic.Track.BATTLE);
 		if (replaced) {
 			com.cobblemon.mod.common.client.sound.BattleMusicController.INSTANCE.endMusic();
 		}

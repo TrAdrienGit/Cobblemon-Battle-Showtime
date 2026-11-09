@@ -16,7 +16,6 @@
   "cobblemon_battle_showtime.player.none": "♪ No music",
   "cobblemon_battle_showtime.music.screen.title": "Battle music",
   "cobblemon_battle_showtime.music.tab.lobby": "Lobby",
-  "cobblemon_battle_showtime.music.tab.intro": "Intro",
   "cobblemon_battle_showtime.music.tab.battle": "Battle",
   "cobblemon_battle_showtime.music.tab.victory": "Victory",
   "cobblemon_battle_showtime.music.tab.defeat": "Defeat",
@@ -79,5 +78,8 @@
   "cobblemon_battle_showtime.menu.category.music": "Music",
   "cobblemon_battle_showtime.menu.preview": "Preview",
   "cobblemon_battle_showtime.menu.no_preview": "No preview during a battle",
-  "cobblemon_battle_showtime.settings.ball_effects": "Ball effects"
+  "cobblemon_battle_showtime.settings.ball_effects": "Ball effects",
+  "cobblemon_battle_showtime.music.filter.all": "All",
+  "cobblemon_battle_showtime.music.filter.generation": "Gen %s",
+  "cobblemon_battle_showtime.music.filter.other": "Other"
 }
