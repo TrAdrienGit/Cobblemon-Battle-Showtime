@@ -90,5 +90,6 @@ classic path ignores them.
 | `move_table.py` | `Documentation/move-usage.csv` (Smogon usage, used to prioritise polish) |
 | `ambiances.py` | `assets/cobblemon_battle_showtime/ambiances/*.json` |
 | `filters.py` | The screen filter shaders under `assets/cobblemon_battle_showtime/shaders/` |
+| `normalize_music.py` | Measures and evens out the loudness of a music pack (−14 LUFS, −1.5 dBTP; not part of the build) |
 | `music_names.py` | Renames a folder of music tracks to `<game>_<title>.ogg` (not part of the build) |
 | `trainer_animations.py` | `assets/cobblemon_battle_showtime/player_animations/*.json` |

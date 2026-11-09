@@ -69,6 +69,28 @@ Two kinds of battle feed it:
 - Config writes are atomic (`ShowtimeConfig.write`). A missing or broken file means defaults.
 - Generated data is rewritten by the scripts in `tools/`, never edited by hand (see data-formats.md).
 
+## The music resource pack
+
+"Cobblemon Battle Showtime Resource Pack" brings the battle music. Its tracks are copyrighted game music: **never commit
+them**, the repository only holds the empty template (`resourcepack-template/`). The full pack lives in the test
+instances' `resourcepacks/` folders.
+
+- **Folders:** `lobby` (encounter themes, for mods with a battle lobby), `battle` (from the intro to the end), `victory`,
+  `defeat`. There is no intro folder: the battle music starts with the intro.
+- **Names:** `<game>_<title>.ogg`, lower case, no "pokemon", "ost", quality tags or numbers (`oras_vs_wally.ogg`). Game
+  codes and their generations are in `BattleMusic.GAMES` / `GENERATIONS`; the menu shows "ORAS · Vs Wally" and filters
+  by generation. `tools/music_names.py` renames downloaded tracks to this convention.
+- **Version:** in `pack.mcmeta`'s description and the pack's `README.txt` (v1 = 281 tracks, 2026-11-09). Raise it when
+  tracks are added, removed, renamed or moved.
+- **Loudness:** every track is normalised to **−14 LUFS integrated, true peak ≤ −1.5 dBTP** (EBU R128) with
+  `tools/normalize_music.py` (two-pass ffmpeg `loudnorm`, linear gain when the peak allows it, re-encoded as Ogg
+  Vorbis q6, 48 kHz). Before normalising, the v1 tracks spread over 32 dB (−38.5 to −6.8 LUFS, many battle tracks
+  clipping above 0 dBTP). Normalise every new track the same way before adding it, or volumes drift apart again.
+- **ffmpeg** is not on the PATH here: the scripts use the one bundled by the `imageio-ffmpeg` Python package
+  (`pip install imageio-ffmpeg`).
+- Player choices (unticked tracks, favourites, "only my favourites") are in `config/cobblemon_battle_showtime-music.json`.
+  A folder with every track unticked plays silence on purpose (Cobblemon's and Minecraft's music stay off).
+
 ## Working on it
 
 - Before saying something works, test it in game: most of the mod is visual and depends on real server packets
