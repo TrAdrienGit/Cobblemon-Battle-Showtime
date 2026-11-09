@@ -21,7 +21,7 @@ gallery.
 | License | Apache-2.0 |
 | Source | https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime |
 | Issues | https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime/issues |
-| Icon | `src/main/resources/assets/cobblemon_battle_showtime/icon.png` |
+| Icon | `art/Battle_Showtime_Icon.png` (1024 px; the mod ships a 512 px copy) |
 
 ## Dependencies to declare
 

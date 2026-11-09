@@ -71,7 +71,7 @@ Poké Ball effects. Plus the music volume, on top of Minecraft's Music slider. E
 
 ### Adding your own music
 
-1. Copy `resourcepack-template/Cobblemon Battle Showtime Music` (from the
+1. Copy `resourcepack-template/Cobblemon Battle Showtime Resource Pack` (from the
    [GitHub repository](https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime)) into your `resourcepacks` folder.
 2. Drop `.ogg` files in `assets/cobblemon_battle_showtime/sounds/music/` under `lobby`, `intro`, `battle`, `victory`
    or `defeat`.

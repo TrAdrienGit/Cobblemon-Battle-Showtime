@@ -1,5 +1,5 @@
-COBBLEMON BATTLE SHOWTIME MUSIC: a resource pack of battle music
-================================================================
+COBBLEMON BATTLE SHOWTIME RESOURCE PACK: battle music for Cobblemon Battle Showtime
+=================================================================================
 
 1. Put .ogg files in the folders of assets/cobblemon_battle_showtime/sounds/music/:
 
@@ -14,7 +14,7 @@ COBBLEMON BATTLE SHOWTIME MUSIC: a resource pack of battle music
 2. Format: Ogg Vorbis (.ogg). Convert an .mp3 or .wav with Audacity (File > Export > OGG) or an online converter.
    File names in lower case, without spaces or accents (for example rival_battle.ogg).
 
-3. In Minecraft: Options > Resource Packs > enable "Cobblemon Battle Showtime Music". After adding or removing files,
+3. In Minecraft: Options > Resource Packs > enable "Cobblemon Battle Showtime Resource Pack". After adding or removing files,
    press F3 + T to reload (no need to restart the game).
 
 The volume follows Minecraft's Music slider and Showtime's own music volume; the game's normal music stops during a

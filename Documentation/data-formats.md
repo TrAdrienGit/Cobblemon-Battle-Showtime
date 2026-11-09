@@ -61,7 +61,7 @@ ships its own.
 ## Music (resource pack)
 
 `assets/cobblemon_battle_showtime/sounds/music/<lobby|intro|battle|victory|defeat>/*.ogg`, no declaration needed. The
-older `assets/phantasmon/sounds/music/` is also read. Template: `resourcepack-template/Cobblemon Battle Showtime Music`.
+older `assets/phantasmon/sounds/music/` is also read. Template: `resourcepack-template/Cobblemon Battle Showtime Resource Pack`.
 
 ## Config
 
@@ -80,3 +80,9 @@ older `assets/phantasmon/sounds/music/` is also read. Template: `resourcepack-te
 
 `ghost` is the settings of battles staged through the API. `config/cobblemon_battle_showtime-music.json` lists the
 unticked tracks. Both are written atomically; a missing or broken file means the defaults.
+
+## Artwork (`art/`)
+
+Sources of the official images, edited with Paint.NET (`.pdn`): the mod icon, the resource pack icon, the title
+banners and the Cobblemon logo used on them. The shipped copies are resized to 512 px:
+`assets/cobblemon_battle_showtime/icon.png` and the template pack's `pack.png`. Regenerate them after editing a source.

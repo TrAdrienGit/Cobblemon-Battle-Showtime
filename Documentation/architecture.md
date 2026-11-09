@@ -91,4 +91,3 @@ classic path ignores them.
 | `ambiances.py` | `assets/cobblemon_battle_showtime/ambiances/*.json` |
 | `filters.py` | The screen filter shaders under `assets/cobblemon_battle_showtime/shaders/` |
 | `trainer_animations.py` | `assets/cobblemon_battle_showtime/player_animations/*.json` |
-| `icon.py` | The mod icon |
