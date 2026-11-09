@@ -74,5 +74,6 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 		com.mystaria.showtime.ambiance.Ambiances.register();
 		com.mystaria.showtime.move.MoveSpecs.register();
 		BattleScreenButtons.register();
+		UpdateChecker.register();
 	}
 }

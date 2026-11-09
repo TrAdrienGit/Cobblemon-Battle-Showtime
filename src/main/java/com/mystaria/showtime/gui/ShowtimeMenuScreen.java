@@ -242,6 +242,8 @@ private static final int BLACK = 0xFF1A1A1A;
 		rows.add(setting("settings.ball_effects", battle.ballEffects, () -> battle.ballEffects = !battle.ballEffects));
 		rows.add(new Row(Style.SLIDER, Component.translatable(KEY + "music.volume", Math.round(ShowtimeConfig.musicVolume() * 100)),
 				false, ShowtimeConfig.musicVolume(), null, null, null));
+		rows.add(setting("settings.check_updates", ShowtimeConfig.checkUpdates(),
+				() -> ShowtimeConfig.setCheckUpdates(!ShowtimeConfig.checkUpdates())));
 	}
 
 	private Row setting(String key, boolean on, Runnable flip) {

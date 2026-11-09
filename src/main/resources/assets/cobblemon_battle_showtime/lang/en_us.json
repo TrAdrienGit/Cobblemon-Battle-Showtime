@@ -85,5 +85,8 @@
   "cobblemon_battle_showtime.music.filter.favorites": "★ Favourites",
   "cobblemon_battle_showtime.music.only_favorites": "Only play my favourites",
   "cobblemon_battle_showtime.music.enable_all": "Enable all",
-  "cobblemon_battle_showtime.music.disable_all": "Disable all"
+  "cobblemon_battle_showtime.music.disable_all": "Disable all",
+  "cobblemon_battle_showtime.settings.check_updates": "Check for updates at launch",
+  "cobblemon_battle_showtime.update.available": "Cobblemon Battle Showtime %s is available (you have %s).",
+  "cobblemon_battle_showtime.update.link": "Download"
 }

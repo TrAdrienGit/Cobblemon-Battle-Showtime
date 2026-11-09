@@ -107,6 +107,13 @@ remove it from roadmap.md.
   `config/cobblemon_battle_showtime.json` and `config/cobblemon_battle_showtime-music.json`.
 - English and French translations.
 
+## Update check (`UpdateChecker`)
+
+- At launch, off the main thread, Modrinth's public API is asked for the latest Fabric 1.21.1 version of
+  `cobblemon-battle-showtime`. A newer one gets one chat message per session, on joining a world, with a link to the
+  page. Silent without network or while the project is not published (404). Switch in the menu settings. Not tested
+  against a real release yet.
+
 ## Compatibility
 
 - Shaders (Iris): ambiances and effects render correctly; elbows and knees stay straight under shaders (see

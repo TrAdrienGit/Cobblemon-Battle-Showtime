@@ -69,6 +69,12 @@ Two kinds of battle feed it:
 - Config writes are atomic (`ShowtimeConfig.write`). A missing or broken file means defaults.
 - Generated data is rewritten by the scripts in `tools/`, never edited by hand (see data-formats.md).
 
+## Update check
+
+`UpdateChecker` reads Modrinth's API with the slug `cobblemon-battle-showtime` (constant `SLUG`): if the project is
+published under another slug, change it there. Version numbers are compared numerically (`1.10.0` > `1.9.2`), so keep
+`version` in `gradle.properties` and the Modrinth version number identical.
+
 ## The music resource pack
 
 "Cobblemon Battle Showtime Resource Pack" brings the battle music. Its tracks are copyrighted game music: **never commit

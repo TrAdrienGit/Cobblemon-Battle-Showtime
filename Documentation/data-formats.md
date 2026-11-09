@@ -77,7 +77,8 @@ tracks to this convention (game acronym, then the title without "pokemon", "ost"
   "npc":   { "stagedCamera": true, "intro": true, "music": true, "ballEffects": true },
   "musicVolume": 1.0,
   "trainerProfile": { "guard": "guard_2" },
-  "ambiance": "none"
+  "ambiance": "none",
+  "checkUpdates": true
 }
 ```
 

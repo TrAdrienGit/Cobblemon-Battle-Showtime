@@ -53,6 +53,8 @@ public final class ShowtimeConfig {
 		Map<String, String> trainerProfile = new HashMap<>();
 		/** The battle ambiance chosen (phase A1), an id {@code namespace:name}, or "none". */
 		String ambiance = "none";
+		/** Whether a newer version is looked up on Modrinth at launch (2026-11-09). */
+		boolean checkUpdates = true;
 	}
 
 	private static Stored stored;
@@ -67,6 +69,14 @@ public final class ShowtimeConfig {
 			case PVP -> s.pvp;
 			case NPC -> s.npc;
 		};
+	}
+
+	public static boolean checkUpdates() {
+		return get().checkUpdates;
+	}
+
+	public static void setCheckUpdates(boolean check) {
+		get().checkUpdates = check;
 	}
 
 	/** Our music's volume, 0 to 1, multiplied with Minecraft's Music slider. */
