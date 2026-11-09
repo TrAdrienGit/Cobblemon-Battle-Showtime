@@ -90,6 +90,20 @@ public final class BattleCameraDirector {
 		shot = null;
 		previous = null;
 		holdUntil = 0;
+		BattleCameraV2.reset();
+	}
+
+	/** The newest battle camera: raise it with each new version (its class beside {@link BattleCameraV2}). */
+	public static final int LATEST_CAMERA = 2;
+
+	/** The camera version playing: the player's choice, or the latest when they chose none (0) or an unknown one. */
+	public static int cameraVersion() {
+		int chosen = com.mystaria.showtime.config.ShowtimeConfig.cameraVersion();
+		return chosen <= 0 || chosen > LATEST_CAMERA ? LATEST_CAMERA : chosen;
+	}
+
+	private static boolean v2() {
+		return cameraVersion() == 2;
 	}
 
 	public static void stop() {
@@ -104,6 +118,7 @@ public final class BattleCameraDirector {
 		enabled = !enabled;
 		if (enabled) {
 			shot = null; // a fresh shot, cut in
+			BattleCameraV2.reset();
 		}
 		var player = Minecraft.getInstance().player;
 		if (player != null) {
@@ -128,6 +143,7 @@ public final class BattleCameraDirector {
 
 	/** Players have to choose again: back to the choosing shots, once any action shot is over. */
 	public static void onChoosing() {
+		BattleCameraV2.onChoosing();
 		holdUntil = Math.min(holdUntil, System.currentTimeMillis() + 600);
 	}
 
@@ -138,6 +154,12 @@ public final class BattleCameraDirector {
 		}
 		String user = users.get(0);
 		String target = targets == null || targets.isEmpty() ? null : targets.get(0);
+		if (v2()) {
+			if (stage != null) {
+				BattleCameraV2.onAction(stage, user, target);
+			}
+			return;
+		}
 		if (target == null || target.equals(user)) {
 			cutTo(closeUp(user), ACTION_HOLD_SECONDS, true);
 		} else {
@@ -147,14 +169,27 @@ public final class BattleCameraDirector {
 
 	/** A Pokémon comes in or faints: a close-up. */
 	public static void onFocus(String pnx) {
-		if (battleActive && pnx != null) {
+		if (battleActive && pnx != null && v2()) {
+			if (stage != null) {
+				BattleCameraV2.onFocus(stage, pnx);
+			}
+		} else if (battleActive && pnx != null) {
 			cutTo(closeUp(pnx), FOCUS_HOLD_SECONDS, false);
+		}
+	}
+
+	/** A move's hit lands on {@code entity} (Cobblemon's impact cue): the second camera cuts onto it. */
+	public static void onHit(Entity entity) {
+		if (battleActive && v2()) {
+			BattleCameraV2.onHit(entity);
 		}
 	}
 
 	/** A Pokémon is knocked out: the moment of the match, cut straight to it. */
 	public static void onKnockOut(Entity entity) {
-		if (battleActive && entity != null) {
+		if (battleActive && entity != null && v2()) {
+			BattleCameraV2.onKnockOut(entity);
+		} else if (battleActive && entity != null) {
 			cutTo(following(entity), KNOCK_OUT_HOLD_SECONDS, true);
 		}
 	}
@@ -166,6 +201,10 @@ public final class BattleCameraDirector {
 	public static void onThrow(Entity entity) {
 		if (battleActive && openingPending && entity != null) {
 			openingPending = false;
+			if (v2()) {
+				BattleCameraV2.onThrow(entity, OPENING_HOLD_SECONDS);
+				return;
+			}
 			cutTo(following(entity), OPENING_HOLD_SECONDS, true);
 		}
 	}
@@ -195,6 +234,9 @@ public final class BattleCameraDirector {
 		ClientLevel level = mc.level;
 		if (level == null || mc.player == null) {
 			return null;
+		}
+		if (v2()) {
+			return BattleCameraV2.cameraPose(stage, partialTick);
 		}
 		Field field = field(partialTick);
 		if (field == null) {

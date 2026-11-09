@@ -161,6 +161,7 @@ public final class MoveEffects {
 				return false;
 			}
 			effect.cue("impact", source, targeted);
+			com.mystaria.showtime.battle.BattleCameraDirector.onHit(source);
 			return true;
 		}
 		int split = path.indexOf('_');

@@ -12,7 +12,19 @@ remove it from roadmap.md.
 | Wild Pokémon | No (by design) | No | No | No | No |
 | Foreign battle through the API | Driven by that mod | Yes | Yes | Yes | Yes |
 
-## Camera (`battle/BattleCameraDirector`, `battle/BattleCinematic`)
+## Camera (`battle/BattleCameraDirector`, `battle/BattleCameraV2`, `battle/BattleCinematic`)
+
+- **Second camera (v2, default since 2026-11-09, `BattleCameraV2`)**, after Pokémon Battle Revolution: low shots at the
+  Pokémon's height, each drifting slowly, joined by clean cuts. A move is a three-quarter shot behind the attacker,
+  then a cut onto the target when the hit lands (Cobblemon's impact cue, or 1.6 s), held while it reacts. Shots are
+  checked before they start (sampled along their length; inside blocks or blocks hiding the subjects → a mirrored,
+  closer or higher variant); while one plays, a spring arm keeps the eye in front of anything that comes between it
+  and its subject; the field's anchors and the eye and aim are damped springs, so lunges and bobs don't shake the
+  frame. People around the field (trainers, players, NPCs) count as obstacles too. Validated in game 2026-11-09.
+- **Camera version setting:** "Battle camera: latest (v2) / v1 / v2". "Latest" (the default, stored as 0) always
+  plays the newest camera, so a fresh install gets each new version; a number stays on that one. The first camera is
+  kept as a fallback.
+- **First camera (v1):**
 
 - Cinematic camera during the battle: wide shots, the attacker then the target, close-ups on hits, switch-ins and
   knock-outs (3 s).
@@ -71,7 +83,7 @@ remove it from roadmap.md.
 - Ten ambiances: disco, cosmos, storm, spectral, nature (meadow), night (starry), arcade, fairy, silver screen
   (old film), corrupted.
 - Layers: time and day speed, sky, fog, clouds, stars, a backdrop hiding the world (cosmos), rainbow, spotlights,
-  floor lights, floating blocks, lightning, auroras, shooting stars, rifts, strobe, ambient sound, screen filters
+  floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe, ambient sound, screen filters
   (black and white, pixels, glitch, ripple, old TV).
 - Reactions to battle moments: send-out, attack, critical hit, knock-out, victory.
 - Seen from afar: a player near a battle's field sees its decorations; the world-wide parts (time, sky, weather,

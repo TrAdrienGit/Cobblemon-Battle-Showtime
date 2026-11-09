@@ -34,6 +34,7 @@ as a bug is found and not fixed right away.
 | Close-up shots read the Pokémon's position without interpolation between ticks | Slight judder when the Pokémon flies or moves | Use `entity.getPosition(partialTick)` in `closeUp`, `following` and `actionShot`. |
 | Menu preview framed with the FOV setting, not the effective FOV (sprint, effects) | Character slightly off-centre while sprinting | Read the FOV through `GameRenderer#getFov`. |
 | Trainers out of sight at a battle's end stay in memory until the next battle | None visible | Clear a trainer's state at `end()` when unseen for a while. |
+| First camera (v1) kept as a fallback | Unused by default | Delete its shots in `BattleCameraDirector` (and `unclip`) once nobody needs it; keep the version setting for later cameras. |
 | Leftover preview code from the removed commands (`MoveEffects.preview`, `FieldEffects.preview`, `PokemonEffects.preview`, `BattleCinematic.preview`, `BattleShowtime.preview`, `TrainerEmotes.preview`) | Dead code | Delete it, or wire it to a move preview in the menu (see roadmap.md). |
 
 ## Limits (by design or external)

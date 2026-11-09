@@ -515,9 +515,17 @@ public final class BattleAmbiance {
 		buffers.endBatch();
 		if (floatingState != null) {
 			for (Floating floating : FLOATING) {
-				Vec3 at = floatingPosition(floating, partialTick).subtract(center);
+				Vec3 world = floatingPosition(floating, partialTick);
+				// Shrinks away near the camera: one drifting across a low battle shot filled the screen (2026-11-09).
+				float shrink = (float) Mth.clamp((world.add(0, 0.5, 0).distanceTo(camera) - 1.2) / 2.3, 0, 1);
+				if (shrink <= 0.01f) {
+					continue;
+				}
+				Vec3 at = world.subtract(center);
 				pose.pushPose();
-				pose.translate(at.x - 0.5, at.y, at.z - 0.5);
+				pose.translate(at.x, at.y + 0.5, at.z);
+				pose.scale(shrink, shrink, shrink);
+				pose.translate(-0.5, -0.5, -0.5);
 				mc.getBlockRenderer().renderSingleBlock(floatingState, pose, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY);
 				pose.popPose();
 			}

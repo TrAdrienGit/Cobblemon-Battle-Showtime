@@ -55,6 +55,11 @@ public final class ShowtimeConfig {
 		String ambiance = "none";
 		/** Whether a newer version is looked up on Modrinth at launch (2026-11-09). */
 		boolean checkUpdates = true;
+		/**
+		 * The battle camera's version the player picked; 0 (the default): always the latest, so a fresh install or a
+		 * player who never chose gets each new camera as it comes (2026-11-09).
+		 */
+		int cameraVersion = 0;
 	}
 
 	private static Stored stored;
@@ -69,6 +74,15 @@ public final class ShowtimeConfig {
 			case PVP -> s.pvp;
 			case NPC -> s.npc;
 		};
+	}
+
+	/** The camera version chosen, 0 = the latest. */
+	public static int cameraVersion() {
+		return get().cameraVersion;
+	}
+
+	public static void setCameraVersion(int version) {
+		get().cameraVersion = version;
 	}
 
 	public static boolean checkUpdates() {

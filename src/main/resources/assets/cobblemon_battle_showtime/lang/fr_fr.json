@@ -88,5 +88,8 @@
   "cobblemon_battle_showtime.music.disable_all": "Tout désactiver",
   "cobblemon_battle_showtime.settings.check_updates": "Vérifier les mises à jour au lancement",
   "cobblemon_battle_showtime.update.available": "Cobblemon Battle Showtime %s est disponible (vous avez la %s).",
-  "cobblemon_battle_showtime.update.link": "Télécharger"
+  "cobblemon_battle_showtime.update.link": "Télécharger",
+  "cobblemon_battle_showtime.settings.camera_version": "Caméra de combat : %s",
+  "cobblemon_battle_showtime.settings.camera_latest": "la plus récente (v%s)",
+  "cobblemon_battle_showtime.settings.camera_numbered": "v%s"
 }

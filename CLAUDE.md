@@ -69,6 +69,14 @@ Two kinds of battle feed it:
 - Config writes are atomic (`ShowtimeConfig.write`). A missing or broken file means defaults.
 - Generated data is rewritten by the scripts in `tools/`, never edited by hand (see data-formats.md).
 
+## Battle camera versions
+
+`BattleCameraDirector` keeps the battle's state and forwards to the camera version playing: v1 is its own shots, v2 is
+`BattleCameraV2` (Pokémon Battle Revolution style, block and people avoidance, damped). The setting stores 0 for
+"latest", the default: a new camera becomes the default for everyone who never picked one. To add a v3: a new class
+beside `BattleCameraV2`, forward to it like v2, and raise `LATEST_CAMERA`. Never delete an older camera in the same
+change that adds a new one.
+
 ## Update check
 
 `UpdateChecker` reads Modrinth's API with the slug `cobblemon-battle-showtime` (constant `SLUG`): if the project is

@@ -78,7 +78,8 @@ tracks to this convention (game acronym, then the title without "pokemon", "ost"
   "musicVolume": 1.0,
   "trainerProfile": { "guard": "guard_2" },
   "ambiance": "none",
-  "checkUpdates": true
+  "checkUpdates": true,
+  "cameraVersion": 0
 }
 ```
 

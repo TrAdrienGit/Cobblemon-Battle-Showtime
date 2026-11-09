@@ -242,6 +242,18 @@ private static final int BLACK = 0xFF1A1A1A;
 		rows.add(setting("settings.ball_effects", battle.ballEffects, () -> battle.ballEffects = !battle.ballEffects));
 		rows.add(new Row(Style.SLIDER, Component.translatable(KEY + "music.volume", Math.round(ShowtimeConfig.musicVolume() * 100)),
 				false, ShowtimeConfig.musicVolume(), null, null, null));
+		// Latest → v1 → v2 → … → latest: "latest" follows each new camera, a number stays on that one.
+		int chosen = ShowtimeConfig.cameraVersion();
+		int latest = BattleCameraDirector.LATEST_CAMERA;
+		Component version = chosen <= 0 || chosen > latest
+				? Component.translatable(KEY + "settings.camera_latest", latest)
+				: Component.translatable(KEY + "settings.camera_numbered", chosen);
+		rows.add(new Row(Style.SELECT, Component.translatable(KEY + "settings.camera_version", version), true, 0, () -> {
+			int now = ShowtimeConfig.cameraVersion();
+			ShowtimeConfig.setCameraVersion(now <= 0 || now > latest ? 1 : now >= latest ? 0 : now + 1);
+			ShowtimeConfig.save();
+			rebuild();
+		}, null, null));
 		rows.add(setting("settings.check_updates", ShowtimeConfig.checkUpdates(),
 				() -> ShowtimeConfig.setCheckUpdates(!ShowtimeConfig.checkUpdates())));
 	}
