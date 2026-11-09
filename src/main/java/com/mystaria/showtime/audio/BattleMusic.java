@@ -231,8 +231,41 @@ public final class BattleMusic {
 	/** A file's name for display: {@code cobblemon_battle_showtime:music/battle/rival_theme} → {@code rival_theme}. */
 	public static String title(ResourceLocation file) {
 		String path = file.getPath();
-		return path.substring(path.lastIndexOf('/') + 1);
+		String name = path.substring(path.lastIndexOf('/') + 1);
+		if (name.endsWith(".ogg")) {
+			name = name.substring(0, name.length() - 4);
+		}
+		// The resource pack's convention: <game>_<title>, "oras_vs_wally" → "ORAS · Vs Wally". Other names stay as is.
+		int split = name.indexOf('_');
+		String game = split > 0 ? GAMES.get(name.substring(0, split)) : null;
+		if (game == null) {
+			return name;
+		}
+		StringBuilder title = new StringBuilder(game).append(" · ");
+		for (String word : name.substring(split + 1).split("_")) {
+			if (!word.isEmpty()) {
+				title.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(' ');
+			}
+		}
+		return title.toString().trim();
 	}
+
+	/** Source game acronyms of the resource pack's file names, as shown. */
+	private static final java.util.Map<String, String> GAMES = java.util.Map.ofEntries(
+			java.util.Map.entry("rb", "RB"), java.util.Map.entry("rby", "RBY"), java.util.Map.entry("gsc", "GSC"),
+			java.util.Map.entry("rse", "RSE"), java.util.Map.entry("frlg", "FRLG"), java.util.Map.entry("dp", "DP"),
+			java.util.Map.entry("pt", "Pt"), java.util.Map.entry("dppt", "DPPt"), java.util.Map.entry("hgss", "HGSS"),
+			java.util.Map.entry("bw", "BW"), java.util.Map.entry("b2w2", "B2W2"), java.util.Map.entry("xy", "XY"),
+			java.util.Map.entry("oras", "ORAS"), java.util.Map.entry("sm", "SM"), java.util.Map.entry("usum", "USUM"),
+			java.util.Map.entry("lgpe", "LGPE"), java.util.Map.entry("swsh", "SwSh"), java.util.Map.entry("bdsp", "BDSP"),
+			java.util.Map.entry("pla", "PLA"), java.util.Map.entry("plza", "PLZA"), java.util.Map.entry("sv", "SV"),
+			java.util.Map.entry("colosseum", "Colosseum"), java.util.Map.entry("xd", "XD"),
+			java.util.Map.entry("stadium", "Stadium"), java.util.Map.entry("stadium2", "Stadium 2"),
+			java.util.Map.entry("pbr", "PBR"), java.util.Map.entry("pmdeos", "PMD Sky"),
+			java.util.Map.entry("pokken", "Pokkén"), java.util.Map.entry("puzzleleague", "Puzzle League"),
+			java.util.Map.entry("pinball", "Pinball"), java.util.Map.entry("pinballrs", "Pinball RS"),
+			java.util.Map.entry("ranger", "Ranger"), java.util.Map.entry("champions", "Champions"),
+			java.util.Map.entry("reborn", "Reborn"));
 
 	/** Every client tick: chains tracks (loops pick another file, INTRO hands over to BATTLE). */
 	public static void tick() {

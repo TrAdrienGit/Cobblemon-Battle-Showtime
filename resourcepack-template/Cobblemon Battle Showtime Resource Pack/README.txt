@@ -20,3 +20,8 @@ COBBLEMON BATTLE SHOWTIME RESOURCE PACK: battle music for Cobblemon Battle Showt
 The volume follows Minecraft's Music slider and Showtime's own music volume; the game's normal music stops during a
 staged battle. An older "Phantasmon Music" pack (files under assets/phantasmon/sounds/music/) still works.
 Mind the rights: only share this pack with music you are allowed to distribute.
+
+Naming (optional, shown nicely in game): <game>_<title>.ogg, for example oras_vs_wally.ogg is shown as "ORAS · Vs Wally".
+Game codes: rb, rby, gsc, rse, frlg, dp, pt, dppt, hgss, bw, b2w2, xy, oras, sm, usum, lgpe, swsh, bdsp, pla, plza, sv,
+colosseum, xd, stadium, stadium2, pbr, pmdeos, pokken, puzzleleague, pinball, pinballrs, ranger, champions, reborn.
+tools/music_names.py in the mod's repository renames a folder of downloaded tracks to this convention.
