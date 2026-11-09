@@ -223,6 +223,7 @@ public final class BattleAmbiance {
 
 	/** Every client tick: the field follows the trainers, particles, floating blocks' flames, lightning. */
 	public static void tick() {
+		GROUND.clear(); // ground heights are relative to the field's centre, which moves
 		Minecraft mc = Minecraft.getInstance();
 		if (active == null || mc.level == null || mc.isPaused()) {
 			if (active != null && mc.level == null) {
@@ -386,10 +387,25 @@ public final class BattleAmbiance {
 			return;
 		}
 		Vec3 sum = Vec3.ZERO;
+		double lowest = Double.MAX_VALUE;
 		for (Vec3 spot : spots) {
 			sum = sum.add(spot);
+			lowest = Math.min(lowest, spot.y);
 		}
-		center = sum.scale(1.0 / spots.size());
+		// The battle's Pokémon too: in a hollow below their trainers, the field is down where they fight (2026-11-10).
+		com.mystaria.showtime.api.BattleStage stage = com.mystaria.showtime.battle.BattleCameraDirector.stage();
+		if (stage != null) {
+			for (boolean local : new boolean[] {true, false}) {
+				net.minecraft.world.entity.Entity pokemon = stage.activePokemon(local);
+				if (pokemon != null && !pokemon.isRemoved() && pokemon.position().distanceToSqr(sum.scale(1.0 / spots.size())) < 48 * 48) {
+					lowest = Math.min(lowest, pokemon.getY());
+				}
+			}
+		}
+		// Across the field, the centre; in height, the lowest of the trainers and Pokémon: the ambiance stands on the
+		// floor of the battle, not halfway up to trainers on a ledge.
+		Vec3 middle = sum.scale(1.0 / spots.size());
+		center = new Vec3(middle.x, lowest, middle.z);
 		float apart = 0f;
 		for (Vec3 spot : spots) {
 			apart = Math.max(apart, (float) spot.distanceTo(center));
@@ -654,19 +670,63 @@ public final class BattleAmbiance {
 			double turn = time / 1200.0 * lights.speed * Math.PI * 2 * (i % 2 == 0 ? 1 : -0.7);
 			double radius = fieldRadius * (0.25 + 0.6 * ((i * 0.37) % 1.0));
 			double angle = Math.PI * 2 * i / lights.count + turn;
-			// Well over the ground: at the blocks' own height they flickered with them (2026-10-30).
-			Vec3 at = new Vec3(Math.cos(angle) * radius, 0.12, Math.sin(angle) * radius);
+			// On the ground itself, wherever it is (2026-11-10): each point of the spot is laid on the block surface
+			// below it, so the spot follows hollows, steps and slopes. Well over that surface: at the blocks' own height
+			// they flickered with them (2026-10-30).
+			Vec3 at = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius);
 			int color = Ambiance.color(lights.colors.get(i % lights.colors.size()), 0xFFFFFF);
 			int segments = 20;
+			Vec3[] rim = new Vec3[segments + 1];
+			for (int s = 0; s <= segments; s++) {
+				double a = Math.PI * 2 * s / segments;
+				rim[s] = onGround(at.x + Math.cos(a) * lights.size, at.z + Math.sin(a) * lights.size);
+			}
 			for (int s = 0; s < segments; s++) {
-				double a0 = Math.PI * 2 * s / segments;
-				double a1 = Math.PI * 2 * (s + 1) / segments;
 				vertex(out, m, at, color, lights.alpha);
 				vertex(out, m, at, color, lights.alpha);
-				vertex(out, m, at.add(Math.cos(a1) * lights.size, 0, Math.sin(a1) * lights.size), color, 0);
-				vertex(out, m, at.add(Math.cos(a0) * lights.size, 0, Math.sin(a0) * lights.size), color, 0);
+				vertex(out, m, rim[s + 1], color, 0);
+				vertex(out, m, rim[s], color, 0);
 			}
 		}
+	}
+
+	/** Ground heights by block column, relative to the field's centre, for this frame (cleared each tick). */
+	private static final java.util.Map<Long, Double> GROUND = new java.util.HashMap<>();
+
+	/**
+	 * A point at {@code (x, z)} from the field's centre, laid on the top of the first solid block below the field's
+	 * height (from a little above it, so a step up counts), just over it. No ground within reach: the centre's height.
+	 */
+	private static Vec3 onGround(double x, double z) {
+		return new Vec3(x, groundAt(x, z) + 0.12, z);
+	}
+
+	private static double groundAt(double x, double z) {
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level == null || center == null) {
+			return 0;
+		}
+		int bx = Mth.floor(center.x + x);
+		int bz = Mth.floor(center.z + z);
+		long key = ((long) bx << 32) ^ (bz & 0xFFFFFFFFL);
+		Double cached = GROUND.get(key);
+		if (cached != null) {
+			return cached;
+		}
+		double found = 0;
+		int top = Mth.floor(center.y) + 4;
+		net.minecraft.core.BlockPos.MutableBlockPos pos = new net.minecraft.core.BlockPos.MutableBlockPos();
+		for (int y = top; y >= top - 16; y--) {
+			pos.set(bx, y, bz);
+			BlockState state = level.getBlockState(pos);
+			var shape = state.getCollisionShape(level, pos);
+			if (!shape.isEmpty()) {
+				found = y + shape.max(net.minecraft.core.Direction.Axis.Y) - center.y;
+				break;
+			}
+		}
+		GROUND.put(key, found);
+		return found;
 	}
 
 	private static Vec3 riftBase(int i) {

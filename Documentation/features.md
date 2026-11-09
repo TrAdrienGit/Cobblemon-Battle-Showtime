@@ -105,6 +105,8 @@ remove it from roadmap.md.
   floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe, ambient sound, screen filters
   (black and white, pixels, glitch, ripple, old TV).
 - Reactions to battle moments: send-out, attack, critical hit, knock-out, victory.
+- Placed on the floor of the battle (2026-11-10): its height is the lowest of the trainers and the active Pokémon,
+  and floor lights are laid point by point on the block surface below them, following hollows, steps and slopes.
 - Seen from afar: a player near a battle's field sees its decorations; the world-wide parts (time, sky, weather,
   filter, sound) apply once inside the field's circle.
 - Resource packs can add ambiances. Another mod can force one for a battle (`ShowtimeHooks.setAmbianceOverride`).
