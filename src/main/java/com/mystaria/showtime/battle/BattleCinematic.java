@@ -87,19 +87,94 @@ public final class BattleCinematic {
 	 */
 	public enum Intro {
 		/** X/Y: eyes-meet box, diamond wipe, challenger panel on speed lines. */
-		XY,
+		XY(6, INTRO_END),
 		/** Sword/Shield: diagonal blue/pink "VS" split screen, then the opponent's throw. */
-		SWORD_SHIELD,
+		SWORD_SHIELD(8, INTRO_END),
 		/** Diamond/Pearl/Platinum: Poké Ball wipe, radial burst, the field's platforms sliding in. */
-		DIAMOND_PEARL,
+		DIAMOND_PEARL(4, INTRO_END),
 		/** Emerald: rolling Poké Ball wipe, the screen opening on a line, trainers sliding across. */
-		EMERALD,
+		EMERALD(3, INTRO_END),
 		/** Black/White: zoom blur into the opponent, white, the camera pulling back from their silhouette. */
-		BLACK_WHITE;
+		BLACK_WHITE(5, INTRO_END),
+		/**
+		 * Battle Revolution, the match card (2026-11-09): a glowing blue stage, the two team cards sliding in, then
+		 * both trainers face to face round a "VS", and a Poké Ball wipe to black.
+		 */
+		PBR_CARD(4, 8200),
+		/**
+		 * Battle Revolution, the entrance (2026-11-09): out of black, a wide shot of the field under the battle's
+		 * title, then each trainer filmed close with their name and a line, as the stadium games open a match.
+		 */
+		PBR_ENTRANCE(4, 9400),
+		/**
+		 * Sun/Moon, the vortex (2026-11-09): rays and rainbow rings burst over the world, white, then the opponent
+		 * posing in a turning vortex, the challenge typed below, their throw.
+		 */
+		SM_VORTEX(7, 7900),
+		/**
+		 * Ultra Sun/Ultra Moon, the surge (2026-11-09): a starburst cycling through colours, white, the opponent coming
+		 * out of the white in a ring of lightning, the challenge, then an iris closing on a Poké Ball.
+		 */
+		USUM_SURGE(7, 8300),
+		/**
+		 * Omega Ruby/Alpha Sapphire, the silhouette (2026-11-09): a checker of diamonds, two Poké Balls rolling
+		 * across the black, the panel opening on a line, the opponent's silhouette sliding in, then its colours.
+		 */
+		ORAS_SILHOUETTE(6, 7600),
+		/**
+		 * Battle Revolution, the face-off (2026-11-09): a montage of moving close shots on each trainer (rising from
+		 * their feet, arcing round them) with their name and line, then both in profile round a "VS".
+		 */
+		PBR_FACE_OFF(4, 9000),
+		/**
+		 * Scarlet/Violet, the showdown (2026-11-09): no screen at all, the world only: over one shoulder, then the
+		 * other, name tags sliding in, and a crane rising over the field on "Battle start!".
+		 */
+		SV_SHOWDOWN(9, 7600),
+		/**
+		 * Red/Blue, the clock (2026-11-10): two hands sweeping the screen to black, then the battlefield in Game Boy
+		 * greens, the trainers sliding in as silhouettes, and the colour flooding the whole scene.
+		 */
+		RBY_CLOCK(1, 7600),
+		/**
+		 * Gold/Silver, the stairs (2026-11-10): the screen flashing, eaten to black by a staircase of raised blocks,
+		 * then warm Johto light, the trainers sliding in as silhouettes and taking their colours.
+		 */
+		GSC_STAIRS(2, 7600),
+		/**
+		 * Colosseum, the twisting world (2026-11-10): the camera spinning faster and faster into a spiral, then a wide
+		 * shot of the opponent under the challenge, and the two trainers from the ground.
+		 */
+		COLOSSEUM_SWIRL(3, 8600),
+		/**
+		 * Diamond/Pearl, the blinds (2026-11-10): two white flashes, a Poké Ball spinning, blinds sliding shut in
+		 * turns, then the battlefield opening behind them.
+		 */
+		DP_BLINDS(4, 7400);
 
+		/** The generation of the game it is after (the menu's filters). */
+		public final int generation;
+		/** Its length, from the session start (the first {@link #EYES_MEET_END} ms are skipped). */
+		public final long length;
+
+		Intro(int generation, long length) {
+			this.generation = generation;
+			this.length = length;
+		}
+
+		/** Ordinals are shared with Phantasmon's backend: new intros only ever go at the end. */
 		public static Intro of(int index) {
 			Intro[] all = values();
 			return index >= 0 && index < all.length ? all[index] : XY;
+		}
+
+		/** Its white flash (the stadium intros end on black instead: none). */
+		public long flashStart() {
+			return length - (INTRO_END - FLASH_START);
+		}
+
+		public boolean flashes() {
+			return this != PBR_CARD && this != PBR_ENTRANCE && this != USUM_SURGE && this != SV_SHOWDOWN;
 		}
 	}
 
@@ -121,9 +196,10 @@ public final class BattleCinematic {
 		// The "eyes meet" shot is gone (2026-11-01): the intro starts at its wipe, from the player's own view.
 		introStart = System.currentTimeMillis() - EYES_MEET_END;
 		intro = which == null ? Intro.XY : which;
+		entranceAngle = null;
 		opponentUuid = opponent;
 		opponentName = name == null ? "?" : name;
-		opponentTeamSize = Mth.clamp(teamSize, 0, 6);
+		opponentTeamSize = teamSize < 0 ? -1 : Mth.clamp(teamSize, 0, 6);
 		sendOutPending = true;
 		sendOutStart = -1;
 		exclamationSoundPlayed = false;
@@ -144,18 +220,45 @@ public final class BattleCinematic {
 		}
 		Player opponent = mc.level.players().stream().filter(p -> p != mc.player)
 				.min(java.util.Comparator.comparingDouble(p -> p.distanceToSqr(mc.player))).orElse(mc.player);
-		startIntro(opponent.getUUID(), opponent.getGameProfile().getName(), 6, 6, which, null);
+		// A preview has no battle: our own team on both sides.
+		int own = (int) com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getStorage().getParty().getSlots().stream()
+				.filter(pokemon -> pokemon != null && !pokemon.isFainted()).count();
+		startIntro(opponent.getUUID(), opponent.getGameProfile().getName(), own, own, which, null);
 		sendOutPending = false;
 		previewing = true;
 	}
 
+	/**
+	 * The intro a player vs player battle opens with, from the player's choices (menu, Intros): an intro switched on,
+	 * a favourite when "only my favourites" is on and there is one; null when every intro is switched off (no intro).
+	 */
+	public static Intro pickIntro() {
+		java.util.List<Intro> on = new java.util.ArrayList<>();
+		for (Intro each : Intro.values()) {
+			if (com.mystaria.showtime.config.IntroSettings.enabled(each.name())) {
+				on.add(each);
+			}
+		}
+		if (com.mystaria.showtime.config.IntroSettings.onlyFavorites()
+				&& on.stream().anyMatch(each -> com.mystaria.showtime.config.IntroSettings.favorite(each.name()))) {
+			on.removeIf(each -> !com.mystaria.showtime.config.IntroSettings.favorite(each.name()));
+		}
+		return on.isEmpty() ? null : on.get(new java.util.Random().nextInt(on.size()));
+	}
+
+	/** The menu's preview of one intro; {@code after} runs when it is over (back to the menu). */
+	public static void preview(Intro which, Runnable after) {
+		preview(which);
+		introEndAction = after;
+	}
+
 	/** Local clock time at which the intro is over (engine start / end of the guest's packet hold). */
 	public static long introEndsAt() {
-		return introStart < 0 ? 0 : introStart + INTRO_END;
+		return introStart < 0 ? 0 : introStart + intro.length;
 	}
 
 	public static boolean introPlaying() {
-		return introStart >= 0 && introElapsed() < INTRO_END;
+		return introStart >= 0 && introElapsed() < intro.length;
 	}
 
 	public static long introElapsed() {
@@ -178,8 +281,27 @@ public final class BattleCinematic {
 		return ownTeamSize;
 	}
 
+	/**
+	 * The opponent's team size, or -1 when this client can't know it: Cobblemon only sends a player its opponents'
+	 * active Pokémon. Cobblemon Battle Extras, when its server side is installed, sends every team's balls: then its
+	 * count is used (read by name; it may arrive after the intro started, so it is asked each time).
+	 */
 	public static int opponentTeamSize() {
-		return opponentTeamSize;
+		if (opponentTeamSize >= 0 || opponentUuid == null) {
+			return opponentTeamSize;
+		}
+		try {
+			Class<?> data = Class.forName("name.modid.client.net.TeamBallClientData");
+			if ((boolean) data.getMethod("hasData", UUID.class).invoke(null, opponentUuid)) {
+				Object balls = data.getMethod("getTeamBalls", UUID.class).invoke(null, opponentUuid);
+				if (balls instanceof java.util.Map<?, ?> map && !map.isEmpty()) {
+					return Math.min(6, map.size());
+				}
+			}
+		} catch (ReflectiveOperationException | RuntimeException | LinkageError ex) {
+			// Battle Extras isn't installed: unknown.
+		}
+		return -1;
 	}
 
 	/**
@@ -218,13 +340,13 @@ public final class BattleCinematic {
 	/** Every client tick: HUD visibility and the end of each part. */
 	public static void tick() {
 		long now = System.currentTimeMillis();
-		if (introStart >= 0 && now - introStart >= INTRO_END + HUD_FLASH_MS && !sendOutPending) {
+		if (introStart >= 0 && now - introStart >= intro.length + HUD_FLASH_MS && !sendOutPending) {
 			introStart = -1;
 		}
 		if (sendOutStart >= 0 && now - sendOutStart >= BLEND_END) {
 			sendOutStart = -1;
 		}
-		if (introStart >= 0 && !introEndDone && now - introStart >= INTRO_END) {
+		if (introStart >= 0 && !introEndDone && now - introStart >= intro.length) {
 			introEndDone = true;
 			if (previewing) {
 				previewing = false;
@@ -274,6 +396,18 @@ public final class BattleCinematic {
 		}
 		if (introPlaying()) {
 			long elapsed = introElapsed();
+			if (intro == Intro.COLOSSEUM_SWIRL && elapsed >= EYES_MEET_END) {
+				return colosseumShot(level, self, partialTick, elapsed);
+			}
+			if (intro == Intro.PBR_FACE_OFF && elapsed >= EYES_MEET_END) {
+				return faceOffShot(level, self, partialTick, elapsed);
+			}
+			if (intro == Intro.SV_SHOWDOWN && elapsed >= EYES_MEET_END) {
+				return showdownShot(level, self, partialTick, elapsed);
+			}
+			if (intro == Intro.PBR_ENTRANCE && elapsed >= EYES_MEET_END) {
+				return entranceShot(level, self, partialTick, elapsed);
+			}
 			if (intro == Intro.BLACK_WHITE && elapsed >= EYES_MEET_END) {
 				return zoomShot(level, self, partialTick, Math.min(1f, (elapsed - EYES_MEET_END) / (float) (ZOOM_END - EYES_MEET_END)));
 			}
@@ -354,6 +488,211 @@ public final class BattleCinematic {
 			position = solid(level, near) ? middle.add(0, 2.5, 0) : near;
 		}
 		return lookAt(position, middle.add(0, -0.2, 0), true);
+	}
+
+	// ---- Battle Revolution, the entrance -------------------------------
+
+	/** The wide shot's starting angle round the field, picked once per intro so that it never jumps. */
+	private static Double entranceAngle;
+
+	/**
+	 * The entrance's world shots: a slow wide orbit of the field (the midpoint of the two trainers), then a low close
+	 * shot on the opponent, then on us, each drifting sideways. Every position is checked for blocks in the way.
+	 */
+	private static CameraPose entranceShot(ClientLevel level, Player self, float partialTick, long elapsed) {
+		Player opponent = com.mystaria.showtime.api.ShowtimeHooks.player(level, opponentUuid);
+		keepVisible(self);
+		keepVisible(opponent);
+		Vec3 mine = self.getPosition(partialTick);
+		Vec3 theirs = opponent != null ? opponent.getPosition(partialTick) : mine.add(horizontal(self.getViewVector(partialTick)).scale(6));
+		Vec3 center = mine.add(theirs).scale(0.5);
+		Vec3 axis = horizontal(theirs.subtract(mine));
+		double gap = Math.sqrt(mine.distanceToSqr(theirs));
+		if (elapsed < BattleIntroScreen.PBR_OPPONENT) {
+			double radius = Math.max(6.0, gap * 0.85 + 3.0);
+			double height = 3.2 + gap * 0.12;
+			Vec3 look = center.add(0, 1.0, 0);
+			if (entranceAngle == null) {
+				double side = Math.atan2(axis.x, -axis.z); // a right angle to the trainers' line
+				entranceAngle = side;
+				for (double offset : new double[] { 0, Math.PI, 0.6, -0.6, Math.PI + 0.6, Math.PI - 0.6, 1.2, -1.2 }) {
+					Vec3 candidate = center.add(Math.cos(side + offset) * radius, height, Math.sin(side + offset) * radius);
+					if (!solid(level, candidate) && sees(level, candidate, look, self)) {
+						entranceAngle = side + offset;
+						break;
+					}
+				}
+			}
+			double t = (elapsed - BattleIntroScreen.PBR_ARENA) / 1000.0;
+			double angle = entranceAngle + Math.toRadians(5.0 * t);
+			Vec3 position = center.add(Math.cos(angle) * radius, height - 0.15 * t, Math.sin(angle) * radius);
+			return lookAt(position, look, true);
+		}
+		boolean opponentShot = elapsed < BattleIntroScreen.PBR_SELF;
+		Player who = opponentShot && opponent != null ? opponent : self;
+		Vec3 at = opponentShot ? theirs : mine;
+		Vec3 facing = horizontal((opponentShot ? mine : theirs).subtract(at));
+		Vec3 right = new Vec3(-facing.z, 0, facing.x);
+		double t = (elapsed - (opponentShot ? BattleIntroScreen.PBR_OPPONENT : BattleIntroScreen.PBR_SELF)) / 1000.0;
+		Vec3 face = who.getEyePosition(partialTick).add(0, -0.15, 0);
+		for (int sign : new int[] { 1, -1 }) {
+			for (double distance : new double[] { 2.4, 1.7 }) {
+				Vec3 candidate = at.add(facing.scale(distance)).add(right.scale(sign * (0.9 + 0.12 * t))).add(0, 1.15, 0);
+				if (!solid(level, candidate) && sees(level, candidate, face, who)) {
+					return lookAt(candidate, face, true);
+				}
+			}
+		}
+		return lookAt(at.add(facing.scale(1.6)).add(0, 1.4, 0), face, true);
+	}
+
+	/** The two trainers this frame: ours, theirs (or a spot ahead of us when theirs isn't loaded). */
+	private record Pair(Player self, Player opponent, Vec3 mine, Vec3 theirs, Vec3 axis) {
+	}
+
+	private static Pair pair(ClientLevel level, Player self, float partialTick) {
+		Player opponent = com.mystaria.showtime.api.ShowtimeHooks.player(level, opponentUuid);
+		keepVisible(self);
+		keepVisible(opponent);
+		Vec3 mine = self.getPosition(partialTick);
+		Vec3 theirs = opponent != null ? opponent.getPosition(partialTick) : mine.add(horizontal(self.getViewVector(partialTick)).scale(6));
+		return new Pair(self, opponent, mine, theirs, horizontal(theirs.subtract(mine)));
+	}
+
+	/** The first of the candidates that is out of blocks and sees {@code look}; else the last one. */
+	private static CameraPose firstClear(ClientLevel level, Player self, Vec3 look, Vec3... candidates) {
+		for (Vec3 candidate : candidates) {
+			if (!solid(level, candidate) && sees(level, candidate, look, self)) {
+				return lookAt(candidate, look, true);
+			}
+		}
+		return lookAt(candidates[candidates.length - 1], look, true);
+	}
+
+	/**
+	 * Battle Revolution's face-off: four moving close shots (the opponent rising from their feet, then arcing round
+	 * them; the same for us), then both in profile from low on the side, for the "VS".
+	 */
+	private static CameraPose faceOffShot(ClientLevel level, Player self, float partialTick, long elapsed) {
+		Pair p = pair(level, self, partialTick);
+		long start = BattleIntroScreen.FO_SHOTS;
+		if (elapsed >= BattleIntroScreen.FO_VS - 0) {
+			float t = (elapsed - BattleIntroScreen.FO_VS) / 1000f;
+			Vec3 middle = p.mine().add(p.theirs()).scale(0.5);
+			Vec3 side = new Vec3(-p.axis().z, 0, p.axis().x);
+			double gap = Math.sqrt(p.mine().distanceToSqr(p.theirs()));
+			double distance = Math.max(3.5, gap * 0.75 + 1.5) * (1.0 - 0.05 * t);
+			Vec3 look = middle.add(0, 1.2, 0);
+			return firstClear(level, self, look, middle.add(side.scale(distance)).add(0, 0.6, 0),
+					middle.add(side.scale(-distance)).add(0, 0.6, 0), middle.add(side.scale(distance * 0.7)).add(0, 2.2, 0));
+		}
+		int shot = (int) Math.max(0, Math.min(3, (elapsed - start) / BattleIntroScreen.FO_SHOT));
+		float t = Mth.clamp((elapsed - start - shot * BattleIntroScreen.FO_SHOT) / (float) BattleIntroScreen.FO_SHOT, 0f, 1f);
+		float ease = t * t * (3 - 2 * t);
+		boolean opponent = shot < 2;
+		Player who = opponent && p.opponent() != null ? p.opponent() : self;
+		Vec3 at = opponent ? p.theirs() : p.mine();
+		Vec3 facing = horizontal((opponent ? p.mine() : p.theirs()).subtract(at));
+		Vec3 right = new Vec3(-facing.z, 0, facing.x);
+		double eye = who.getEyeHeight();
+		if (shot % 2 == 0) {
+			// Rising from the feet to the face, in front of them.
+			double height = Mth.lerp(ease, 0.25, eye + 0.1);
+			Vec3 look = at.add(0, Mth.lerp(ease, 0.3, eye - 0.1), 0);
+			return firstClear(level, self, look, at.add(facing.scale(1.9)).add(right.scale(0.5)).add(0, height, 0),
+					at.add(facing.scale(1.5)).add(right.scale(-0.5)).add(0, height, 0), at.add(facing.scale(1.2)).add(0, eye + 0.4, 0));
+		}
+		// Arcing round them at chest height, from their side to their front.
+		double angle = Math.toRadians(Mth.lerp(ease, 75, 15));
+		Vec3 offset = facing.scale(Math.cos(angle) * 2.2).add(right.scale(Math.sin(angle) * 2.2));
+		Vec3 look = at.add(0, eye - 0.25, 0);
+		return firstClear(level, self, look, at.add(offset).add(0, 1.3, 0), at.add(offset.scale(0.7)).add(0, 1.3, 0),
+				at.add(facing.scale(1.4)).add(0, eye + 0.3, 0));
+	}
+
+	/** Where the camera stood when Colosseum's spin began: it turns from there. */
+	private static Float swirlYaw;
+
+	/**
+	 * Colosseum's twisting world: from the player's eyes the view spins faster and faster (the screen's spiral does
+	 * the rest), then a wide low shot of the opponent, then both trainers from the ground, the camera creeping in.
+	 */
+	private static CameraPose colosseumShot(ClientLevel level, Player self, float partialTick, long elapsed) {
+		Pair p = pair(level, self, partialTick);
+		if (elapsed < BattleIntroScreen.CO_WIDE) {
+			if (swirlYaw == null) {
+				swirlYaw = self.getViewYRot(partialTick);
+			}
+			float t = (elapsed - EYES_MEET_END) / 1000f;
+			float yaw = swirlYaw + 160f * t * t * t;
+			Vec3 eye = self.getEyePosition(partialTick);
+			// First person (not detached): from inside the head, a detached camera drew the player's own body round it.
+			return new CameraPose(eye, yaw, self.getViewXRot(partialTick) * (1 - Math.min(1f, t)), false);
+		}
+		swirlYaw = null;
+		Vec3 right = new Vec3(-p.axis().z, 0, p.axis().x);
+		if (elapsed < BattleIntroScreen.CO_GROUND) {
+			// Wide and low, in front of the opponent, a little to the side.
+			float t = (elapsed - BattleIntroScreen.CO_WIDE) / 1000f;
+			Vec3 look = p.theirs().add(0, 1.2, 0);
+			Vec3 front = p.theirs().subtract(p.axis().scale(5.5 - 0.3 * t)).add(right.scale(1.6)).add(0, 1.0, 0);
+			return firstClear(level, self, look, front, p.theirs().subtract(p.axis().scale(3.5)).add(right.scale(1.0)).add(0, 1.4, 0),
+					p.theirs().add(0, 3.5, 0));
+		}
+		// From the ground, on the side: both trainers small in a wide frame, creeping in.
+		float t = (elapsed - BattleIntroScreen.CO_GROUND) / 1000f;
+		Vec3 middle = p.mine().add(p.theirs()).scale(0.5);
+		double gap = Math.sqrt(p.mine().distanceToSqr(p.theirs()));
+		double distance = (gap * 0.9 + 3.0) * (1.0 - 0.04 * t);
+		Vec3 look = middle.add(0, 1.0, 0);
+		return firstClear(level, self, look, middle.add(right.scale(distance)).add(0, 0.35, 0),
+				middle.add(right.scale(-distance)).add(0, 0.35, 0), middle.add(right.scale(distance * 0.7)).add(0, 1.8, 0));
+	}
+
+	/**
+	 * Scarlet/Violet's showdown, no cut to a screen: over our shoulder toward the opponent, then over theirs toward us,
+	 * then a crane rising from between them to a high view of the field.
+	 */
+	private static CameraPose showdownShot(ClientLevel level, Player self, float partialTick, long elapsed) {
+		Pair p = pair(level, self, partialTick);
+		Vec3 right = new Vec3(-p.axis().z, 0, p.axis().x);
+		if (elapsed < BattleIntroScreen.SV_CRANE) {
+			boolean ours = elapsed < BattleIntroScreen.SV_REVERSE;
+			long from = ours ? EYES_MEET_END : BattleIntroScreen.SV_REVERSE;
+			long to = ours ? BattleIntroScreen.SV_REVERSE : BattleIntroScreen.SV_CRANE;
+			float t = (elapsed - from) / (float) (to - from);
+			Vec3 back = ours ? p.mine() : p.theirs();
+			Vec3 ahead = ours ? p.theirs() : p.mine();
+			Vec3 forward = ours ? p.axis() : p.axis().scale(-1);
+			Vec3 side = ours ? right : right.scale(-1);
+			double distance = Mth.lerp(t, 3.6, 2.6);
+			Vec3 look = ahead.add(0, 1.4, 0);
+			return firstClear(level, self, look, back.subtract(forward.scale(distance)).add(side.scale(0.9)).add(0, 2.0, 0),
+					back.subtract(forward.scale(distance * 0.6)).add(side.scale(0.7)).add(0, 2.2, 0),
+					back.add(0, 3.0, 0));
+		}
+		float t = Math.min(1f, (elapsed - BattleIntroScreen.SV_CRANE) / (float) (Intro.SV_SHOWDOWN.length - BattleIntroScreen.SV_CRANE));
+		float ease = 1f - (1f - t) * (1f - t);
+		Vec3 middle = p.mine().add(p.theirs()).scale(0.5);
+		double gap = Math.sqrt(p.mine().distanceToSqr(p.theirs()));
+		Vec3 eye = middle.add(right.scale(Mth.lerp(ease, 1.2, 3.0 + gap * 0.5))).add(0, Mth.lerp(ease, 1.2, 5.0 + gap * 0.35), 0);
+		Vec3 look = middle.add(0, Mth.lerp(ease, 1.2, 0.4), 0);
+		return firstClear(level, self, look, eye, middle.add(0, Mth.lerp(ease, 2.0, 6.0 + gap * 0.3), 0));
+	}
+
+	/**
+	 * The stadium intros' place: the name of the biome the battle is in ("Plains"). Not a "colosseum": battles happen
+	 * anywhere in a Minecraft world.
+	 */
+	public static String placeName() {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null || mc.level == null) {
+			return "";
+		}
+		String biome = mc.level.getBiome(mc.player.blockPosition()).unwrapKey()
+				.map(key -> net.minecraft.network.chat.Component.translatable(net.minecraft.Util.makeDescriptionId("biome", key.location())).getString())
+				.orElse("");
+		return biome;
 	}
 
 	/** Beyond this gap between the trainers, the eyes-meet shot is taken over our shoulder instead of from the side. */
@@ -511,7 +850,7 @@ public final class BattleCinematic {
 		if (introStart < 0) {
 			return;
 		}
-		long t = introElapsed() - INTRO_END;
+		long t = introElapsed() - intro.length;
 		if (t < 0 || t >= HUD_FLASH_MS) {
 			return;
 		}

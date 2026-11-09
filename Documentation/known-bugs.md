@@ -16,7 +16,6 @@ as a bug is found and not fixed right away.
 
 | Bug | Effect | How to fix |
 |---|---|---|
-| Player vs player intro always shows 6 Poké Balls for the opponent | Visual only | Count the opponent's team when Cobblemon sends it (battle initialize packet), or hide the counter in the classic intro. |
 | Choosing "no ambiance" in the menu near a battle seen from afar stops that battle's ambiance | Rare | In `BattleAmbiance.preview`, do nothing when the id is `none` and a non-preview ambiance plays. |
 | Cobblemon logs an error at every move for models whose data names an animation they lack (Moltres' "special") | Log noise, not ours | Cobblemon's own lookup; Showtime caches its own check (`MoveLunge.KNOWN`). Report upstream. |
 
@@ -41,6 +40,7 @@ as a bug is found and not fixed right away.
 
 | Limit | Reason |
 |---|---|
+| The opponent's team size is unknown in a classic player vs player intro: no balls are drawn for them | Cobblemon only sends a client its opponents' active Pokémon. Read from Cobblemon Battle Extras when its server side is installed; Phantasmon gives it for its battles. |
 | Elbows and knees stay straight under shader packs | Bending (bendy-lib) turned the skin's outer layer black under shaders. Revisit if a way to bend without it appears. |
 | The cosmos ambiance hides the whole world as soon as the player is inside the field's circle | With Sodium, hiding only the blocks inside the circle is not simple. |
 | Cobblemon's move sounds and poses are kept | They come from the server; only particles are replaced. |

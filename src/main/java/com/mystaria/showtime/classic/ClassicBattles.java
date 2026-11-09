@@ -83,13 +83,15 @@ public final class ClassicBattles {
 			BattleCameraDirector.start(stage, kind);
 			BattleMusic.setKind(kind);
 			ClientBattle battle = CobblemonClient.INSTANCE.getBattle();
-			if (pvp && ShowtimeConfig.battle(kind).intro && battle != null && !battle.getSpectating()
+			BattleCinematic.Intro chosen = BattleCinematic.pickIntro();
+			if (pvp && chosen != null && ShowtimeConfig.battle(kind).intro && battle != null && !battle.getSpectating()
 					&& !battle.getSide2().getActors().isEmpty()) {
 				ClientBattleActor opponent = battle.getSide2().getActors().get(0);
-				int own = CobblemonClient.INSTANCE.getStorage().getParty().getSlots().stream().filter(java.util.Objects::nonNull)
-						.mapToInt(pokemon -> 1).sum();
-				BattleCinematic.startIntro(opponent.getUuid(), opponent.getDisplayName().getString(), 6, own,
-						BattleCinematic.Intro.of(new java.util.Random().nextInt(BattleCinematic.Intro.values().length)), null);
+				// Our team: the party's Pokémon able to fight. Theirs isn't sent to us: unknown (-1), no made-up balls.
+				int own = (int) CobblemonClient.INSTANCE.getStorage().getParty().getSlots().stream()
+						.filter(pokemon -> pokemon != null && !pokemon.isFainted()).count();
+				BattleCinematic.startIntro(opponent.getUuid(), opponent.getDisplayName().getString(), -1, own,
+						chosen, null);
 				BattleCinematic.skipSendOuts();
 				reopenBattleScreen = true;
 			} else {

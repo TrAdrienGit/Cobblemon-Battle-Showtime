@@ -34,8 +34,27 @@ remove it from roadmap.md.
 
 ## Intros (`battle/BattleIntroScreen`)
 
-- Five drawn intros after different Pokémon games' styles, picked at random for player vs player. Foreign battles pick
-  theirs through the API.
+- **Sixteen intros**, each with its own length and the generation of the game it is after:
+  - 2D: X/Y (eyes-meet box, diamond wipe, panel), Sword/Shield (diagonal VS split), Diamond/Pearl (Poké Ball wipe,
+    burst, platforms), Emerald (rolling ball), Battle Revolution **match card** (blue stage, team cards, VS, ball wipe),
+    Sun/Moon **vortex** (rainbow burst, the opponent posing in a turning vortex, their throw), Ultra Sun/Moon
+    **surge** (colour starburst, out of the white into a ring of lightning, iris closing on a Poké Ball), Omega Ruby/Alpha
+    Sapphire **silhouette** (checker of diamonds, balls rolling across the black, the silhouette taking its colours).
+  - Retro revisits, the old 2D transitions redrawn over a 3D battlefield (2026-11-10): Red/Blue **clock** (two hands
+    sweeping to black, the field in Game Boy greens, the colour flooding in), Gold/Silver **stairs** (flashes, a
+    staircase of raised blocks, warm Johto light, silhouettes taking colour), Diamond/Pearl **blinds** (two flashes,
+    a spinning Poké Ball, blinds sliding shut and open). Their shared battlefield (`backdrop`, `platform`) has a layered
+    sky, sun, clouds, hills, mown ground and grass, and platforms with shadow and thickness.
+  - World camera: Colosseum **twisting world** (the view spinning into a spiral, a wide shot of the opponent, both
+    from the ground), Black/White (zoom into the opponent), Battle Revolution **entrance** (wide orbit under
+    "<biome> Colosseum", close shots with names and lines), Battle Revolution **face-off** (montage of rising and
+    arcing close shots, both in profile round a "VS"), Scarlet/Violet **showdown** (over each shoulder, name tags, a
+    crane rising on "Battle start!", no screen at all).
+- **Intros page in the menu**, as the music's: generation filters, favourites, on / off, "only play my favourites",
+  enable / disable all, and a preview (in a world, outside a battle; back to the page after). A player vs player battle
+  picks among the player's enabled intros; all off = no intro. Choices in `config/cobblemon_battle_showtime-intros.json`.
+- Battles staged through the API (Phantasmon) keep the intro their mod picks: the ordinal is shared, new intros always
+  go at the end of `BattleCinematic.Intro`.
 - The trainers are drawn at any distance during the intro; the stand-ins keep their own angle.
 - The battle runs underneath; Cobblemon's battle screen comes back when the intro ends.
 

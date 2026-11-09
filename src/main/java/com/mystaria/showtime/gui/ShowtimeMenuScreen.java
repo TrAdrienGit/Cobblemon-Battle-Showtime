@@ -19,6 +19,8 @@ import com.mystaria.showtime.ambiance.Ambiances;
 import com.mystaria.showtime.ambiance.BattleAmbiance;
 import com.mystaria.showtime.audio.BattleMusic;
 import com.mystaria.showtime.audio.MusicSettings;
+import com.mystaria.showtime.battle.BattleCinematic;
+import com.mystaria.showtime.config.IntroSettings;
 import com.mystaria.showtime.battle.BattleCameraDirector;
 import com.mystaria.showtime.config.ShowtimeConfig;
 import com.mystaria.showtime.emote.TrainerEmotes;
@@ -62,7 +64,7 @@ private static final int BLACK = 0xFF1A1A1A;
 	private static final String[] ROMAN = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"};
 
 	private enum Category {
-		SETTINGS, ANIMATIONS, AMBIANCES, MUSIC
+		SETTINGS, ANIMATIONS, AMBIANCES, MUSIC, INTROS
 	}
 
 	private enum Style {
@@ -105,6 +107,14 @@ private static final int BLACK = 0xFF1A1A1A;
 	private boolean savedHideGui;
 	private boolean hidGui;
 	private boolean draggingVolume;
+
+	/** Opens on a page, filter and scroll (an intro's preview comes back where the player was). */
+	private ShowtimeMenuScreen(Screen parent, Category page, int filter, int scrolled) {
+		this(parent);
+		category = page;
+		generation = filter;
+		scroll = scrolled;
+	}
 
 	public ShowtimeMenuScreen(Screen parent) {
 		super(Component.literal("Cobblemon Battle Showtime"));
@@ -203,6 +213,7 @@ private static final int BLACK = 0xFF1A1A1A;
 		}
 		category = chosen;
 		scroll = 0;
+		generation = 0;
 		BattleMusic.endPreview();
 		rebuild();
 		applyPreview();
@@ -217,6 +228,7 @@ private static final int BLACK = 0xFF1A1A1A;
 			case ANIMATIONS -> animations();
 			case AMBIANCES -> ambiances();
 			case MUSIC -> music();
+			case INTROS -> intros();
 		}
 		scrollTo(scroll);
 	}
@@ -307,6 +319,72 @@ private static final int BLACK = 0xFF1A1A1A;
 				rebuild();
 				applyPreview();
 			}, null, null));
+		}
+	}
+
+	/** The battle intros (2026-11-09), as the music: generations, favourites, on / off, a preview. */
+	private void intros() {
+		List<BattleCinematic.Intro> all = List.of(BattleCinematic.Intro.values());
+		java.util.Set<Integer> present = new java.util.TreeSet<>();
+		for (BattleCinematic.Intro each : all) {
+			present.add(each.generation);
+		}
+		boolean anyFavorite = all.stream().anyMatch(each -> IntroSettings.favorite(each.name()));
+		if (generation == FAVORITES ? !anyFavorite : generation != 0 && !present.contains(generation)) {
+			generation = 0;
+		}
+		filters.add(new Section(Component.translatable(KEY + "music.filter.all"), generation == 0, () -> {
+			generation = 0;
+			scroll = 0;
+			rebuild();
+		}));
+		if (anyFavorite) {
+			filters.add(new Section(Component.translatable(KEY + "music.filter.favorites"), generation == FAVORITES, () -> {
+				generation = FAVORITES;
+				scroll = 0;
+				rebuild();
+			}));
+		}
+		for (int each : present) {
+			filters.add(new Section(Component.translatable(KEY + "music.filter.generation", ROMAN[each]), generation == each, () -> {
+				generation = each;
+				scroll = 0;
+				rebuild();
+			}));
+		}
+		List<BattleCinematic.Intro> shown = all.stream().filter(each -> generation == 0
+				|| generation == FAVORITES && IntroSettings.favorite(each.name()) || each.generation == generation).toList();
+		List<String> names = shown.stream().map(BattleCinematic.Intro::name).toList();
+		rows.add(new Row(Style.SWITCH, Component.translatable(KEY + "music.only_favorites"), IntroSettings.onlyFavorites(), 0, () -> {
+			IntroSettings.setOnlyFavorites(!IntroSettings.onlyFavorites());
+			rebuild();
+		}, null, null));
+		rows.add(new Row(Style.BUTTONS, Component.translatable(KEY + "music.enable_all"), false, 0, () -> {
+			IntroSettings.setEnabled(names, true);
+			rebuild();
+		}, () -> {
+			IntroSettings.setEnabled(names, false);
+			rebuild();
+		}, Component.translatable(KEY + "music.disable_all")));
+		for (BattleCinematic.Intro each : shown) {
+			String name = each.name();
+			Runnable preview = canPreview() ? () -> {
+				Screen back = parent;
+				int filter = generation;
+				int scrolled = scroll;
+				BattleCinematic.preview(each, () -> minecraft.setScreen(new ShowtimeMenuScreen(back, Category.INTROS, filter, scrolled)));
+			} : null;
+			rows.add(new Row(Style.SWITCH, Component.translatable(KEY + "intro.name." + name.toLowerCase(Locale.ROOT)),
+					IntroSettings.enabled(name), 0, () -> {
+						IntroSettings.setEnabled(List.of(name), !IntroSettings.enabled(name));
+						rebuild();
+					}, preview, Component.translatable(KEY + "music.screen.listen"), () -> {
+						IntroSettings.setFavorite(name, !IntroSettings.favorite(name));
+						rebuild();
+					}, IntroSettings.favorite(name)));
+		}
+		if (!canPreview()) {
+			note(Component.translatable(KEY + "intro.preview_in_world"));
 		}
 	}
 
