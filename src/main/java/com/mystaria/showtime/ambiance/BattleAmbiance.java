@@ -90,6 +90,12 @@ public final class BattleAmbiance {
 	private static long nextFlicker = -1;
 	/** When each of the ambiance's ambient sounds plays next (ticks). */
 	private static long[] nextAmbientSound = new long[0];
+	/** Fireworks waiting their tick: when, where (relative to the field), and the next far-off one. */
+	private record PendingFirework(long at, Vec3 where) {
+	}
+
+	private static final List<PendingFirework> FIREWORKS = new ArrayList<>();
+	private static long nextFirework = -1;
 	/** Film: the scratch running (screen x 0..1, ticks left) and a speck of dust (x, y, ticks left). */
 	private static float scratchX;
 	private static int scratchLeft;
@@ -199,6 +205,7 @@ public final class BattleAmbiance {
 		previewLeft = 0;
 		flashLeft = 0;
 		FLOATING.clear();
+		FIREWORKS.clear();
 	}
 
 	public static boolean active() {
@@ -256,6 +263,8 @@ public final class BattleAmbiance {
 		}
 		scratchLeft = 0;
 		dustLeft = 0;
+		FIREWORKS.clear();
+		nextFirework = ambiance.fireworks != null ? ticks + 60 + betweenTicks(ambiance.fireworks.every) : -1;
 		flickerLeft = 0;
 		nextFlicker = ambiance.flicker != null ? ticks + 60 + betweenTicks(ambiance.flicker.every) : -1;
 		CRITTERS.clear();
@@ -342,6 +351,17 @@ public final class BattleAmbiance {
 				dustX = RANDOM.nextFloat();
 				dustY = RANDOM.nextFloat();
 				dustLeft = 1 + RANDOM.nextInt(2);
+			}
+		}
+		if (active.fireworks != null && nextFirework >= 0 && ticks >= nextFirework) {
+			nextFirework = ticks + Math.max(20, betweenTicks(active.fireworks.every));
+			double angle = RANDOM.nextDouble() * Math.PI * 2;
+			double far = between(active.fireworks.distance);
+			FIREWORKS.add(new PendingFirework(ticks, new Vec3(Math.cos(angle) * far, between(active.fireworks.height), Math.sin(angle) * far)));
+		}
+		for (int i = FIREWORKS.size() - 1; i >= 0; i--) {
+			if (ticks >= FIREWORKS.get(i).at()) {
+				burst(mc.level, FIREWORKS.remove(i).where());
 			}
 		}
 		if (!distant || inside) {
@@ -432,6 +452,12 @@ public final class BattleAmbiance {
 						center.z + Math.sin(angle) * r, (RANDOM.nextDouble() - 0.5) * 0.3, RANDOM.nextDouble() * 0.3,
 						(RANDOM.nextDouble() - 0.5) * 0.3);
 			}
+		}
+		for (int i = 0; i < moment.fireworks; i++) {
+			double angle = RANDOM.nextDouble() * Math.PI * 2;
+			double r = fieldRadius * (0.3 + RANDOM.nextDouble() * 0.9);
+			FIREWORKS.add(new PendingFirework(ticks + i * 6L + RANDOM.nextInt(4),
+					new Vec3(Math.cos(angle) * r, 9 + RANDOM.nextDouble() * 6, Math.sin(angle) * r)));
 		}
 		if (moment.flash != null) {
 			flashColor = Ambiance.color(moment.flash, 0xFFFFFF);
@@ -672,6 +698,21 @@ public final class BattleAmbiance {
 		if (active.bubbles != null) {
 			drawBubbles(pose, buffers, active.bubbles, time);
 		}
+		if (active.caustics != null) {
+			drawCaustics(pose, buffers, active.caustics, time);
+		}
+		if (active.shafts != null) {
+			drawShafts(pose, buffers, active.shafts, time);
+		}
+		if (active.embers != null) {
+			drawEmbers(pose, buffers, active.embers, time);
+		}
+		if (active.volcano != null) {
+			drawVolcano(pose, buffers, active.volcano, time, true);
+		}
+		if (active.lanterns != null) {
+			drawLanterns(pose, buffers, active.lanterns, time, true);
+		}
 		if (active.mushrooms != null) {
 			drawMushrooms(pose, buffers, active.mushrooms, time, true);
 		}
@@ -712,6 +753,15 @@ public final class BattleAmbiance {
 		}
 		if (active.mushrooms != null) {
 			drawMushrooms(pose, buffers, active.mushrooms, time, false);
+		}
+		if (active.volcano != null) {
+			drawVolcano(pose, buffers, active.volcano, time, false);
+		}
+		if (active.kelp != null) {
+			drawKelp(pose, buffers, active.kelp, time);
+		}
+		if (active.lanterns != null) {
+			drawLanterns(pose, buffers, active.lanterns, time, false);
 		}
 		if (active.mist != null) {
 			drawMist(pose, buffers, active.mist, time);
@@ -1486,6 +1536,17 @@ public final class BattleAmbiance {
 
 	/** Corrupted's veins: from each rift's foot (or from round the field), a few branches crawling toward it. */
 	private static void buildVeins(Ambiance.Veins veins) {
+		if (veins.scatter > 0) {
+			// Cracks over the whole floor, each from a random point, heading anywhere.
+			for (int r = 0; r < veins.scatter; r++) {
+				double angle = RANDOM.nextDouble() * Math.PI * 2;
+				double dist = Math.sqrt(RANDOM.nextDouble()) * fieldRadius * 1.4;
+				for (int b = 0; b < veins.branches; b++) {
+					crawl(veins, Math.cos(angle) * dist, Math.sin(angle) * dist, RANDOM.nextDouble() * Math.PI * 2);
+				}
+			}
+			return;
+		}
 		List<Double> roots = new ArrayList<>();
 		if (!RIFT_ANGLES.isEmpty()) {
 			for (float angle : RIFT_ANGLES) {
@@ -1499,21 +1560,23 @@ public final class BattleAmbiance {
 		for (double root : roots) {
 			for (int b = 0; b < veins.branches; b++) {
 				double radius = fieldRadius + 3f;
-				double x = Math.cos(root) * radius;
-				double z = Math.sin(root) * radius;
-				double heading = root + Math.PI + (RANDOM.nextDouble() - 0.5) * 1.2;
-				double walked = 0;
-				while (walked < veins.length) {
-					heading += (RANDOM.nextDouble() - 0.5) * 0.9;
-					double step = 0.8 + RANDOM.nextDouble() * 0.6;
-					double nx = x + Math.cos(heading) * step;
-					double nz = z + Math.sin(heading) * step;
-					VEINS.add(new double[] {x, z, nx, nz, walked});
-					x = nx;
-					z = nz;
-					walked += step;
-				}
+				crawl(veins, Math.cos(root) * radius, Math.sin(root) * radius, root + Math.PI + (RANDOM.nextDouble() - 0.5) * 1.2);
 			}
+		}
+	}
+
+	/** One vein, crawling from (x, z) roughly toward {@code heading}, bending as it goes. */
+	private static void crawl(Ambiance.Veins veins, double x, double z, double heading) {
+		double walked = 0;
+		while (walked < veins.length) {
+			heading += (RANDOM.nextDouble() - 0.5) * 0.9;
+			double step = 0.8 + RANDOM.nextDouble() * 0.6;
+			double nx = x + Math.cos(heading) * step;
+			double nz = z + Math.sin(heading) * step;
+			VEINS.add(new double[] {x, z, nx, nz, walked});
+			x = nx;
+			z = nz;
+			walked += step;
 		}
 	}
 
@@ -1521,12 +1584,16 @@ public final class BattleAmbiance {
 		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(veins.color, 0xFF2A8A);
+		int core = veins.core != null ? Ambiance.color(veins.core, 0xFFD060) : -1;
 		double t = time / 20.0 * veins.pulse;
 		for (double[] v : VEINS) {
 			float taper = (float) Mth.clamp(1 - v[4] / veins.length, 0.15, 1);
 			float pulse = (float) (0.45 + 0.55 * Math.max(0, Math.sin(v[4] * 0.9 - t * 3)));
 			int alpha = Math.round(veins.alpha * taper * pulse);
 			groundLine(out, m, v[0], v[1], v[2], v[3], 0.08 + 0.12 * taper, color, alpha, alpha);
+			if (core >= 0) {
+				groundLine(out, m, v[0], v[1], v[2], v[3], 0.03 + 0.04 * taper, core, Math.round(alpha * 0.9f), Math.round(alpha * 0.9f));
+			}
 		}
 	}
 
@@ -1873,6 +1940,263 @@ public final class BattleAmbiance {
 				SoundEvent.createVariableRangeEvent(ResourceLocation.parse(ambient.id)), SoundSource.AMBIENT, ambient.volume,
 				pitch, RandomSource.create(RANDOM.nextLong()), camera.x + Math.cos(angle) * 4, camera.y + 1,
 				camera.z + Math.sin(angle) * 4));
+	}
+
+	/** A real firework burst at {@code where} (relative to the field), its colours from the ambiance's fireworks. */
+	private static void burst(ClientLevel level, Vec3 where) {
+		List<String> names = active != null && active.fireworks != null ? active.fireworks.colors
+				: List.of("#ff6a8a", "#ffd060", "#7ad8ff", "#ffffff");
+		it.unimi.dsi.fastutil.ints.IntArrayList colors = new it.unimi.dsi.fastutil.ints.IntArrayList();
+		for (int i = 0; i < 2 && !names.isEmpty(); i++) {
+			colors.add(Ambiance.color(names.get(RANDOM.nextInt(names.size())), 0xFFFFFF));
+		}
+		net.minecraft.world.item.component.FireworkExplosion.Shape[] shapes = {
+				net.minecraft.world.item.component.FireworkExplosion.Shape.LARGE_BALL,
+				net.minecraft.world.item.component.FireworkExplosion.Shape.SMALL_BALL,
+				net.minecraft.world.item.component.FireworkExplosion.Shape.STAR,
+				net.minecraft.world.item.component.FireworkExplosion.Shape.BURST };
+		net.minecraft.world.item.component.FireworkExplosion explosion = new net.minecraft.world.item.component.FireworkExplosion(
+				shapes[RANDOM.nextInt(shapes.length)], colors, it.unimi.dsi.fastutil.ints.IntList.of(0xFFF4E0), true, RANDOM.nextBoolean());
+		Vec3 at = center.add(where);
+		level.createFireworks(at.x, at.y, at.z, 0, 0, 0, List.of(explosion));
+	}
+
+	/** Embers (or plankton): small glows rising and swaying, their colour moving from {@code color} to {@code accent}. */
+	private static void drawEmbers(PoseStack pose, MultiBufferSource buffers, Ambiance.Embers embers, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int young = Ambiance.color(embers.color, 0xFFC040);
+		int old = Ambiance.color(embers.accent, 0xFF3010);
+		double seconds = embers.height / Math.max(0.05f, embers.rise);
+		for (int i = 0; i < embers.count; i++) {
+			double cycle = seconds * 20 * (0.7 + 0.6 * hashFloat(i * 61 + 1));
+			double clock = time + hashFloat(i * 61 + 2) * cycle;
+			double phase = (clock % cycle) / cycle;
+			int round = (int) (clock / cycle);
+			int seed = i * 61 + round * 4099;
+			double angle = hashFloat(seed + 3) * Math.PI * 2;
+			double radius = Mth.lerp(hashFloat(seed + 4), embers.radius.get(0), embers.radius.get(1));
+			double swirl = Math.sin(time / 12.0 + i) * 0.5 * phase;
+			Vec3 at = onGround(Math.cos(angle) * radius + swirl, Math.sin(angle) * radius + Math.cos(time / 14.0 + i) * 0.5 * phase)
+					.add(0, 0.2 + phase * embers.height, 0);
+			float life = (float) Mth.clamp(Math.min(phase / 0.08, (1 - phase) / 0.35), 0, 1);
+			float twinkle = 0.75f + 0.25f * Mth.sin(time * 0.9f + i * 2.3f);
+			float fade = life * twinkle * nearFade(at, 0.4, 1.5);
+			if (fade <= 0.03f) {
+				continue;
+			}
+			Vec3 toCamera = cameraRel.subtract(at).normalize();
+			int color = lerpColor(young, old, (float) phase);
+			glowDisc(out, m, at, toCamera, embers.size * 3.5f, color, Math.round(70 * fade));
+			glowDisc(out, m, at, toCamera, embers.size, lerpColor(color, 0xFFFFFF, 0.5f), Math.round(230 * fade));
+		}
+	}
+
+	/**
+	 * The volcano: far off at {@code yaw}, a dark cone rising over the horizon (solid pass); its crater's glow, two lava
+	 * streams down its flanks, a plume of light and a red glow along the horizon (light pass).
+	 */
+	private static void drawVolcano(PoseStack pose, MultiBufferSource buffers, Ambiance.Volcano volcano, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		double yaw = Math.toRadians(volcano.yaw);
+		Vec3 dir = new Vec3(Math.cos(yaw), 0, Math.sin(yaw));
+		Vec3 side = new Vec3(-dir.z, 0, dir.x);
+		Vec3 facing = dir.scale(-1);
+		float s = volcano.size;
+		Vec3 base = dir.scale(skyRadius()).add(0, -s * 0.25, 0);
+		Vec3 crater = base.add(0, s, 0);
+		int color = Ambiance.color(volcano.color, 0xFF5A10);
+		float pulse = 0.8f + 0.2f * Mth.sin(time / 17f);
+		if (!glow) {
+			int rock = 0x1A0806;
+			int ridge = 0x2A0E08;
+			// The cone: a wide base narrowing to the crater's lips.
+			Vec3 l0 = base.add(side.scale(-s * 1.6));
+			Vec3 r0 = base.add(side.scale(s * 1.6));
+			Vec3 l1 = crater.add(side.scale(-s * 0.32));
+			Vec3 r1 = crater.add(side.scale(s * 0.32));
+			vertex(out, m, l0, rock, 255);
+			vertex(out, m, r0, rock, 255);
+			vertex(out, m, r1, ridge, 255);
+			vertex(out, m, l1, ridge, 255);
+			return;
+		}
+		glowDisc(out, m, base.add(0, s * 0.1, 0), facing, s * 3.2f, color, Math.round(55 * pulse));
+		glowDisc(out, m, crater, facing, s * 0.55f, lerpColor(color, 0xFFD060, 0.4f), Math.round(170 * pulse));
+		glowDisc(out, m, crater.add(0, s * 0.7, 0), facing, s * 1.1f, color, Math.round(45 * pulse));
+		// Lava streams: from the crater's lips down each flank, wavering a little.
+		for (int k = -1; k <= 1; k += 2) {
+			Vec3 at = crater.add(side.scale(k * s * 0.22)).add(dir.scale(-0.5));
+			for (int step = 0; step < 6; step++) {
+				Vec3 next = at.add(side.scale(k * s * (0.14 + 0.05 * Math.sin(step * 1.7 + k)))).add(0, -s * 0.13, 0);
+				skyStroke(out, m, at, next, facing, s * 0.05f, 0xFFB040, Math.round(200 * pulse * (1 - step / 7f)));
+				skyStroke(out, m, at, next, facing, s * 0.16f, color, Math.round(60 * pulse * (1 - step / 7f)));
+				at = next;
+			}
+		}
+	}
+
+	/** Caustics: a web of bright wavering lines on the floor, from two drifting interference patterns. */
+	private static void drawCaustics(PoseStack pose, MultiBufferSource buffers, Ambiance.Caustics caustics, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(caustics.color, 0xA8F4FF);
+		float radius = Math.min(caustics.radius > 0 ? caustics.radius : fieldRadius * 1.35f, 22f);
+		double cell = 0.6;
+		int n = (int) Math.ceil(radius / cell);
+		double t = time / 20.0 * caustics.speed;
+		double s = caustics.scale;
+		float[][] light = new float[2 * n + 1][2 * n + 1];
+		for (int ix = -n; ix <= n; ix++) {
+			for (int iz = -n; iz <= n; iz++) {
+				double x = ix * cell;
+				double z = iz * cell;
+				double v1 = Math.sin(x * 0.9 * s + t * 1.1) + Math.sin(z * 1.1 * s - t * 0.9)
+						+ Math.sin((x * 0.6 - z * 0.8) * 1.3 * s + t * 0.7);
+				double v2 = Math.sin((x * 0.7 + z * 0.5) * 1.7 * s - t * 1.3) + Math.sin(z * 0.5 * s + x * 0.3 * s + t * 0.5);
+				double c1 = Math.pow(1 - Math.abs(Math.sin(v1 * 1.1)), 6);
+				double c2 = Math.pow(1 - Math.abs(Math.sin(v2 * 1.3 + 0.7)), 6);
+				double d = Math.sqrt(x * x + z * z);
+				float edge = (float) Mth.clamp((radius - d) / 3.0, 0, 1);
+				light[ix + n][iz + n] = (float) Math.max(c1, c2 * 0.8) * edge;
+			}
+		}
+		for (int ix = 0; ix < 2 * n; ix++) {
+			for (int iz = 0; iz < 2 * n; iz++) {
+				float a = light[ix][iz];
+				float b = light[ix + 1][iz];
+				float c = light[ix + 1][iz + 1];
+				float d = light[ix][iz + 1];
+				if (a + b + c + d < 0.08f) {
+					continue; // most of the floor is between the lines
+				}
+				double x0 = (ix - n) * cell;
+				double z0 = (iz - n) * cell;
+				vertex(out, m, onGround(x0, z0), color, Math.round(caustics.alpha * a));
+				vertex(out, m, onGround(x0 + cell, z0), color, Math.round(caustics.alpha * b));
+				vertex(out, m, onGround(x0 + cell, z0 + cell), color, Math.round(caustics.alpha * c));
+				vertex(out, m, onGround(x0, z0 + cell), color, Math.round(caustics.alpha * d));
+			}
+		}
+	}
+
+	/** Shafts of light from above, all leaning the same way, swaying and breathing. */
+	private static void drawShafts(PoseStack pose, MultiBufferSource buffers, Ambiance.Shafts shafts, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(shafts.color, 0xBFF4FF);
+		double lean = Math.tan(Math.toRadians(shafts.tilt)) * shafts.height;
+		for (int i = 0; i < shafts.count; i++) {
+			double angle = hashFloat(i * 73 + 1) * Math.PI * 2;
+			double radius = Mth.lerp(hashFloat(i * 73 + 2), shafts.ring.get(0), shafts.ring.get(1));
+			double sway = Math.sin(time / 50.0 + i * 1.9) * 1.6;
+			Vec3 foot = onGround(Math.cos(angle) * radius + sway, Math.sin(angle) * radius);
+			Vec3 top = foot.add(lean, shafts.height, lean * 0.3);
+			float breathe = 0.6f + 0.4f * Mth.sin(time / 37f + i * 2.1f);
+			beam(out, m, top, foot, shafts.width * 0.7f, shafts.width * 1.3f, color, Math.round(shafts.alpha * breathe));
+		}
+	}
+
+	/** Kelp: ribbons rooted beyond the field, swaying more toward their tips, darker at the root. */
+	private static void drawKelp(PoseStack pose, MultiBufferSource buffers, Ambiance.Kelp kelp, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(kelp.color, 0x1F6A48);
+		int root = lerpColor(color, 0x000000, 0.45f);
+		int tip = lerpColor(color, 0x90E0A0, 0.35f);
+		int segments = 10;
+		for (int i = 0; i < kelp.count; i++) {
+			double angle = Math.PI * 2 * (i + hashFloat(i * 89 + 1) * 0.7) / kelp.count;
+			double radius = fieldRadius + Mth.lerp(hashFloat(i * 89 + 2), kelp.ring.get(0), kelp.ring.get(1));
+			float height = Mth.lerp(hashFloat(i * 89 + 3), kelp.height.get(0), kelp.height.get(1));
+			Vec3 foot = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius);
+			if (nearFade(foot.add(0, height / 2, 0), 1.5, 2) <= 0.05f) {
+				continue;
+			}
+			Vec3 across = new Vec3(-Math.sin(angle), 0, Math.cos(angle));
+			Vec3 prev = foot;
+			for (int s = 1; s <= segments; s++) {
+				float f = s / (float) segments;
+				double bend = Math.sin(time / 22.0 + i * 1.3 + f * 2.2) * 1.2 * f * f;
+				Vec3 next = foot.add(across.scale(bend)).add(0, height * f, 0);
+				float w0 = 0.32f * (1 - (s - 1) / (float) segments * 0.6f);
+				float w1 = 0.32f * (1 - f * 0.6f);
+				int c0 = lerpColor(root, tip, (s - 1) / (float) segments);
+				int c1 = lerpColor(root, tip, f);
+				// Flat ribbon facing the field's centre, with a slight twist so it never vanishes edge-on.
+				Vec3 width0 = across.scale(w0).add(0, 0, 0);
+				Vec3 width1 = across.scale(w1);
+				vertex(out, m, prev.subtract(width0), c0, 235);
+				vertex(out, m, prev.add(width0), c0, 235);
+				vertex(out, m, next.add(width1), c1, 235);
+				vertex(out, m, next.subtract(width1), c1, 235);
+				prev = next;
+			}
+		}
+	}
+
+	/**
+	 * Paper lanterns rising: an eight-sided body, its frame darker at top and bottom (solid pass), and the warm glow of
+	 * its flame round it (light pass). Each fades in near the ground and out high in the sky.
+	 */
+	private static void drawLanterns(PoseStack pose, MultiBufferSource buffers, Ambiance.Lanterns lanterns, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		double seconds = lanterns.height / Math.max(0.05f, lanterns.rise);
+		for (int i = 0; i < lanterns.count; i++) {
+			double cycle = seconds * 20 * (0.8 + 0.4 * hashFloat(i * 97 + 1));
+			double clock = time + hashFloat(i * 97 + 2) * cycle;
+			double phase = (clock % cycle) / cycle;
+			int round = (int) (clock / cycle);
+			int seed = i * 97 + round * 3571;
+			double angle = hashFloat(seed + 3) * Math.PI * 2;
+			double radius = Mth.lerp(hashFloat(seed + 4), lanterns.radius.get(0), lanterns.radius.get(1));
+			double drift = phase * 4;
+			Vec3 at = onGround(Math.cos(angle) * radius + drift, Math.sin(angle) * radius + drift * 0.4)
+					.add(Math.sin(time / 30.0 + i) * 0.3, 1.5 + phase * lanterns.height, 0);
+			float life = (float) Mth.clamp(Math.min(phase / 0.06, (1 - phase) / 0.25), 0, 1);
+			float fade = life * nearFade(at, 0.8, 2);
+			if (fade <= 0.03f) {
+				continue;
+			}
+			int color = Ambiance.color(lanterns.colors.get(i % Math.max(1, lanterns.colors.size())), 0xFFB060);
+			float flame = 0.85f + 0.15f * Mth.sin(time * 0.6f + i * 1.7f);
+			float s = lanterns.size;
+			if (glow) {
+				Vec3 toCamera = cameraRel.subtract(at).normalize();
+				glowDisc(out, m, at, toCamera, s * 3.2f, color, Math.round(70 * fade * flame));
+				glowDisc(out, m, at, toCamera, s * 1.1f, lerpColor(color, 0xFFF4D0, 0.5f), Math.round(120 * fade * flame));
+				continue;
+			}
+			int alpha = Math.round(235 * fade);
+			int body = lerpColor(color, 0xFFF0C0, 0.35f * flame);
+			int frame = lerpColor(color, 0x401808, 0.6f);
+			int sides = 8;
+			double r = s * 0.5;
+			double h = s * 1.2;
+			for (int k = 0; k < sides; k++) {
+				double a0 = Math.PI * 2 * k / sides;
+				double a1 = Math.PI * 2 * (k + 1) / sides;
+				// Slightly wider in the middle: three bands, the middle one brightest.
+				double[] ys = { -h / 2, -h / 6, h / 6, h / 2 };
+				double[] rs = { r * 0.82, r, r, r * 0.86 };
+				int[] cs = { frame, body, body, frame };
+				for (int b = 0; b < 3; b++) {
+					int lo = b == 0 ? frame : body;
+					int hi = b == 2 ? frame : body;
+					vertex(out, m, at.add(Math.cos(a0) * rs[b], ys[b], Math.sin(a0) * rs[b]), lo, alpha);
+					vertex(out, m, at.add(Math.cos(a1) * rs[b], ys[b], Math.sin(a1) * rs[b]), lo, alpha);
+					vertex(out, m, at.add(Math.cos(a1) * rs[b + 1], ys[b + 1], Math.sin(a1) * rs[b + 1]), hi, alpha);
+					vertex(out, m, at.add(Math.cos(a0) * rs[b + 1], ys[b + 1], Math.sin(a0) * rs[b + 1]), hi, alpha);
+				}
+				// The top, closed.
+				vertex(out, m, at.add(0, h / 2, 0), frame, alpha);
+				vertex(out, m, at.add(0, h / 2, 0), frame, alpha);
+				vertex(out, m, at.add(Math.cos(a1) * rs[3], h / 2, Math.sin(a1) * rs[3]), cs[3], alpha);
+				vertex(out, m, at.add(Math.cos(a0) * rs[3], h / 2, Math.sin(a0) * rs[3]), cs[3], alpha);
+			}
+		}
 	}
 
 	private static Vec3 moonPlace(Ambiance.Moon moon) {

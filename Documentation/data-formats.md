@@ -45,7 +45,8 @@ Top-level blocks, all optional: `time` (`at`, `speed`), `sky` (`sky_color`, `fog
 `hide_clouds`), `backdrop`, `spotlights`, `floor_lights`, `floating_blocks`, `lightning`, `aurora`, `shooting_stars`,
 `rifts`, `rainbow` (`doubled`), `strobe`, `sound`, `ambient_sounds`, `mirror_ball`, `dance_floor`, `neon_grid`,
 `sprites`, `critters`, `nebulae`, `galaxy`, `planets`, `mist`, `veins`, `sky_cracks`, `glitch_cubes`, `wisps`,
-`ghosts`, `moon`, `flicker`, `bubbles`, `mushrooms`, `film`, a screen `filter` (and `calm_filter`: the filter with calm
+`ghosts`, `moon`, `flicker`, `bubbles`, `mushrooms`, `film`, `embers`, `volcano`, `caustics`, `shafts`, `kelp`,
+`lanterns`, `fireworks` (a moment can also launch `fireworks` over the field), a screen `filter` (and `calm_filter`: the filter with calm
 effects on, `"none"` to drop it), and `moments` with `send_out`, `attack`, `crit`, `faint`, `victory`, `defeat`
 reactions (a moment can also show a big `text`). Spotlights take `alpha`, `ring`, `sector` and `facing`. `ambiance/Ambiance.java` is the reference for every field and its default. Names shown in the
 menu come from the lang key `cobblemon_battle_showtime.ambiance.<id>`.

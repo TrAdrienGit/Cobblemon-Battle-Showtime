@@ -1,0 +1,90 @@
+{
+	"time": {
+		"at": 12600,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#5a4a8a",
+		"fog_color": "#ff9a7a",
+		"strength": 0.55,
+		"cloud_color": "#ffb8a0"
+	},
+	"lanterns": {
+		"colors": [
+			"#ffb060",
+			"#ff8a60",
+			"#ffd080"
+		],
+		"count": 14,
+		"radius": [
+			6,
+			22
+		],
+		"height": 30,
+		"size": 0.45,
+		"rise": 0.35
+	},
+	"fireworks": {
+		"every": [
+			140,
+			300
+		],
+		"distance": [
+			28,
+			40
+		],
+		"height": [
+			18,
+			28
+		],
+		"colors": [
+			"#ff6a8a",
+			"#ffd060",
+			"#7ad8ff",
+			"#ffffff",
+			"#c88aff"
+		]
+	},
+	"wind": [
+		0.02,
+		0.005
+	],
+	"particles": [
+		{
+			"type": "minecraft:cherry_leaves",
+			"rate": 2.2,
+			"area": "air"
+		},
+		{
+			"type": "minecraft:cherry_leaves",
+			"rate": 0.8,
+			"area": "ring"
+		}
+	],
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 30
+		},
+		"attack": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 12
+		},
+		"crit": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 60,
+			"flash": "#ffc0d8",
+			"sound": "minecraft:entity.firework_rocket.twinkle"
+		},
+		"faint": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 30
+		},
+		"victory": {
+			"fireworks": 8,
+			"particle": "minecraft:cherry_leaves",
+			"count": 80,
+			"sound": "minecraft:entity.firework_rocket.launch"
+		}
+	}
+}

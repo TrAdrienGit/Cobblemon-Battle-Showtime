@@ -1,0 +1,120 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/haze.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 6000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#0a4a66",
+		"fog_color": "#0b3d55",
+		"strength": 1.0,
+		"fog_start": 2,
+		"fog_end": 44,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"caustics": {
+		"color": "#a8f4ff",
+		"alpha": 55,
+		"scale": 1,
+		"speed": 0.8
+	},
+	"shafts": {
+		"color": "#bff4ff",
+		"count": 8,
+		"alpha": 28,
+		"width": 2.2,
+		"height": 34,
+		"tilt": 14,
+		"ring": [
+			3,
+			20
+		]
+	},
+	"kelp": {
+		"color": "#1f6a48",
+		"count": 28,
+		"ring": [
+			1.5,
+			8
+		],
+		"height": [
+			4,
+			9
+		]
+	},
+	"bubbles": {
+		"color": "#d8fbff",
+		"count": 18,
+		"radius": [
+			3,
+			15
+		],
+		"height": 12,
+		"size": [
+			0.08,
+			0.25
+		]
+	},
+	"embers": {
+		"color": "#9ffcff",
+		"accent": "#3a9cff",
+		"count": 30,
+		"radius": [
+			2,
+			15
+		],
+		"height": 8,
+		"size": 0.05,
+		"rise": 0.15
+	},
+	"sound": {
+		"id": "minecraft:ambient.underwater.loop",
+		"volume": 0.7
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:ambient.underwater.loop.additions",
+			"every": [
+				100,
+				240
+			],
+			"volume": 0.6,
+			"pitch": [
+				0.9,
+				1.1
+			]
+		},
+		{
+			"id": "minecraft:ambient.underwater.loop.additions.rare",
+			"every": [
+				400,
+				800
+			],
+			"volume": 0.6
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:bubble_pop",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:nautilus",
+			"count": 40,
+			"flash": "#7ff4ff",
+			"sound": "minecraft:block.conduit.attack.target",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:squid_ink",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:glow_squid_ink",
+			"count": 60,
+			"sound": "minecraft:block.conduit.activate"
+		}
+	}
+}

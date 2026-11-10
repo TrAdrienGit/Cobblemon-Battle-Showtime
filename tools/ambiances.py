@@ -20,6 +20,7 @@ GLITCH_SOFT = FILTER + "glitch_soft.json"
 WOBBLE = FILTER + "wobble.json"
 OLD_TV = FILTER + "old_tv.json"
 FILM = FILTER + "film.json"
+HAZE = FILTER + "haze.json"
 INVERT = "minecraft:shaders/post/invert.json"
 
 AMBIANCES = {
@@ -302,6 +303,89 @@ AMBIANCES = {
             "faint": {"filter": INVERT, "filter_ticks": 10, "particle": "minecraft:sculk_soul", "count": 40},
             "victory": {"filter": OLD_TV, "filter_ticks": 60, "sound": "minecraft:block.end_portal.spawn",
                         "volume": 0.4},
+        },
+    },
+    # Inferno (2026-11-10): a red-black dusk, lava cracks glowing across the floor, embers rising, ash falling, a
+    # volcano smouldering on the horizon, the air shimmering with heat.
+    "inferno": {
+        "filter": HAZE,
+        "calm_filter": "none",
+        "time": {"at": 13500, "speed": 0},
+        "sky": {"sky_color": "#3a0c06", "fog_color": "#5a1a0a", "strength": 0.9, "fog_start": 8, "fog_end": 72,
+                "stars": 0, "hide_clouds": True},
+        "volcano": {"color": "#ff5a10", "yaw": 40, "size": 16},
+        "veins": {"color": "#ff4a08", "core": "#ffd060", "alpha": 190, "branches": 2, "length": 7, "pulse": 0.6,
+                  "scatter": 9},
+        "embers": {"color": "#ffc040", "accent": "#ff3010", "count": 45, "radius": [3, 16], "height": 10, "size": 0.1,
+                   "rise": 1.1},
+        "particles": [
+            {"type": "minecraft:ash", "rate": 2, "area": "air"},
+            {"type": "minecraft:lava", "rate": 0.12, "area": "ring"},
+        ],
+        "sound": {"id": "minecraft:ambient.basalt_deltas.loop", "volume": 0.6},
+        "ambient_sounds": [
+            {"id": "minecraft:block.lava.ambient", "every": [80, 200], "volume": 0.5, "pitch": [0.8, 1.1]},
+        ],
+        "moments": {
+            "attack": {"particle": "minecraft:small_flame", "count": 15},
+            "crit": {"particle": "minecraft:lava", "count": 25, "flash": "#ff7a20",
+                     "sound": "minecraft:entity.blaze.shoot", "volume": 0.6},
+            "faint": {"particle": "minecraft:large_smoke", "count": 40, "sound": "minecraft:block.fire.extinguish"},
+            "victory": {"particle": "minecraft:flame", "count": 100, "sound": "minecraft:item.firecharge.use"},
+        },
+    },
+
+    # Abyss (2026-11-10): the sea floor. Deep blue-green water, caustics dancing on the ground, shafts of light slanting
+    # down, kelp swaying round the field, bubbles and glowing plankton drifting up, the muffled sound of the deep.
+    "abyss": {
+        "filter": HAZE,
+        "calm_filter": "none",
+        "time": {"at": 6000, "speed": 0},
+        "sky": {"sky_color": "#0a4a66", "fog_color": "#0b3d55", "strength": 1.0, "fog_start": 2, "fog_end": 44,
+                "stars": 0, "hide_clouds": True},
+        "caustics": {"color": "#a8f4ff", "alpha": 55, "scale": 1, "speed": 0.8},
+        "shafts": {"color": "#bff4ff", "count": 8, "alpha": 28, "width": 2.2, "height": 34, "tilt": 14, "ring": [3, 20]},
+        "kelp": {"color": "#1f6a48", "count": 28, "ring": [1.5, 8], "height": [4, 9]},
+        "bubbles": {"color": "#d8fbff", "count": 18, "radius": [3, 15], "height": 12, "size": [0.08, 0.25]},
+        "embers": {"color": "#9ffcff", "accent": "#3a9cff", "count": 30, "radius": [2, 15], "height": 8, "size": 0.05,
+                   "rise": 0.15},
+        "sound": {"id": "minecraft:ambient.underwater.loop", "volume": 0.7},
+        "ambient_sounds": [
+            {"id": "minecraft:ambient.underwater.loop.additions", "every": [100, 240], "volume": 0.6,
+             "pitch": [0.9, 1.1]},
+            {"id": "minecraft:ambient.underwater.loop.additions.rare", "every": [400, 800], "volume": 0.6},
+        ],
+        "moments": {
+            "attack": {"particle": "minecraft:bubble_pop", "count": 20},
+            "crit": {"particle": "minecraft:nautilus", "count": 40, "flash": "#7ff4ff",
+                     "sound": "minecraft:block.conduit.attack.target", "volume": 0.6},
+            "faint": {"particle": "minecraft:squid_ink", "count": 30},
+            "victory": {"particle": "minecraft:glow_squid_ink", "count": 60, "sound": "minecraft:block.conduit.activate"},
+        },
+    },
+
+    # Sakura Festival (2026-11-10): a spring dusk, cherry petals everywhere, paper lanterns rising into the sky,
+    # fireworks bursting far off now and then, and over the field on victory.
+    "sakura": {
+        "time": {"at": 12600, "speed": 0},
+        "sky": {"sky_color": "#5a4a8a", "fog_color": "#ff9a7a", "strength": 0.55, "cloud_color": "#ffb8a0"},
+        "lanterns": {"colors": ["#ffb060", "#ff8a60", "#ffd080"], "count": 14, "radius": [6, 22], "height": 30,
+                     "size": 0.45, "rise": 0.35},
+        "fireworks": {"every": [140, 300], "distance": [28, 40], "height": [18, 28],
+                      "colors": ["#ff6a8a", "#ffd060", "#7ad8ff", "#ffffff", "#c88aff"]},
+        "wind": [0.02, 0.005],
+        "particles": [
+            {"type": "minecraft:cherry_leaves", "rate": 2.2, "area": "air"},
+            {"type": "minecraft:cherry_leaves", "rate": 0.8, "area": "ring"},
+        ],
+        "moments": {
+            "send_out": {"particle": "minecraft:cherry_leaves", "count": 30},
+            "attack": {"particle": "minecraft:cherry_leaves", "count": 12},
+            "crit": {"particle": "minecraft:cherry_leaves", "count": 60, "flash": "#ffc0d8",
+                     "sound": "minecraft:entity.firework_rocket.twinkle"},
+            "faint": {"particle": "minecraft:cherry_leaves", "count": 30},
+            "victory": {"fireworks": 8, "particle": "minecraft:cherry_leaves", "count": 80,
+                        "sound": "minecraft:entity.firework_rocket.launch"},
         },
     },
 }

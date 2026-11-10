@@ -99,14 +99,15 @@ remove it from roadmap.md.
 
 ## Ambiances (`ambiance/`)
 
-- Ten ambiances: disco, cosmos, storm, spectral, nature (meadow), night (starry), arcade, fairy, silver screen
-  (old film), corrupted.
+- Thirteen ambiances: disco, cosmos, storm, spectral, nature (meadow), night (starry), arcade, fairy, silver screen
+  (old film), corrupted, inferno, abyss, sakura (festival).
 - Layers: time and day speed, sky, fog, clouds, stars, a backdrop hiding the world (cosmos), rainbow, spotlights,
   floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe,
   ambient sound and occasional sounds, screen filters (black and white, pixels, glitch, ripple, old TV, old film);
   since the 2026-11-10 quality pass also a mirror ball and dance floor, a neon grid, 8-bit sprites, butterflies,
   nebulae, a galaxy band, detailed planets, ground mist, veins, sky cracks, glitch cubes, will-o'-wisps and fireflies,
-  ghosts, a moon, darkness flickers, soap bubbles, glowing mushrooms, a double rainbow, film scratches and dust.
+  ghosts, a moon, darkness flickers, soap bubbles, glowing mushrooms, a double rainbow, film scratches and dust,
+  embers, a volcano, lava cracks, sea-floor caustics, light shafts, kelp, rising paper lanterns, real fireworks.
 - Particle budget: at most 10 ambiance particles per tick, all kinds together; beyond it every kind is scaled down.
 - Reactions to battle moments: send-out, attack, critical hit, knock-out, victory.
 - Placed on the floor of the battle (2026-11-10): its height is the lowest of the trainers and the active Pokémon,

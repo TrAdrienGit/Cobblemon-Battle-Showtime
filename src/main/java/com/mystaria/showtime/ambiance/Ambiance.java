@@ -169,6 +169,81 @@ public final class Ambiance {
 		public int branches = 3;
 		public float length = 11f;
 		public float pulse = 1f;
+		/** When above 0: that many roots scattered over the field instead of starting from the rifts (Inferno's cracks). */
+		public int scatter;
+		/** A thin hot line along the middle of each vein; null: none. */
+		public String core;
+	}
+
+	/** Glowing motes rising from the ground round the field, swaying, cooling as they climb: embers, or plankton. */
+	public static final class Embers {
+		/** Colour when born, and when about to die. */
+		public String color = "#ffc040";
+		public String accent = "#ff3010";
+		public int count = 40;
+		public List<Float> radius = List.of(3f, 16f);
+		public float height = 10f;
+		public float size = 0.12f;
+		/** Blocks per second. */
+		public float rise = 1f;
+	}
+
+	/** A volcano on the horizon: a dark cone, its crater glowing, lava running down, a plume of light (Inferno). */
+	public static final class Volcano {
+		public String color = "#ff5a10";
+		public float yaw = 40f;
+		public float size = 14f;
+	}
+
+	/** Light caustics dancing on the ground, as on a sea floor. */
+	public static final class Caustics {
+		public String color = "#a8f4ff";
+		public int alpha = 55;
+		/** 0: the field's size and a third. */
+		public float radius;
+		/** Pattern size factor (above 1: finer) and speed. */
+		public float scale = 1f;
+		public float speed = 1f;
+	}
+
+	/** Shafts of light slanting down from above, all from the same side, swaying slowly (Abyss). */
+	public static final class Shafts {
+		public String color = "#bff4ff";
+		public int count = 8;
+		public int alpha = 28;
+		public float width = 2.2f;
+		public float height = 34f;
+		/** Lean from the vertical, in degrees. */
+		public float tilt = 14f;
+		public List<Float> ring = List.of(3f, 20f);
+	}
+
+	/** Kelp swaying round the field (Abyss). */
+	public static final class Kelp {
+		public String color = "#1f6a48";
+		public int count = 28;
+		/** Distance beyond the field's edge: [min, max]. */
+		public List<Float> ring = List.of(1.5f, 8f);
+		public List<Float> height = List.of(4f, 9f);
+	}
+
+	/** Paper lanterns rising slowly into the sky, lit from within (Sakura Festival). */
+	public static final class Lanterns {
+		public List<String> colors = List.of("#ffb060", "#ff8a60", "#ffd080");
+		public int count = 14;
+		public List<Float> radius = List.of(6f, 22f);
+		public float height = 30f;
+		public float size = 0.45f;
+		/** Blocks per second. */
+		public float rise = 0.35f;
+	}
+
+	/** Real fireworks bursting far off now and then (Sakura Festival); their colours also serve a moment's fireworks. */
+	public static final class Fireworks {
+		public List<Integer> every = List.of(140, 300);
+		public List<Float> distance = List.of(28f, 40f);
+		public List<Float> height = List.of(18f, 28f);
+		public List<String> colors = List.of("#ff6a8a", "#ffd060", "#7ad8ff", "#ffffff", "#c88aff");
 	}
 
 	/** Jagged glowing cracks across the sky (Corrupted). */
@@ -412,6 +487,8 @@ public final class Ambiance {
 		/** Big text shown for a moment over the screen ("CRITICAL!"), in Minecraft's pixel font. */
 		public String text;
 		public String textColor = "#ffffff";
+		/** Fireworks bursting over the field, one after another. */
+		public int fireworks;
 	}
 
 	/** The battle's moments an ambiance answers: a Pokémon sent out, a move used, a critical hit, a faint, the end. */
@@ -452,6 +529,13 @@ public final class Ambiance {
 	public Mushrooms mushrooms;
 	public Film film;
 	public List<AmbientSound> ambientSounds = List.of();
+	public Embers embers;
+	public Volcano volcano;
+	public Caustics caustics;
+	public Shafts shafts;
+	public Kelp kelp;
+	public Lanterns lanterns;
+	public Fireworks fireworks;
 	public List<Nebula> nebulae = List.of();
 	public Galaxy galaxy;
 	public DanceFloor danceFloor;

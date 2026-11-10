@@ -155,3 +155,12 @@ step 7, new ambiances.
 5. Fairy Tale, then the small touches on Starry Night, Silver Screen and Storm.
 6. E6 particle budgets across all, E8 intensity setting.
 7. New ambiances, two or three at a time, each recorded in game before the next.
+
+## New ambiances: progress
+
+- 2026-11-10, first batch (built, not yet seen): **Inferno** (lava cracks with a hot core, embers, ash, a volcano on
+  the horizon, heat haze), **Abyss** (caustics, slanting light shafts, kelp, bubbles, glowing plankton, underwater
+  sound, a slight ripple), **Sakura Festival** (dusk, cherry petals, rising paper lanterns, far-off fireworks, fireworks
+  over the field on victory). New layers: `embers`, `volcano`, `caustics`, `shafts`, `kelp`, `lanterns`, `fireworks`,
+  a moment's `fireworks`, veins `scatter` and `core`, and a `haze` filter (dropped with calm effects).
+- Next batch: Blizzard, Mirage, Synthwave; then Ultra Space and Champion's Stage.

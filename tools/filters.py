@@ -114,4 +114,6 @@ post("glitch_soft", "showtime_split", {"Amount": [0.0022]})
 post("wobble", "showtime_wobble")
 post("old_tv", "showtime_old_tv")
 post("film", "showtime_film")
+# Heat haze or water: the wobble, barely (Inferno, Abyss).
+post("haze", "showtime_wobble", {"Amount": [0.0012]})
 print("filters written")
