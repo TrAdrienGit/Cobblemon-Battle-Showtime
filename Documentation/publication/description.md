@@ -53,8 +53,10 @@ Mega Evolution, Primal Reversion, Z-Power and Terastallization each get their ow
 
 ## Battle ambiances
 
-Disco, cosmos, storm, spectral, nature, night, arcade, fairy, silver screen, corrupted. Pick one in the menu. They
-settle on the floor of the battle, even in a hollow or on uneven ground. Resource packs can add more.
+Eighteen of them: disco, cosmos, storm, spectral, meadow, starry night, arcade, fairy tale, silver screen, corrupted,
+inferno, abyss, sakura festival, blizzard, mirage, synthwave, ultra space and champion's stage. Pick one in the menu.
+They settle on the floor of the battle, even in a hollow or on uneven ground, and react to its big moments. A "calm
+effects" setting turns off strobes, flickers and flashes. Resource packs can add more.
 
 <!-- Screenshot: the disco and cosmos ambiances -->
 

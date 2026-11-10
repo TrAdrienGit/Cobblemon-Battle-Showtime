@@ -24,7 +24,9 @@ server and nothing for the other players to install.
   tinted after the ball.
 - **Lasting effects drawn on the field**: weather, terrains, Trick Room and the other rooms, entry hazards, screens on
   each side, effects on a Pokémon (Substitute, Leech Seed, confusion…) and end-of-turn damage.
-- **Ten battle ambiances**: disco, cosmos, storm, spectral, nature, night, arcade, fairy, silver screen, corrupted.
+- **Eighteen battle ambiances**: disco, cosmos, storm, spectral, meadow, starry night, arcade, fairy tale, silver
+  screen, corrupted, inferno, abyss, sakura festival, blizzard, mirage, synthwave, ultra space, champion's stage; a
+  "calm effects" setting turns off strobes and flashes.
   Resource packs can add more.
 - **Animated trainers** (with Player Animation Library): guard, throw, recall, attack order, victory and defeat, with
   several animation profiles to pick from.

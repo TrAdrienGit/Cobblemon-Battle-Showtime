@@ -74,7 +74,8 @@ First public release.
 - Mega Evolution, Primal Reversion, Z-Power and Terastallization set pieces
 - Poké Ball throws, recalls and knock-outs, tinted after the ball
 - Weather, terrains, rooms, hazards, screens and Pokémon effects drawn on the field
-- Ten battle ambiances, more through resource packs
+- Eighteen battle ambiances, from a disco to a league final, more through resource packs;
+  a "calm effects" setting (no strobe, no flashes)
 - Animated trainers (with Player Animation Library)
 - Your own battle music through a resource pack: in-battle controls, generation filters,
   favourites, enable / disable all
