@@ -1,0 +1,94 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/haze.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 6000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#cfe3f2",
+		"fog_color": "#f0d8a8",
+		"strength": 0.8,
+		"fog_start": 10,
+		"fog_end": 90,
+		"hide_clouds": true
+	},
+	"moon": {
+		"color": "#fff8e0",
+		"yaw": 230,
+		"pitch": 40,
+		"size": 9,
+		"seas": false,
+		"halo": 5,
+		"halo_alpha": 120
+	},
+	"mirage": {
+		"color": "#bfe0ff",
+		"alpha": 110,
+		"height": 3
+	},
+	"mist": {
+		"color": "#e8c890",
+		"alpha": 45,
+		"height": 0.8,
+		"layers": 2,
+		"scale": 5,
+		"speed": 1.6
+	},
+	"birds": {
+		"color": "#2a2018",
+		"count": 4,
+		"radius": [
+			10,
+			22
+		],
+		"height": [
+			18,
+			28
+		],
+		"size": 0.9
+	},
+	"wind": [
+		0.15,
+		0.04
+	],
+	"particles": [
+		{
+			"type": "minecraft:dust_plume",
+			"rate": 0.5,
+			"area": "ring",
+			"motion": [
+				0.3,
+				0.02,
+				0.1
+			],
+			"spread": 0.05
+		}
+	],
+	"sound": {
+		"id": "minecraft:item.elytra.flying",
+		"volume": 0.12,
+		"pitch": 0.6
+	},
+	"moments": {
+		"attack": {
+			"particle": "minecraft:dust_plume",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:dust_plume",
+			"count": 40,
+			"flash": "#fff0c0",
+			"sound": "minecraft:block.sand.break"
+		},
+		"faint": {
+			"particle": "minecraft:dust_plume",
+			"count": 40
+		},
+		"victory": {
+			"particle": "minecraft:wax_on",
+			"count": 80,
+			"sound": "minecraft:entity.player.levelup"
+		}
+	}
+}

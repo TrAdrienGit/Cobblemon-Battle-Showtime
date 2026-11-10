@@ -343,7 +343,7 @@ AMBIANCES = {
         "time": {"at": 6000, "speed": 0},
         "sky": {"sky_color": "#0a4a66", "fog_color": "#0b3d55", "strength": 1.0, "fog_start": 2, "fog_end": 44,
                 "stars": 0, "hide_clouds": True},
-        "caustics": {"color": "#a8f4ff", "alpha": 55, "scale": 1, "speed": 0.8},
+        "caustics": {"color": "#a8f4ff", "alpha": 70, "scale": 1, "speed": 0.8},
         "shafts": {"color": "#bff4ff", "count": 8, "alpha": 28, "width": 2.2, "height": 34, "tilt": 14, "ring": [3, 20]},
         "kelp": {"color": "#1f6a48", "count": 28, "ring": [1.5, 8], "height": [4, 9]},
         "bubbles": {"color": "#d8fbff", "count": 18, "radius": [3, 15], "height": 12, "size": [0.08, 0.25]},
@@ -386,6 +386,78 @@ AMBIANCES = {
             "faint": {"particle": "minecraft:cherry_leaves", "count": 30},
             "victory": {"fireworks": 8, "particle": "minecraft:cherry_leaves", "count": 80,
                         "sound": "minecraft:entity.firework_rocket.launch"},
+        },
+    },
+    # Blizzard (2026-11-10): a daytime whiteout. Snow driven by the wind, blowing over the ground, ice crystals glinting
+    # in the air, a wall of icy fog round the field hiding the world, the wind howling.
+    "blizzard": {
+        "time": {"at": 6000, "speed": 0},
+        "sky": {"sky_color": "#cfe0f0", "fog_color": "#e4eef8", "strength": 0.9, "fog_start": 4, "fog_end": 40,
+                "cloud_color": "#d8e4f0"},
+        "wind": [0.25, 0.08],
+        "fog_wall": {"color": "#e4eef8", "height": 12, "alpha": 150, "speed": 1},
+        "mist": {"color": "#f4f8ff", "alpha": 55, "height": 1.6, "layers": 3, "scale": 4, "speed": 2.2},
+        "glints": {"color": "#e8f8ff", "count": 24, "radius": [2, 14], "height": [0.5, 6], "size": 0.35},
+        "particles": [
+            {"type": "minecraft:snowflake", "rate": 5, "area": "air", "motion": [0.3, -0.05, 0.1], "spread": 0.05},
+            {"type": "minecraft:snowflake", "rate": 2, "area": "field", "motion": [0.35, 0.0, 0.12], "spread": 0.04},
+        ],
+        "sound": {"id": "minecraft:item.elytra.flying", "volume": 0.25, "pitch": 0.7},
+        "ambient_sounds": [
+            {"id": "minecraft:entity.breeze.idle_air", "every": [100, 240], "volume": 0.4, "pitch": [0.6, 0.8]},
+        ],
+        "moments": {
+            "attack": {"particle": "minecraft:snowflake", "count": 20},
+            "crit": {"particle": "minecraft:item_snowball", "count": 40, "flash": "#e0f4ff",
+                     "sound": "minecraft:block.glass.break", "volume": 0.5},
+            "faint": {"particle": "minecraft:snowflake", "count": 50, "sound": "minecraft:block.powder_snow.break"},
+            "victory": {"particle": "minecraft:snowflake", "count": 120, "sound": "minecraft:block.amethyst_block.chime"},
+        },
+    },
+
+    # Mirage (2026-11-10): the desert at noon. A huge pale sun, the air shimmering with heat, sand blowing low over the
+    # ground, a shimmering mirage of water all round the horizon, birds circling high.
+    "mirage": {
+        "filter": HAZE,
+        "calm_filter": "none",
+        "time": {"at": 6000, "speed": 0},
+        "sky": {"sky_color": "#cfe3f2", "fog_color": "#f0d8a8", "strength": 0.8, "fog_start": 10, "fog_end": 90,
+                "hide_clouds": True},
+        "moon": {"color": "#fff8e0", "yaw": 230, "pitch": 40, "size": 9, "seas": False, "halo": 5, "halo_alpha": 120},
+        "mirage": {"color": "#bfe0ff", "alpha": 110, "height": 3},
+        "mist": {"color": "#e8c890", "alpha": 45, "height": 0.8, "layers": 2, "scale": 5, "speed": 1.6},
+        "birds": {"color": "#2a2018", "count": 4, "radius": [10, 22], "height": [18, 28], "size": 0.9},
+        "wind": [0.15, 0.04],
+        "particles": [
+            {"type": "minecraft:dust_plume", "rate": 0.5, "area": "ring", "motion": [0.3, 0.02, 0.1], "spread": 0.05},
+        ],
+        "sound": {"id": "minecraft:item.elytra.flying", "volume": 0.12, "pitch": 0.6},
+        "moments": {
+            "attack": {"particle": "minecraft:dust_plume", "count": 15},
+            "crit": {"particle": "minecraft:dust_plume", "count": 40, "flash": "#fff0c0",
+                     "sound": "minecraft:block.sand.break"},
+            "faint": {"particle": "minecraft:dust_plume", "count": 40},
+            "victory": {"particle": "minecraft:wax_on", "count": 80, "sound": "minecraft:entity.player.levelup"},
+        },
+    },
+
+    # Synthwave (2026-11-10): a retro-futuristic sunset, smooth 80s rather than Arcade's 8-bit. A striped sun on the
+    # horizon, a neon grid running out to the distance, palm silhouettes, neon fireworks on victory.
+    "synthwave": {
+        "time": {"at": 13000, "speed": 0},
+        "sky": {"sky_color": "#2a0a4a", "fog_color": "#ff4a8a", "strength": 1.0, "fog_start": 20, "fog_end": 110,
+                "stars": 0.6, "hide_clouds": True},
+        "striped_sun": {"top": "#ffe14a", "bottom": "#ff3a8a", "yaw": 180, "size": 14, "stripes": 6},
+        "neon_grid": {"spacing": 3, "color": "#ff2ad4", "accent": "#2af4ff", "alpha": 150, "extent": 4, "pulse": 8},
+        "palms": {"color": "#1a0628", "count": 10, "ring": [6, 14], "height": [6, 9]},
+        "fireworks": {"every": [], "colors": ["#ff2ad4", "#2af4ff", "#ffe14a", "#b04aff"]},
+        "moments": {
+            "attack": {"particle": "minecraft:end_rod", "count": 10},
+            "crit": {"particle": "minecraft:electric_spark", "count": 40, "flash": "#ff4af0",
+                     "sound": "minecraft:block.beacon.power_select", "volume": 0.6},
+            "faint": {"particle": "minecraft:end_rod", "count": 30},
+            "victory": {"fireworks": 6, "particle": "minecraft:end_rod", "count": 60,
+                        "sound": "minecraft:block.beacon.activate"},
         },
     },
 }

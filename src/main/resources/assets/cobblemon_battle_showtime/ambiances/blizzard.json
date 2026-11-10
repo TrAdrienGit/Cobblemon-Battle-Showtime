@@ -1,0 +1,111 @@
+{
+	"time": {
+		"at": 6000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#cfe0f0",
+		"fog_color": "#e4eef8",
+		"strength": 0.9,
+		"fog_start": 4,
+		"fog_end": 40,
+		"cloud_color": "#d8e4f0"
+	},
+	"wind": [
+		0.25,
+		0.08
+	],
+	"fog_wall": {
+		"color": "#e4eef8",
+		"height": 12,
+		"alpha": 150,
+		"speed": 1
+	},
+	"mist": {
+		"color": "#f4f8ff",
+		"alpha": 55,
+		"height": 1.6,
+		"layers": 3,
+		"scale": 4,
+		"speed": 2.2
+	},
+	"glints": {
+		"color": "#e8f8ff",
+		"count": 24,
+		"radius": [
+			2,
+			14
+		],
+		"height": [
+			0.5,
+			6
+		],
+		"size": 0.35
+	},
+	"particles": [
+		{
+			"type": "minecraft:snowflake",
+			"rate": 5,
+			"area": "air",
+			"motion": [
+				0.3,
+				-0.05,
+				0.1
+			],
+			"spread": 0.05
+		},
+		{
+			"type": "minecraft:snowflake",
+			"rate": 2,
+			"area": "field",
+			"motion": [
+				0.35,
+				0.0,
+				0.12
+			],
+			"spread": 0.04
+		}
+	],
+	"sound": {
+		"id": "minecraft:item.elytra.flying",
+		"volume": 0.25,
+		"pitch": 0.7
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.breeze.idle_air",
+			"every": [
+				100,
+				240
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.6,
+				0.8
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:snowflake",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:item_snowball",
+			"count": 40,
+			"flash": "#e0f4ff",
+			"sound": "minecraft:block.glass.break",
+			"volume": 0.5
+		},
+		"faint": {
+			"particle": "minecraft:snowflake",
+			"count": 50,
+			"sound": "minecraft:block.powder_snow.break"
+		},
+		"victory": {
+			"particle": "minecraft:snowflake",
+			"count": 120,
+			"sound": "minecraft:block.amethyst_block.chime"
+		}
+	}
+}

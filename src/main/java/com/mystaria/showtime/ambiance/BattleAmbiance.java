@@ -264,7 +264,8 @@ public final class BattleAmbiance {
 		scratchLeft = 0;
 		dustLeft = 0;
 		FIREWORKS.clear();
-		nextFirework = ambiance.fireworks != null ? ticks + 60 + betweenTicks(ambiance.fireworks.every) : -1;
+		nextFirework = ambiance.fireworks != null && !ambiance.fireworks.every.isEmpty()
+				? ticks + 60 + betweenTicks(ambiance.fireworks.every) : -1;
 		flickerLeft = 0;
 		nextFlicker = ambiance.flicker != null ? ticks + 60 + betweenTicks(ambiance.flicker.every) : -1;
 		CRITTERS.clear();
@@ -436,7 +437,7 @@ public final class BattleAmbiance {
 			case "faint" -> active.moments.faint;
 			case "crit" -> active.moments.crit;
 			case "victory" -> active.moments.victory;
-			case "defeat" -> active.moments.defeat != null ? active.moments.defeat : active.moments.victory;
+			case "defeat" -> active.moments.defeat != null ? active.moments.defeat : noCelebration(active.moments.victory);
 			default -> null;
 		};
 		if (moment == null) {
@@ -486,6 +487,24 @@ public final class BattleAmbiance {
 		if (active() && momentFilterLeft == 0 && (!distant || inside)) {
 			setFilter(lastingFilter(active));
 		}
+	}
+
+	/**
+	 * Victory's moment played for a loss (an ambiance without a defeat of its own): its particles, flash and filter, but
+	 * no fireworks, no banner and no victory sound (2026-11-10: Sakura shot fireworks on a defeat).
+	 */
+	private static Ambiance.Moment noCelebration(Ambiance.Moment victory) {
+		if (victory == null) {
+			return null;
+		}
+		Ambiance.Moment copy = new Ambiance.Moment();
+		copy.particle = victory.particle;
+		copy.count = victory.count;
+		copy.flash = victory.flash;
+		copy.lightning = victory.lightning;
+		copy.filter = victory.filter;
+		copy.filterTicks = victory.filterTicks;
+		return copy;
 	}
 
 	/** Calm effects (a setting): no strobe or flickers, soft flashes, no moment filters, half the particles. */
@@ -656,6 +675,37 @@ public final class BattleAmbiance {
 		pose.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z);
 		cameraRel = camera.subtract(center);
 		MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+		if (active.moon != null || active.volcano != null || active.stripedSun != null || active.mirage != null) {
+			// Far things on the sky go without fog (2026-11-10): an ambiance's close fog swallowed them (Inferno's
+			// volcano, Spectral's moon). Their own batch, so the fog comes back for everything else.
+			buffers.endBatch();
+			float fogStart = com.mojang.blaze3d.systems.RenderSystem.getShaderFogStart();
+			com.mojang.blaze3d.systems.RenderSystem.setShaderFogStart(Float.MAX_VALUE);
+			if (active.moon != null) {
+				drawMoonHalo(pose, buffers, active.moon);
+			}
+			if (active.volcano != null) {
+				drawVolcano(pose, buffers, active.volcano, time, true);
+			}
+			if (active.mirage != null) {
+				drawMirage(pose, buffers, active.mirage, time);
+			}
+			if (active.stripedSun != null) {
+				drawStripedSun(pose, buffers, active.stripedSun, true);
+			}
+			buffers.endBatch();
+			if (active.moon != null) {
+				drawMoonDisc(pose, buffers, active.moon);
+			}
+			if (active.volcano != null) {
+				drawVolcano(pose, buffers, active.volcano, time, false);
+			}
+			if (active.stripedSun != null) {
+				drawStripedSun(pose, buffers, active.stripedSun, false);
+			}
+			buffers.endBatch();
+			com.mojang.blaze3d.systems.RenderSystem.setShaderFogStart(fogStart);
+		}
 		if (active.backdrop != null) {
 			drawBackdrop(pose, buffers, active.backdrop, time);
 		}
@@ -701,23 +751,20 @@ public final class BattleAmbiance {
 		if (active.caustics != null) {
 			drawCaustics(pose, buffers, active.caustics, time);
 		}
+		if (active.glints != null) {
+			drawGlints(pose, buffers, active.glints, time);
+		}
 		if (active.shafts != null) {
 			drawShafts(pose, buffers, active.shafts, time);
 		}
 		if (active.embers != null) {
 			drawEmbers(pose, buffers, active.embers, time);
 		}
-		if (active.volcano != null) {
-			drawVolcano(pose, buffers, active.volcano, time, true);
-		}
 		if (active.lanterns != null) {
 			drawLanterns(pose, buffers, active.lanterns, time, true);
 		}
 		if (active.mushrooms != null) {
 			drawMushrooms(pose, buffers, active.mushrooms, time, true);
-		}
-		if (active.moon != null) {
-			drawMoonHalo(pose, buffers, active.moon);
 		}
 		if (active.glitchCubes != null) {
 			drawGlitchCubes(pose, buffers, active.glitchCubes, true);
@@ -742,9 +789,6 @@ public final class BattleAmbiance {
 		if (active.critters != null) {
 			drawCritters(pose, buffers, active.critters, time);
 		}
-		if (active.moon != null) {
-			drawMoonDisc(pose, buffers, active.moon);
-		}
 		if (active.glitchCubes != null) {
 			drawGlitchCubes(pose, buffers, active.glitchCubes, false);
 		}
@@ -754,11 +798,17 @@ public final class BattleAmbiance {
 		if (active.mushrooms != null) {
 			drawMushrooms(pose, buffers, active.mushrooms, time, false);
 		}
-		if (active.volcano != null) {
-			drawVolcano(pose, buffers, active.volcano, time, false);
-		}
 		if (active.kelp != null) {
 			drawKelp(pose, buffers, active.kelp, time);
+		}
+		if (active.palms != null) {
+			drawPalms(pose, buffers, active.palms, time);
+		}
+		if (active.birds != null) {
+			drawBirds(pose, buffers, active.birds, time);
+		}
+		if (active.fogWall != null) {
+			drawFogWall(pose, buffers, active.fogWall, time);
 		}
 		if (active.lanterns != null) {
 			drawLanterns(pose, buffers, active.lanterns, time, false);
@@ -2055,8 +2105,9 @@ public final class BattleAmbiance {
 				double v1 = Math.sin(x * 0.9 * s + t * 1.1) + Math.sin(z * 1.1 * s - t * 0.9)
 						+ Math.sin((x * 0.6 - z * 0.8) * 1.3 * s + t * 0.7);
 				double v2 = Math.sin((x * 0.7 + z * 0.5) * 1.7 * s - t * 1.3) + Math.sin(z * 0.5 * s + x * 0.3 * s + t * 0.5);
-				double c1 = Math.pow(1 - Math.abs(Math.sin(v1 * 1.1)), 6);
-				double c2 = Math.pow(1 - Math.abs(Math.sin(v2 * 1.3 + 0.7)), 6);
+				// Exponent 3 (2026-11-10): at 6 the lines were thinner than a cell and vanished between the samples.
+				double c1 = Math.pow(1 - Math.abs(Math.sin(v1 * 1.1)), 3);
+				double c2 = Math.pow(1 - Math.abs(Math.sin(v2 * 1.3 + 0.7)), 3);
 				double d = Math.sqrt(x * x + z * z);
 				float edge = (float) Mth.clamp((radius - d) / 3.0, 0, 1);
 				light[ix + n][iz + n] = (float) Math.max(c1, c2 * 0.8) * edge;
@@ -2199,6 +2250,240 @@ public final class BattleAmbiance {
 		}
 	}
 
+	/** Glints: four-pointed stars flashing for a moment here and there in the air, each at its own beat. */
+	private static void drawGlints(PoseStack pose, MultiBufferSource buffers, Ambiance.Glints glints, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(glints.color, 0xE8F8FF);
+		for (int i = 0; i < glints.count; i++) {
+			double cycle = 40 + 50 * hashFloat(i * 19 + 1);
+			double clock = time + hashFloat(i * 19 + 2) * cycle;
+			double phase = (clock % cycle) / cycle;
+			if (phase > 0.25) {
+				continue; // dark most of the time: a glint is brief
+			}
+			int seed = i * 19 + (int) (clock / cycle) * 6007;
+			double angle = hashFloat(seed + 3) * Math.PI * 2;
+			double radius = Mth.lerp(hashFloat(seed + 4), glints.radius.get(0), glints.radius.get(1));
+			Vec3 at = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius)
+					.add(0, Mth.lerp(hashFloat(seed + 5), glints.height.get(0), glints.height.get(1)), 0);
+			float flash = (float) Math.sin(phase / 0.25 * Math.PI);
+			float fade = flash * nearFade(at, 0.5, 1.5);
+			if (fade <= 0.03f) {
+				continue;
+			}
+			Vec3 normal = cameraRel.subtract(at).normalize();
+			Vec3 u = normal.cross(new Vec3(0, 1, 0));
+			u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+			Vec3 v = normal.cross(u).normalize();
+			float s = glints.size * (0.6f + 0.4f * flash);
+			int alpha = Math.round(230 * fade);
+			// Two thin diamonds crossing: the star's four points.
+			for (Vec3[] axes : new Vec3[][] { {u, v}, {v, u} }) {
+				Vec3 along = axes[0].scale(s);
+				Vec3 across = axes[1].scale(s * 0.08);
+				vertex(out, m, at.add(along), color, 0);
+				vertex(out, m, at.add(across), color, alpha);
+				vertex(out, m, at.subtract(along), color, 0);
+				vertex(out, m, at.subtract(across), color, alpha);
+			}
+			glowDisc(out, m, at, normal, s * 0.6f, color, Math.round(90 * fade));
+		}
+	}
+
+	/**
+	 * The fog wall: a ring of mist round the field, thickest at the bottom, its thickness drifting round. It thins away
+	 * when the camera comes near it or goes past it, so it never stands between the camera and the battle.
+	 */
+	private static void drawFogWall(PoseStack pose, MultiBufferSource buffers, Ambiance.FogWall wall, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(wall.color, 0xE4EEF8);
+		float radius = wall.radius > 0 ? wall.radius : fieldRadius + 8f;
+		double camera = Math.sqrt(cameraRel.x * cameraRel.x + cameraRel.z * cameraRel.z);
+		float open = (float) Mth.clamp((radius - camera - 3) / 4, 0, 1);
+		if (open <= 0.02f) {
+			return;
+		}
+		int segments = 64;
+		double[] rows = { 0, 0.15, 0.4, 0.7, 1.0 };
+		float[] thick = { 1f, 0.9f, 0.6f, 0.25f, 0f };
+		double t = time / 20.0 * wall.speed;
+		for (int s = 0; s < segments; s++) {
+			double a0 = Math.PI * 2 * s / segments;
+			double a1 = Math.PI * 2 * (s + 1) / segments;
+			float d0 = (float) (0.65 + 0.35 * Math.sin(a0 * 5 + t * 0.6) * Math.sin(a0 * 3 - t * 0.4));
+			float d1 = (float) (0.65 + 0.35 * Math.sin(a1 * 5 + t * 0.6) * Math.sin(a1 * 3 - t * 0.4));
+			Vec3 g0 = onGround(Math.cos(a0) * radius, Math.sin(a0) * radius).add(0, -1, 0);
+			Vec3 g1 = onGround(Math.cos(a1) * radius, Math.sin(a1) * radius).add(0, -1, 0);
+			for (int r = 0; r < rows.length - 1; r++) {
+				int lo0 = Math.round(wall.alpha * thick[r] * d0 * open);
+				int lo1 = Math.round(wall.alpha * thick[r] * d1 * open);
+				int hi0 = Math.round(wall.alpha * thick[r + 1] * d0 * open);
+				int hi1 = Math.round(wall.alpha * thick[r + 1] * d1 * open);
+				vertex(out, m, g0.add(0, wall.height * rows[r], 0), color, lo0);
+				vertex(out, m, g1.add(0, wall.height * rows[r], 0), color, lo1);
+				vertex(out, m, g1.add(0, wall.height * rows[r + 1], 0), color, hi1);
+				vertex(out, m, g0.add(0, wall.height * rows[r + 1], 0), color, hi0);
+			}
+		}
+	}
+
+	/** The mirage: a band of pale "water" all round the horizon, shimmering, fading above and below. */
+	private static void drawMirage(PoseStack pose, MultiBufferSource buffers, Ambiance.Mirage mirage, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(mirage.color, 0xBFE0FF);
+		float r = skyRadius();
+		int segments = 96;
+		for (int s = 0; s < segments; s++) {
+			double a0 = Math.PI * 2 * s / segments;
+			double a1 = Math.PI * 2 * (s + 1) / segments;
+			float w0 = (float) (0.6 + 0.4 * Math.sin(a0 * 23 + time / 6.0) * Math.sin(a0 * 7 - time / 11.0));
+			float w1 = (float) (0.6 + 0.4 * Math.sin(a1 * 23 + time / 6.0) * Math.sin(a1 * 7 - time / 11.0));
+			Vec3 p0 = new Vec3(Math.cos(a0) * r, 0, Math.sin(a0) * r);
+			Vec3 p1 = new Vec3(Math.cos(a1) * r, 0, Math.sin(a1) * r);
+			double h = mirage.height;
+			int mid0 = Math.round(mirage.alpha * w0);
+			int mid1 = Math.round(mirage.alpha * w1);
+			vertex(out, m, p0.add(0, -h * 0.3, 0), color, 0);
+			vertex(out, m, p1.add(0, -h * 0.3, 0), color, 0);
+			vertex(out, m, p1.add(0, h * 0.3, 0), color, mid1);
+			vertex(out, m, p0.add(0, h * 0.3, 0), color, mid0);
+			vertex(out, m, p0.add(0, h * 0.3, 0), color, mid0);
+			vertex(out, m, p1.add(0, h * 0.3, 0), color, mid1);
+			vertex(out, m, p1.add(0, h, 0), color, 0);
+			vertex(out, m, p0.add(0, h, 0), color, 0);
+		}
+	}
+
+	/** Birds: dark V shapes circling high up, their wings beating now and then, gliding the rest of the time. */
+	private static void drawBirds(PoseStack pose, MultiBufferSource buffers, Ambiance.Birds birds, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(birds.color, 0x2A2018);
+		for (int i = 0; i < birds.count; i++) {
+			double radius = Mth.lerp(hashFloat(i * 23 + 1), birds.radius.get(0), birds.radius.get(1));
+			double height = Mth.lerp(hashFloat(i * 23 + 2), birds.height.get(0), birds.height.get(1));
+			double angle = hashFloat(i * 23 + 3) * Math.PI * 2 + time / 20.0 * (3.0 / radius);
+			Vec3 at = new Vec3(Math.cos(angle) * radius, height + Math.sin(time / 40.0 + i) * 1.5, Math.sin(angle) * radius);
+			Vec3 heading = new Vec3(-Math.sin(angle), 0, Math.cos(angle));
+			Vec3 side = new Vec3(Math.cos(angle), 0, Math.sin(angle));
+			// Beating for a second every few, gliding with wings slightly raised otherwise.
+			double beat = (time / 20.0 + i * 1.7) % 4.0;
+			double lift = beat < 1.0 ? Math.sin(beat * Math.PI * 4) * 0.45 : 0.15;
+			float s = birds.size;
+			for (int k = -1; k <= 1; k += 2) {
+				Vec3 tip = at.add(side.scale(k * s)).add(0, lift * s, 0);
+				Vec3 elbow = at.add(side.scale(k * s * 0.45)).add(0, (lift * 0.5 + 0.12) * s, 0);
+				Vec3 back = heading.scale(-0.12 * s);
+				vertex(out, m, at.add(heading.scale(0.1 * s)), color, 240);
+				vertex(out, m, elbow, color, 240);
+				vertex(out, m, tip, color, 240);
+				vertex(out, m, at.add(back), color, 240);
+			}
+		}
+	}
+
+	/**
+	 * The 80s sun: horizontal slices of a disc, yellow at the top melting into pink, the lower half cut by bands that
+	 * widen toward the horizon (solid pass); a warm glow round it (light pass).
+	 */
+	private static void drawStripedSun(PoseStack pose, MultiBufferSource buffers, Ambiance.StripedSun sun, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		double yaw = Math.toRadians(sun.yaw);
+		Vec3 dir = new Vec3(Math.cos(yaw), 0, Math.sin(yaw));
+		Vec3 side = new Vec3(-dir.z, 0, dir.x);
+		float s = sun.size;
+		Vec3 centre = dir.scale(skyRadius()).add(0, s * 0.45, 0);
+		int top = Ambiance.color(sun.top, 0xFFE14A);
+		int bottom = Ambiance.color(sun.bottom, 0xFF3A8A);
+		if (glow) {
+			glowDisc(out, m, centre, dir.scale(-1), s * 2.4f, lerpColor(top, bottom, 0.6f), 70);
+			return;
+		}
+		int slices = 48;
+		for (int k = 0; k < slices; k++) {
+			double y0 = s - 2.0 * s * k / slices;
+			double y1 = s - 2.0 * s * (k + 1) / slices;
+			// Below the middle, gaps: each band a little wider than the one above.
+			if (y1 < 0) {
+				double depth = -y1 / s;
+				int band = (int) (depth * sun.stripes);
+				double within = depth * sun.stripes - band;
+				if (within < 0.15 + 0.5 * depth) {
+					continue;
+				}
+			}
+			double w0 = Math.sqrt(Math.max(0, s * s - y0 * y0));
+			double w1 = Math.sqrt(Math.max(0, s * s - y1 * y1));
+			int c0 = lerpColor(top, bottom, (float) ((s - y0) / (2 * s)));
+			int c1 = lerpColor(top, bottom, (float) ((s - y1) / (2 * s)));
+			vertex(out, m, centre.add(side.scale(-w0)).add(0, y0, 0), c0, 255);
+			vertex(out, m, centre.add(side.scale(w0)).add(0, y0, 0), c0, 255);
+			vertex(out, m, centre.add(side.scale(w1)).add(0, y1, 0), c1, 255);
+			vertex(out, m, centre.add(side.scale(-w1)).add(0, y1, 0), c1, 255);
+		}
+	}
+
+	/** Palm silhouettes: a curved trunk tapering up, a crown of drooping fronds. */
+	private static void drawPalms(PoseStack pose, MultiBufferSource buffers, Ambiance.Palms palms, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(palms.color, 0x1A0628);
+		for (int i = 0; i < palms.count; i++) {
+			double angle = Math.PI * 2 * (i + hashFloat(i * 31 + 1) * 0.6) / palms.count;
+			double radius = fieldRadius + Mth.lerp(hashFloat(i * 31 + 2), palms.ring.get(0), palms.ring.get(1));
+			float height = Mth.lerp(hashFloat(i * 31 + 3), palms.height.get(0), palms.height.get(1));
+			Vec3 foot = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius);
+			if (nearFade(foot.add(0, height / 2, 0), 2, 2) <= 0.05f) {
+				continue;
+			}
+			double lean = (hashFloat(i * 31 + 4) - 0.5) * 2;
+			Vec3 bendDir = new Vec3(-Math.sin(angle), 0, Math.cos(angle)).scale(lean);
+			Vec3 toCamera = cameraRel.subtract(foot);
+			Vec3 facing = new Vec3(toCamera.z, 0, -toCamera.x);
+			facing = facing.lengthSqr() < 1.0E-6 ? new Vec3(1, 0, 0) : facing.normalize();
+			// Trunk: a strip facing the camera, bending as it rises.
+			Vec3 prev = foot;
+			int segments = 8;
+			for (int k = 1; k <= segments; k++) {
+				double f = k / (double) segments;
+				Vec3 next = foot.add(bendDir.scale(f * f * 1.6)).add(0, height * f, 0);
+				double w0 = 0.22 * (1 - (k - 1) / (double) segments * 0.5);
+				double w1 = 0.22 * (1 - f * 0.5);
+				vertex(out, m, prev.add(facing.scale(-w0)), color, 255);
+				vertex(out, m, prev.add(facing.scale(w0)), color, 255);
+				vertex(out, m, next.add(facing.scale(w1)), color, 255);
+				vertex(out, m, next.add(facing.scale(-w1)), color, 255);
+				prev = next;
+			}
+			// Fronds: arcs out and down from the top, swaying a little; tilted so they read from any side.
+			Vec3 crown = prev;
+			int fronds = 7;
+			for (int f = 0; f < fronds; f++) {
+				double a = Math.PI * 2 * f / fronds + hashFloat(i * 31 + 10 + f) * 0.5;
+				Vec3 out1 = new Vec3(Math.cos(a), 0, Math.sin(a));
+				Vec3 wide = out1.cross(new Vec3(0, 1, 0)).normalize().add(0, 0.6, 0).normalize();
+				double sway = Math.sin(time / 30.0 + i + f) * 0.15;
+				Vec3 p = crown;
+				int steps = 5;
+				for (int k = 1; k <= steps; k++) {
+					double g = k / (double) steps;
+					Vec3 q = crown.add(out1.scale(2.6 * g)).add(0, 0.7 * g - 2.2 * g * g + sway * g, 0);
+					double w0 = 0.42 * Math.sin(Math.PI * (k - 1) / steps + 0.25);
+					double w1 = 0.42 * Math.sin(Math.PI * g + 0.25) * (k == steps ? 0.2 : 1);
+					vertex(out, m, p.add(wide.scale(-w0)), color, 255);
+					vertex(out, m, p.add(wide.scale(w0)), color, 255);
+					vertex(out, m, q.add(wide.scale(w1)), color, 255);
+					vertex(out, m, q.add(wide.scale(-w1)), color, 255);
+					p = q;
+				}
+			}
+		}
+	}
+
 	private static Vec3 moonPlace(Ambiance.Moon moon) {
 		double yaw = Math.toRadians(moon.yaw);
 		double pitch = Math.toRadians(moon.pitch);
@@ -2208,7 +2493,8 @@ public final class BattleAmbiance {
 	private static void drawMoonHalo(PoseStack pose, MultiBufferSource buffers, Ambiance.Moon moon) {
 		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Vec3 at = moonPlace(moon);
-		glowDisc(out, pose.last().pose(), at, at.normalize().scale(-1), moon.size * 3.5f, Ambiance.color(moon.color, 0xF4F0E0), 60);
+		glowDisc(out, pose.last().pose(), at, at.normalize().scale(-1), moon.size * moon.halo, Ambiance.color(moon.color, 0xF4F0E0),
+				moon.haloAlpha);
 	}
 
 	/** The moon's disc: solid, slightly darker toward one side, with a few soft grey seas. */
@@ -2224,14 +2510,14 @@ public final class BattleAmbiance {
 		for (int i = 0; i < segments; i++) {
 			double a0 = Math.PI * 2 * i / segments;
 			double a1 = Math.PI * 2 * (i + 1) / segments;
-			int rim = lerpColor(color, 0x707070, (float) (0.25 + 0.25 * Math.cos(a0 - 0.8)));
+			int rim = moon.seas ? lerpColor(color, 0x707070, (float) (0.25 + 0.25 * Math.cos(a0 - 0.8))) : color;
 			vertex(out, m, at, color, 255);
 			vertex(out, m, at, color, 255);
 			vertex(out, m, at.add(u.scale(Math.cos(a1) * moon.size)).add(v.scale(Math.sin(a1) * moon.size)), rim, 255);
 			vertex(out, m, at.add(u.scale(Math.cos(a0) * moon.size)).add(v.scale(Math.sin(a0) * moon.size)), rim, 255);
 		}
 		// Seas: a few soft grey patches, a hair in front of the disc.
-		for (int sea = 0; sea < 4; sea++) {
+		for (int sea = 0; sea < (moon.seas ? 4 : 0); sea++) {
 			Vec3 c = at.add(normal.scale(0.05)).add(u.scale((hashFloat(sea * 3 + 1) - 0.5) * moon.size))
 					.add(v.scale((hashFloat(sea * 3 + 2) - 0.5) * moon.size));
 			float r = moon.size * (0.15f + 0.12f * hashFloat(sea * 3 + 3));

@@ -16,7 +16,7 @@
 	},
 	"caustics": {
 		"color": "#a8f4ff",
-		"alpha": 55,
+		"alpha": 70,
 		"scale": 1,
 		"speed": 0.8
 	},

@@ -1,0 +1,74 @@
+{
+	"time": {
+		"at": 13000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#2a0a4a",
+		"fog_color": "#ff4a8a",
+		"strength": 1.0,
+		"fog_start": 20,
+		"fog_end": 110,
+		"stars": 0.6,
+		"hide_clouds": true
+	},
+	"striped_sun": {
+		"top": "#ffe14a",
+		"bottom": "#ff3a8a",
+		"yaw": 180,
+		"size": 14,
+		"stripes": 6
+	},
+	"neon_grid": {
+		"spacing": 3,
+		"color": "#ff2ad4",
+		"accent": "#2af4ff",
+		"alpha": 150,
+		"extent": 4,
+		"pulse": 8
+	},
+	"palms": {
+		"color": "#1a0628",
+		"count": 10,
+		"ring": [
+			6,
+			14
+		],
+		"height": [
+			6,
+			9
+		]
+	},
+	"fireworks": {
+		"every": [],
+		"colors": [
+			"#ff2ad4",
+			"#2af4ff",
+			"#ffe14a",
+			"#b04aff"
+		]
+	},
+	"moments": {
+		"attack": {
+			"particle": "minecraft:end_rod",
+			"count": 10
+		},
+		"crit": {
+			"particle": "minecraft:electric_spark",
+			"count": 40,
+			"flash": "#ff4af0",
+			"sound": "minecraft:block.beacon.power_select",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:end_rod",
+			"count": 30
+		},
+		"victory": {
+			"fireworks": 6,
+			"particle": "minecraft:end_rod",
+			"count": 60,
+			"sound": "minecraft:block.beacon.activate"
+		}
+	}
+}

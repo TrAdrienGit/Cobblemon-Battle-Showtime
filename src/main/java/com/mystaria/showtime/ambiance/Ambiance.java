@@ -240,6 +240,7 @@ public final class Ambiance {
 
 	/** Real fireworks bursting far off now and then (Sakura Festival); their colours also serve a moment's fireworks. */
 	public static final class Fireworks {
+		/** Empty: none far off, the colours only serve a moment's fireworks. */
 		public List<Integer> every = List.of(140, 300);
 		public List<Float> distance = List.of(28f, 40f);
 		public List<Float> height = List.of(18f, 28f);
@@ -295,6 +296,65 @@ public final class Ambiance {
 		public float yaw = 200f;
 		public float pitch = 35f;
 		public float size = 5f;
+		/** Its grey seas; false: a plain disc (a pale sun). */
+		public boolean seas = true;
+		/** The halo's size (in disc radii) and strength. */
+		public float halo = 3.5f;
+		public int haloAlpha = 60;
+	}
+
+	/** Brief star-shaped glints in the air round the field: ice crystals catching the light (Blizzard). */
+	public static final class Glints {
+		public String color = "#e8f8ff";
+		public int count = 24;
+		public List<Float> radius = List.of(2f, 14f);
+		public List<Float> height = List.of(0.5f, 6f);
+		public float size = 0.35f;
+	}
+
+	/** A wall of fog round the field, thick at the bottom, drifting: the world beyond disappears (Blizzard). */
+	public static final class FogWall {
+		public String color = "#e4eef8";
+		/** 0: the field's edge plus 8 blocks. */
+		public float radius;
+		public float height = 12f;
+		public int alpha = 150;
+		public float speed = 1f;
+	}
+
+	/** A desert mirage: a band of shimmering sky-coloured "water" along the horizon (Mirage). */
+	public static final class Mirage {
+		public String color = "#bfe0ff";
+		public int alpha = 110;
+		/** Its height over the horizon, in blocks at the sky's distance. */
+		public float height = 3f;
+	}
+
+	/** Birds circling high over the field, dark V shapes flapping slowly (Mirage). */
+	public static final class Birds {
+		public String color = "#2a2018";
+		public int count = 4;
+		public List<Float> radius = List.of(10f, 22f);
+		public List<Float> height = List.of(18f, 28f);
+		public float size = 0.9f;
+	}
+
+	/** An 80s sun on the horizon: a gradient disc, its lower half cut by widening bands (Synthwave). */
+	public static final class StripedSun {
+		public String top = "#ffe14a";
+		public String bottom = "#ff3a8a";
+		public float yaw = 180f;
+		public float size = 14f;
+		public int stripes = 6;
+	}
+
+	/** Palm tree silhouettes round the field (Synthwave). */
+	public static final class Palms {
+		public String color = "#1a0628";
+		public int count = 10;
+		/** Distance beyond the field's edge: [min, max]. */
+		public List<Float> ring = List.of(6f, 14f);
+		public List<Float> height = List.of(6f, 9f);
 	}
 
 	/** Brief dips into darkness now and then, as if the light died for a moment (Spectral). */
@@ -536,6 +596,12 @@ public final class Ambiance {
 	public Kelp kelp;
 	public Lanterns lanterns;
 	public Fireworks fireworks;
+	public Glints glints;
+	public FogWall fogWall;
+	public Mirage mirage;
+	public Birds birds;
+	public StripedSun stripedSun;
+	public Palms palms;
 	public List<Nebula> nebulae = List.of();
 	public Galaxy galaxy;
 	public DanceFloor danceFloor;

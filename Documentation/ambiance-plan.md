@@ -163,4 +163,10 @@ step 7, new ambiances.
   sound, a slight ripple), **Sakura Festival** (dusk, cherry petals, rising paper lanterns, far-off fireworks, fireworks
   over the field on victory). New layers: `embers`, `volcano`, `caustics`, `shafts`, `kelp`, `lanterns`, `fireworks`,
   a moment's `fireworks`, veins `scatter` and `core`, and a `haze` filter (dropped with calm effects).
-- Next batch: Blizzard, Mirage, Synthwave; then Ultra Space and Champion's Stage.
+  Validated in game the same day. Fixes after its recording: a defeat no longer plays victory's fireworks, banner or
+  sound (an ambiance without a defeat moment); the moon and the volcano are drawn without fog; caustic lines wider.
+- 2026-11-10, second batch (built, not yet seen): **Blizzard** (whiteout, driven snow, blowing snow over the ground,
+  ice glints, a fog wall round the field, howling wind), **Mirage** (desert noon, a pale sun, heat haze, blowing sand,
+  a mirage of water round the horizon, circling birds), **Synthwave** (a striped sun on the horizon, a neon grid to the
+  distance, palm silhouettes, neon fireworks on victory).
+- Next: Ultra Space and Champion's Stage.
