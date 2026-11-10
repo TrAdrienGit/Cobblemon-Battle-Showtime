@@ -278,6 +278,8 @@ AMBIANCES = {
     # crawling on the ground from the rifts, black cubes glitching round the field, a violet mist.
     "corrupted": {
         "filter": GLITCH_SOFT,
+        # Calm effects: no lasting split, its jumping bands are what a photosensitive player must be spared.
+        "calm_filter": "none",
         "rifts": {"count": 5, "color": "#ff2a8a", "height": 8, "width": 1.8, "cycle": 200,
                   "particle": "minecraft:reverse_portal"},
         "time": {"at": 18000, "speed": 0},

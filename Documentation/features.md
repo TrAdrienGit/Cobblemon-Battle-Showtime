@@ -102,8 +102,12 @@ remove it from roadmap.md.
 - Ten ambiances: disco, cosmos, storm, spectral, nature (meadow), night (starry), arcade, fairy, silver screen
   (old film), corrupted.
 - Layers: time and day speed, sky, fog, clouds, stars, a backdrop hiding the world (cosmos), rainbow, spotlights,
-  floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe, ambient sound, screen filters
-  (black and white, pixels, glitch, ripple, old TV).
+  floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe,
+  ambient sound and occasional sounds, screen filters (black and white, pixels, glitch, ripple, old TV, old film);
+  since the 2026-11-10 quality pass also a mirror ball and dance floor, a neon grid, 8-bit sprites, butterflies,
+  nebulae, a galaxy band, detailed planets, ground mist, veins, sky cracks, glitch cubes, will-o'-wisps and fireflies,
+  ghosts, a moon, darkness flickers, soap bubbles, glowing mushrooms, a double rainbow, film scratches and dust.
+- Particle budget: at most 10 ambiance particles per tick, all kinds together; beyond it every kind is scaled down.
 - Reactions to battle moments: send-out, attack, critical hit, knock-out, victory.
 - Placed on the floor of the battle (2026-11-10): its height is the lowest of the trainers and the active Pokémon,
   and floor lights are laid point by point on the block surface below them, following hollows, steps and slopes.
@@ -136,7 +140,10 @@ remove it from roadmap.md.
 - Sections: trainer animation profile, ambiance, music, settings; live preview in the real world (not during a
   battle).
 - Lists scroll with the mouse wheel and a draggable scrollbar (click on its track to jump).
-- Settings per battle kind: cinematic camera at start, intro, music, ball effects. Saved atomically in
+- Settings per battle kind: cinematic camera at start, intro, music, ball effects.
+- Calm effects (global, off by default): no strobe, no darkness flickers, flashes much softer (ambiance moments and
+  the intro's closing flash), no screen filter on battle moments, an ambiance's moving filter dropped
+  (`calm_filter`), half the ambiance particles. For photosensitive players and anyone who wants a quieter show. Saved atomically in
   `config/cobblemon_battle_showtime.json` and `config/cobblemon_battle_showtime-music.json`.
 - English and French translations.
 

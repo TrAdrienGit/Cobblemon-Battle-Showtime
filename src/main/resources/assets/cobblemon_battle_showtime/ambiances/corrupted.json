@@ -1,5 +1,6 @@
 {
 	"filter": "cobblemon_battle_showtime:shaders/post/glitch_soft.json",
+	"calm_filter": "none",
 	"rifts": {
 		"count": 5,
 		"color": "#ff2a8a",

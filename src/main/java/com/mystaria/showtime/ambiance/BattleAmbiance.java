@@ -266,7 +266,7 @@ public final class BattleAmbiance {
 			}
 		}
 		hudTextLeft = 0;
-		setFilter(ambiance.filter);
+		setFilter(lastingFilter(ambiance));
 		if (ambiance.sound != null && ambiance.sound.id != null) {
 			sound = new LoopSound(ResourceLocation.parse(ambiance.sound.id), ambiance.sound.volume, ambiance.sound.pitch);
 			mc.getSoundManager().play(sound);
@@ -302,7 +302,7 @@ public final class BattleAmbiance {
 			nextFlicker = ticks + Math.max(20, betweenTicks(active.flicker.every));
 		}
 		if (momentFilterLeft > 0 && --momentFilterLeft == 0) {
-			setFilter(active.filter); // the moment's filter is over: back to the ambiance's own
+			setFilter(lastingFilter(active)); // the moment's filter is over: back to the ambiance's own
 		}
 		updateField(mc.level);
 		if (center == null) {
@@ -315,7 +315,7 @@ public final class BattleAmbiance {
 			if (now != inside) {
 				inside = now;
 				// Stepping in or out: the filter and the sound follow.
-				setFilter(inside ? active.filter : null);
+				setFilter(inside ? lastingFilter(active) : null);
 				if (inside && active.sound != null && active.sound.id != null && sound == null) {
 					sound = new LoopSound(ResourceLocation.parse(active.sound.id), active.sound.volume, active.sound.pitch);
 					mc.getSoundManager().play(sound);
@@ -324,8 +324,9 @@ public final class BattleAmbiance {
 				}
 			}
 		}
+		float budget = particleBudget();
 		for (Ambiance.Particles particles : active.particles) {
-			spawn(mc.level, particles);
+			spawn(mc.level, particles, budget);
 		}
 		if (active.film != null) {
 			if (scratchLeft > 0) {
@@ -423,7 +424,8 @@ public final class BattleAmbiance {
 		}
 		ParticleOptions particle = particle(moment.particle);
 		if (particle != null) {
-			for (int i = 0; i < moment.count; i++) {
+			int count = calm() ? moment.count / 2 : moment.count;
+			for (int i = 0; i < count; i++) {
 				double angle = RANDOM.nextDouble() * Math.PI * 2;
 				double r = RANDOM.nextDouble() * fieldRadius * 0.6;
 				mc.level.addParticle(particle, center.x + Math.cos(angle) * r, center.y + 0.5 + RANDOM.nextDouble() * 3,
@@ -447,10 +449,30 @@ public final class BattleAmbiance {
 			mc.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
 					SoundEvent.createVariableRangeEvent(ResourceLocation.parse(moment.sound)), moment.pitch, moment.volume));
 		}
-		if (moment.filter != null) {
+		if (moment.filter != null && !calm()) {
 			setFilter(moment.filter);
 			momentFilterLeft = Math.max(1, moment.filterTicks);
 		}
+	}
+
+	/** The calm setting was flipped (from the menu, maybe mid-battle): the lasting filter follows at once. */
+	public static void calmChanged() {
+		if (active() && momentFilterLeft == 0 && (!distant || inside)) {
+			setFilter(lastingFilter(active));
+		}
+	}
+
+	/** Calm effects (a setting): no strobe or flickers, soft flashes, no moment filters, half the particles. */
+	private static boolean calm() {
+		return ShowtimeConfig.calmEffects();
+	}
+
+	/** The ambiance's own filter for the whole battle, as the calm setting allows it. */
+	private static String lastingFilter(Ambiance ambiance) {
+		if (calm() && ambiance.calmFilter != null) {
+			return "none".equals(ambiance.calmFilter) ? null : ambiance.calmFilter;
+		}
+		return ambiance.filter;
 	}
 
 	/** Puts one of Minecraft's post effects on the screen (null: none). */
@@ -718,7 +740,7 @@ public final class BattleAmbiance {
 
 	/** HUD pass: the flash of a strong moment. */
 	public static void renderHud(GuiGraphics graphics) {
-		if (active() && active.strobe != null && !active.strobe.colors.isEmpty() && active.strobe.every > 0) {
+		if (active() && active.strobe != null && !active.strobe.colors.isEmpty() && active.strobe.every > 0 && !calm()) {
 			long beat = ticks / active.strobe.every;
 			float within = (ticks % active.strobe.every) / (float) active.strobe.every;
 			int color = Ambiance.color(active.strobe.colors.get((int) (beat % active.strobe.colors.size())), 0xFFFFFF);
@@ -733,14 +755,14 @@ public final class BattleAmbiance {
 		if (hudTextLeft > 0 && hudText != null) {
 			drawHudText(graphics);
 		}
-		if (flickerLeft > 0 && active() && active.flicker != null) {
+		if (flickerLeft > 0 && active() && active.flicker != null && !calm()) {
 			int dark = Math.round(255 * Mth.clamp(active.flicker.alpha, 0f, 1f) * (flickerLeft % 2 == 0 ? 1f : 0.7f));
 			graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), dark << 24);
 		}
 		if (flashLeft <= 0) {
 			return;
 		}
-		int alpha = Math.round(150f * flashLeft / FLASH_TICKS);
+		int alpha = Math.round((calm() ? 45f : 150f) * flashLeft / FLASH_TICKS);
 		graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), (alpha << 24) | flashColor);
 	}
 
@@ -1817,7 +1839,7 @@ public final class BattleAmbiance {
 	private static void drawFilm(GuiGraphics graphics, Ambiance.Film film) {
 		int w = graphics.guiWidth();
 		int h = graphics.guiHeight();
-		float breathe = film.flicker * (0.5f + 0.5f * hashFloat((int) ticks * 31 + 7));
+		float breathe = calm() ? 0f : film.flicker * (0.5f + 0.5f * hashFloat((int) ticks * 31 + 7));
 		int dark = Math.round(255 * Mth.clamp(breathe, 0, 1));
 		if (dark > 0) {
 			graphics.fill(0, 0, w, h, dark << 24);
@@ -2079,12 +2101,29 @@ public final class BattleAmbiance {
 
 	// ---------------------------------------------------------------- helpers
 
-	private static void spawn(ClientLevel level, Ambiance.Particles spec) {
+	/**
+	 * Most particles an ambiance may spawn per tick, all kinds together (2026-11-10): beyond it, every kind is scaled
+	 * down alike. A resource pack's ambiance with heavy rates stays readable and cheap; calm effects halve it.
+	 */
+	private static final float PARTICLES_PER_TICK = 10f;
+
+	/** The factor applied to the ambiance's particle rates this tick. */
+	private static float particleBudget() {
+		float total = 0;
+		for (Ambiance.Particles particles : active.particles) {
+			total += Math.max(0, particles.rate);
+		}
+		float factor = total > PARTICLES_PER_TICK ? PARTICLES_PER_TICK / total : 1f;
+		return calm() ? factor * 0.5f : factor;
+	}
+
+	private static void spawn(ClientLevel level, Ambiance.Particles spec, float budget) {
 		ParticleOptions particle = particle(spec.type);
 		if (particle == null) {
 			return;
 		}
-		int count = (int) spec.rate + (RANDOM.nextFloat() < spec.rate - (int) spec.rate ? 1 : 0);
+		float rate = spec.rate * budget;
+		int count = (int) rate + (RANDOM.nextFloat() < rate - (int) rate ? 1 : 0);
 		float windX = active.wind != null && active.wind.size() > 0 ? active.wind.get(0) : 0f;
 		float windZ = active.wind != null && active.wind.size() > 1 ? active.wind.get(1) : 0f;
 		for (int i = 0; i < count; i++) {

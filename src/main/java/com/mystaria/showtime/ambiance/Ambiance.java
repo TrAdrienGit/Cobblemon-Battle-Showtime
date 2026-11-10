@@ -472,6 +472,11 @@ public final class Ambiance {
 	 * {@code ntsc.json} old TV, {@code invert.json}, {@code phosphor.json}...) or a resource pack's.
 	 */
 	public String filter;
+	/**
+	 * The lasting filter with calm effects on: null keeps {@link #filter}, "none" drops it (one that moves or jumps,
+	 * like Corrupted's split colours).
+	 */
+	public String calmFilter;
 	public Moments moments;
 
 	static int color(String hex, int fallback) {

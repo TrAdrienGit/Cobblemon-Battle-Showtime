@@ -86,6 +86,7 @@
   "cobblemon_battle_showtime.music.only_favorites": "Ne jouer que mes favoris",
   "cobblemon_battle_showtime.music.enable_all": "Tout activer",
   "cobblemon_battle_showtime.music.disable_all": "Tout désactiver",
+  "cobblemon_battle_showtime.settings.calm_effects": "Effets apaisés (sans flashs ni stroboscope)",
   "cobblemon_battle_showtime.settings.check_updates": "Vérifier les mises à jour au lancement",
   "cobblemon_battle_showtime.update.available": "Cobblemon Battle Showtime %s est disponible (vous avez la %s).",
   "cobblemon_battle_showtime.update.link": "Télécharger",

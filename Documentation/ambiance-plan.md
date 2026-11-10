@@ -26,7 +26,12 @@ rainbow with soft blended bands, `sparkle` on floating blocks, wisps with a `siz
 screen filter (grain, dark rim). Fairy Tale remade (pastel sky, double rainbow, fireflies, bubbles, glowing mushrooms,
 sparkling crystals, cherry petals, chimes); Starry Night gets a moon, fireflies and frogs; Silver Screen real old film
 (grain, rim, scratches, dust, breathing light); Storm a distant rumble; Spectral cave whispers. Minecraft has no
-cricket or projector sound: frogs stand in for crickets, the projector is left out.
+cricket or projector sound: frogs stand in for crickets, the projector is left out. Validated in game the same day.
+
+Done 2026-11-10 (built, not yet seen): E6 a particle budget (10 per tick, all kinds together, scaled down alike
+beyond it; the recipes were already trimmed pass by pass) and E8 the "Calm effects" setting (no strobe or darkness
+flickers, soft flashes, no moment filters, `calm_filter` for an ambiance's lasting one, half the particles). Next:
+step 7, new ambiances.
 
 ## What the recording shows
 

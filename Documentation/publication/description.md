@@ -133,6 +133,6 @@ music.
 - Source code, music pack template and issues: https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime
 - License: Apache 2.0
 
-If you include Phantasmon in your modpack, please credit the original project and provide a link to its official Modrinth or CurseForge page. Attribution is appreciated!
+If you include Cobblemon Battle Showtime in your modpack, please credit the original project and provide a link to its official Modrinth or CurseForge page. Attribution is appreciated!
 
 *A fan project, not affiliated with Nintendo, The Pokémon Company, Game Freak or the Cobblemon team.*

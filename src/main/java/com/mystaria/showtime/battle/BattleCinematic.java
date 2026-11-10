@@ -854,7 +854,7 @@ public final class BattleCinematic {
 		if (t < 0 || t >= HUD_FLASH_MS) {
 			return;
 		}
-		int alpha = Math.round(255 * (1f - t / (float) HUD_FLASH_MS));
+		int alpha = Math.round((com.mystaria.showtime.config.ShowtimeConfig.calmEffects() ? 80 : 255) * (1f - t / (float) HUD_FLASH_MS));
 		graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), (alpha << 24) | 0xFFFFFF);
 	}
 }

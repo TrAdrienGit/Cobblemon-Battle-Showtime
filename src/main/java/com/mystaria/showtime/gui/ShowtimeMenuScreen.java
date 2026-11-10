@@ -266,6 +266,11 @@ private static final int BLACK = 0xFF1A1A1A;
 			ShowtimeConfig.save();
 			rebuild();
 		}, null, null));
+		rows.add(setting("settings.calm_effects", ShowtimeConfig.calmEffects(),
+				() -> {
+					ShowtimeConfig.setCalmEffects(!ShowtimeConfig.calmEffects());
+					BattleAmbiance.calmChanged();
+				}));
 		rows.add(setting("settings.check_updates", ShowtimeConfig.checkUpdates(),
 				() -> ShowtimeConfig.setCheckUpdates(!ShowtimeConfig.checkUpdates())));
 	}

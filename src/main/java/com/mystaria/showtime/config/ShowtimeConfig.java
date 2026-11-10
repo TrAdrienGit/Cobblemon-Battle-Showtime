@@ -60,6 +60,11 @@ public final class ShowtimeConfig {
 		 * player who never chose gets each new camera as it comes (2026-11-09).
 		 */
 		int cameraVersion = 0;
+		/**
+		 * Calm effects (2026-11-10), for photosensitive players and anyone who wants a quieter show: no strobe, no
+		 * darkness flickers, flashes much softer, no screen filter on the battle's moments, half the particles.
+		 */
+		boolean calmEffects = false;
 	}
 
 	private static Stored stored;
@@ -83,6 +88,14 @@ public final class ShowtimeConfig {
 
 	public static void setCameraVersion(int version) {
 		get().cameraVersion = version;
+	}
+
+	public static boolean calmEffects() {
+		return get().calmEffects;
+	}
+
+	public static void setCalmEffects(boolean calm) {
+		get().calmEffects = calm;
 	}
 
 	public static boolean checkUpdates() {
