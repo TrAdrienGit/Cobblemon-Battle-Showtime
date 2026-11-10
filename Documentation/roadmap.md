@@ -9,7 +9,8 @@ features.md.
    `Documentation/move-usage.csv` (Smogon usage) and give each a hand-tuned spec in `tools/moves.py`, or a hand-made
    effect class like `ShadowBall` for the signature ones. Check each in a real battle.
 2. **Move preview in the menu.** A "Moves" section in the N menu that plays any move on the preview, replacing the
-   removed `/showtime preview move` (the dead `preview` methods listed in known-bugs.md are the starting point).
+   removed `/showtime preview move` (its code was deleted on 2026-11-10: `MoveEffects.create` and a fixed target
+   point ahead of the player are enough to rebuild it).
 3. **Release on Modrinth and CurseForge.** Everything is ready in `Documentation/publication/`; gallery to record.
 
 ## Later

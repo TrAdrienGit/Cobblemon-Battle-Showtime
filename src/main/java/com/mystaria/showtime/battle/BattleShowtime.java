@@ -121,10 +121,6 @@ public final class BattleShowtime {
 		begin(which, target, visual, which == Kind.TERA ? visual.teraType() : null);
 	}
 
-	/** Preview ({@code /showtime preview}): on any Pokémon in the world, nothing changes. */
-	public static void preview(Kind which, PokemonEntity target, String type) {
-		begin(which, target, null, type == null ? "fire" : type);
-	}
 
 	private static void begin(Kind which, PokemonEntity target, Transformation visual, String type) {
 		if (playing()) {

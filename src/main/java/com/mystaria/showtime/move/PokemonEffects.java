@@ -70,7 +70,6 @@ public final class PokemonEffects {
 	private static final Map<String, Lasting> LASTING = new LinkedHashMap<>();
 	private static final RandomSource RANDOM = RandomSource.create();
 	private static int ticks;
-	private static boolean previewing;
 
 	private PokemonEffects() {
 	}
@@ -212,14 +211,10 @@ public final class PokemonEffects {
 
 	public static void reset() {
 		LASTING.clear();
-		previewing = false;
 	}
 
 	/** The entity an effect is drawn on, or null; the effect is dropped when its Pokémon left the field. */
 	private static Entity entityOf(Lasting lasting, Iterator<Lasting> drop) {
-		if (previewing) {
-			return Minecraft.getInstance().player;
-		}
 		ClientBattlePokemon now = battlePokemon(lasting.pnx);
 		if (now == null || !lasting.uuid.equals(now.getUuid())) {
 			if (drop != null) {
@@ -437,27 +432,4 @@ public final class PokemonEffects {
 		Draw.streak(glow, m, at.add(b[0].scale(-0.18)).add(b[1].scale(0.18)), at.add(b[0].scale(0.18)).add(b[1].scale(-0.18)), camera, 0.04f, color, alpha);
 	}
 
-	// ---------------------------------------------------------------- preview
-
-	/** {@code /showtime preview status <id>}: shows that effect on the player (or {@code clear}). */
-	public static boolean preview(String id) {
-		if (id.equals("clear")) {
-			reset();
-			return true;
-		}
-		if (!KNOWN.contains(id) || Minecraft.getInstance().player == null) {
-			return false;
-		}
-		previewing = true;
-		Lasting lasting = new Lasting(id, "preview", Minecraft.getInstance().player.getUUID(), ticks);
-		lasting.count = 3;
-		LASTING.put("preview:" + id, lasting);
-		return true;
-	}
-
-	public static List<String> previewIds() {
-		List<String> ids = new ArrayList<>(new java.util.TreeSet<>(KNOWN));
-		ids.add("clear");
-		return ids;
-	}
 }

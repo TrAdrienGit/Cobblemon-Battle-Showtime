@@ -210,7 +210,7 @@ public final class BattleCinematic {
 	}
 
 	/**
-	 * Preview ({@code /showtime preview intro}): plays an intro alone, against the nearest other player (or oneself),
+	 * The menu's preview: plays an intro alone, against the nearest other player (or oneself),
 	 * without a battle behind it; the music stops with it.
 	 */
 	public static void preview(Intro which) {

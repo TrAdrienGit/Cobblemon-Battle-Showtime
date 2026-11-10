@@ -78,6 +78,18 @@ public final class BattleAmbiance {
 	private static int nextBoltId = -2_000_000;
 	private static final Random RANDOM = new Random();
 	private static final List<Floating> FLOATING = new ArrayList<>();
+	/** The camera this frame, from the field's centre: beams and sprites fade near it. */
+	private static Vec3 cameraRel = Vec3.ZERO;
+	/** Sprites (Arcade) and critters (Meadow): where each turns round the field. */
+	private record Orbiter(float angle, float radius, float height, float phase, int kind) {
+	}
+
+	private static final List<Orbiter> SPRITES = new ArrayList<>();
+	private static final List<Orbiter> CRITTERS = new ArrayList<>();
+	/** A moment's big text (Arcade's "CRITICAL!"), and how long it stays. */
+	private static String hudText;
+	private static int hudTextColor;
+	private static int hudTextLeft;
 	private static BlockState floatingState;
 	private static LoopSound sound;
 	/** Where the rainbow stands, fixed at the start (behind the field, seen from the player). */
@@ -146,7 +158,7 @@ public final class BattleAmbiance {
 		return active() && (!distant || inside);
 	}
 
-	/** {@code /showtime preview ambiance <id>}: around the player for 30 s ({@code none} stops it). */
+	/** The menu's preview: around the player for 30 s ({@code none} stops it). */
 	public static void preview(String id) {
 		Minecraft mc = Minecraft.getInstance();
 		begin(Ambiances.get(id), mc.player == null ? List.of() : List.of(mc.player.getUUID()), PREVIEW_TICKS);
@@ -214,6 +226,22 @@ public final class BattleAmbiance {
 						RANDOM.nextFloat() * 6.28f));
 			}
 		}
+		SPRITES.clear();
+		if (ambiance.sprites != null) {
+			Ambiance.Sprites sp = ambiance.sprites;
+			for (int i = 0; i < sp.count; i++) {
+				SPRITES.add(new Orbiter((float) (Math.PI * 2 * i / Math.max(1, sp.count) + RANDOM.nextFloat() * 0.4f),
+						between(sp.radius), between(sp.height), RANDOM.nextFloat() * 6.28f, i % Math.max(1, sp.shapes.size())));
+			}
+		}
+		CRITTERS.clear();
+		if (ambiance.critters != null) {
+			for (int i = 0; i < ambiance.critters.count; i++) {
+				CRITTERS.add(new Orbiter(RANDOM.nextFloat() * 6.28f, ambiance.critters.radius * (0.5f + 0.6f * RANDOM.nextFloat()),
+						0.8f + RANDOM.nextFloat() * 2.2f, RANDOM.nextFloat() * 6.28f, i));
+			}
+		}
+		hudTextLeft = 0;
 		setFilter(ambiance.filter);
 		if (ambiance.sound != null && ambiance.sound.id != null) {
 			sound = new LoopSound(ResourceLocation.parse(ambiance.sound.id), ambiance.sound.volume, ambiance.sound.pitch);
@@ -238,6 +266,9 @@ public final class BattleAmbiance {
 		}
 		if (flashLeft > 0) {
 			flashLeft--;
+		}
+		if (hudTextLeft > 0) {
+			hudTextLeft--;
 		}
 		if (momentFilterLeft > 0 && --momentFilterLeft == 0) {
 			setFilter(active.filter); // the moment's filter is over: back to the ambiance's own
@@ -318,6 +349,7 @@ public final class BattleAmbiance {
 			case "faint" -> active.moments.faint;
 			case "crit" -> active.moments.crit;
 			case "victory" -> active.moments.victory;
+			case "defeat" -> active.moments.defeat != null ? active.moments.defeat : active.moments.victory;
 			default -> null;
 		};
 		if (moment == null) {
@@ -336,6 +368,11 @@ public final class BattleAmbiance {
 		if (moment.flash != null) {
 			flashColor = Ambiance.color(moment.flash, 0xFFFFFF);
 			flashLeft = FLASH_TICKS;
+		}
+		if (moment.text != null) {
+			hudText = moment.text;
+			hudTextColor = Ambiance.color(moment.textColor, 0xFFFFFF);
+			hudTextLeft = 26;
 		}
 		if (moment.lightning) {
 			strike(mc.level);
@@ -503,6 +540,7 @@ public final class BattleAmbiance {
 		PoseStack pose = context.matrixStack();
 		pose.pushPose();
 		pose.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z);
+		cameraRel = camera.subtract(center);
 		MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 		if (active.backdrop != null) {
 			drawBackdrop(pose, buffers, active.backdrop, time);
@@ -516,6 +554,18 @@ public final class BattleAmbiance {
 		if (active.floorLights != null) {
 			drawFloorLights(pose, buffers, active.floorLights, time);
 		}
+		if (active.danceFloor != null) {
+			drawDanceFloor(pose, buffers, active.danceFloor, time);
+		}
+		if (active.neonGrid != null) {
+			drawNeonGrid(pose, buffers, active.neonGrid, time);
+		}
+		if (active.mirrorBall != null) {
+			drawMirrorBallDots(pose, buffers, active.mirrorBall, time);
+		}
+		if (active.sprites != null) {
+			drawSprites(pose, buffers, active.sprites, time);
+		}
 		if (active.rifts != null) {
 			drawRifts(pose, buffers, active.rifts, partialTick);
 		}
@@ -527,6 +577,14 @@ public final class BattleAmbiance {
 		}
 		if (!active.planets.isEmpty()) {
 			drawPlanets(pose, buffers, time);
+		}
+		buffers.endBatch();
+		// Solid colours after the light: the mirror ball itself, the critters.
+		if (active.mirrorBall != null) {
+			drawMirrorBall(pose, buffers, active.mirrorBall, time);
+		}
+		if (active.critters != null) {
+			drawCritters(pose, buffers, active.critters, time);
 		}
 		buffers.endBatch();
 		if (floatingState != null) {
@@ -560,6 +618,9 @@ public final class BattleAmbiance {
 			if (alpha > 0) {
 				graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), (alpha << 24) | color);
 			}
+		}
+		if (hudTextLeft > 0 && hudText != null) {
+			drawHudText(graphics);
 		}
 		if (flashLeft <= 0) {
 			return;
@@ -641,9 +702,12 @@ public final class BattleAmbiance {
 	private static void drawSpotlights(PoseStack pose, MultiBufferSource buffers, Ambiance.Spotlights spotlights, float time) {
 		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
-		float ring = fieldRadius + 4f;
+		float ring = fieldRadius + spotlights.ring;
 		for (int i = 0; i < spotlights.count; i++) {
-			double baseAngle = Math.PI * 2 * i / spotlights.count;
+			// All round the field, or gathered in an arc on one side (the sun's).
+			double baseAngle = spotlights.sector > 0
+					? Math.toRadians(spotlights.facing + spotlights.sector * ((spotlights.count == 1 ? 0.5 : i / (double) (spotlights.count - 1)) - 0.5))
+					: Math.PI * 2 * i / spotlights.count;
 			Vec3 base = new Vec3(Math.cos(baseAngle) * ring, 0, Math.sin(baseAngle) * ring);
 			double sweep = time / 1200.0 * spotlights.sweep * Math.PI * 2 + i * 1.7;
 			// Leaning in over the field and swaying.
@@ -652,12 +716,19 @@ public final class BattleAmbiance {
 			Vec3 top = base.add(lean.scale(spotlights.height)).add(0, spotlights.height, 0);
 			int color = Ambiance.color(spotlights.colors.get(i % spotlights.colors.size()), 0xFFFFFF);
 			if (spotlights.fromSky) {
-				// A sunbeam: wide up in the sky, narrowing down on the field.
-				Vec3 ground = new Vec3(Math.cos(baseAngle) * fieldRadius * 0.5, 0, Math.sin(baseAngle) * fieldRadius * 0.5);
-				beam(out, m, ground, ground.add(lean.scale(-spotlights.height * 0.4)).add(0, spotlights.height, 0),
-						spotlights.width * 1.2f, spotlights.width * 3f, color);
+				// Sun rays (2026-11-10): all fanning out of the sun, high up on its side of the sky, each landing on
+				// the ground beyond the field, at its own distance, drifting slowly. Not pillars round the field, nor on it.
+				double facing = Math.toRadians(spotlights.facing);
+				Vec3 sun = new Vec3(Math.cos(facing), 0, Math.sin(facing)).scale(fieldRadius + spotlights.height)
+						.add(0, spotlights.height * 1.4, 0);
+				double spread = spotlights.sector > 0 ? Math.toRadians(spotlights.sector) : Math.PI / 2;
+				double landAngle = facing + spread * ((spotlights.count == 1 ? 0.5 : i / (double) (spotlights.count - 1)) - 0.5)
+						+ 0.05 * Math.sin(sweep);
+				double landDistance = fieldRadius + spotlights.ring + 6 * hashFloat(i * 7577 + 3);
+				Vec3 ground = onGround(Math.cos(landAngle) * landDistance, Math.sin(landAngle) * landDistance);
+				beam(out, m, sun, ground, spotlights.width * 0.6f, spotlights.width * 3.5f, color, spotlights.alpha);
 			} else {
-				beam(out, m, base, top, spotlights.width * 0.25f, spotlights.width * 2.5f, color);
+				beam(out, m, base, top, spotlights.width * 0.25f, spotlights.width * 2.5f, color, spotlights.alpha);
 			}
 		}
 	}
@@ -948,12 +1019,24 @@ public final class BattleAmbiance {
 	 * far end — no hard-edged rectangle seen (2026-10-30).
 	 */
 	private static void beam(VertexConsumer out, Matrix4f m, Vec3 from, Vec3 to, float startWidth, float endWidth, int color) {
+		beam(out, m, from, to, startWidth, endWidth, color, 70);
+	}
+
+	/**
+	 * A light cone, brightest at {@code from}, fading along it and across it, at most {@code alpha}; it fades out as the
+	 * camera comes near it (2026-11-10: a camera inside a beam saw only white).
+	 */
+	private static void beam(VertexConsumer out, Matrix4f m, Vec3 from, Vec3 to, float startWidth, float endWidth, int color, int alpha) {
+		float near = (float) Mth.clamp((distanceToSegment(cameraRel, from, to) - Math.max(startWidth, endWidth) - 1.5) / 6.0, 0, 1);
+		int core = Math.round(Mth.clamp(alpha, 0, 255) * near);
+		if (core <= 1) {
+			return;
+		}
 		Vec3 axis = to.subtract(from).normalize();
 		Vec3 side = axis.cross(new Vec3(0, 1, 0));
 		side = side.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : side.normalize();
 		Vec3 other = axis.cross(side).normalize();
 		int planes = 6;
-		int core = 70;
 		for (int p = 0; p < planes; p++) {
 			double angle = Math.PI * p / planes;
 			Vec3 across = side.scale(Math.cos(angle)).add(other.scale(Math.sin(angle)));
@@ -965,6 +1048,286 @@ public final class BattleAmbiance {
 				vertex(out, m, to, color, 0);
 			}
 		}
+	}
+
+	private static double distanceToSegment(Vec3 point, Vec3 a, Vec3 b) {
+		Vec3 ab = b.subtract(a);
+		double t = Mth.clamp(point.subtract(a).dot(ab) / Math.max(1.0E-6, ab.lengthSqr()), 0, 1);
+		return point.distanceTo(a.add(ab.scale(t)));
+	}
+
+	/** 0 right at the camera, 1 from a few blocks away: shapes melt away rather than fill the screen. */
+	private static float nearFade(Vec3 at, double from, double over) {
+		return (float) Mth.clamp((at.distanceTo(cameraRel) - from) / over, 0, 1);
+	}
+
+	/** A flat quad lying on the ground, its four corners each on the surface below them. */
+	private static void groundQuad(VertexConsumer out, Matrix4f m, double x0, double z0, double x1, double z1, int color, int alpha) {
+		vertex(out, m, onGround(x0, z0), color, alpha);
+		vertex(out, m, onGround(x1, z0), color, alpha);
+		vertex(out, m, onGround(x1, z1), color, alpha);
+		vertex(out, m, onGround(x0, z1), color, alpha);
+	}
+
+	/** A thin line on the ground, from one point to another, {@code width} wide. */
+	private static void groundLine(VertexConsumer out, Matrix4f m, double x0, double z0, double x1, double z1, double width, int color,
+			int alpha0, int alpha1) {
+		double dx = x1 - x0;
+		double dz = z1 - z0;
+		double length = Math.sqrt(dx * dx + dz * dz);
+		double nx = -dz / length * width / 2;
+		double nz = dx / length * width / 2;
+		vertex(out, m, onGround(x0 + nx, z0 + nz), color, alpha0);
+		vertex(out, m, onGround(x1 + nx, z1 + nz), color, alpha1);
+		vertex(out, m, onGround(x1 - nx, z1 - nz), color, alpha1);
+		vertex(out, m, onGround(x0 - nx, z0 - nz), color, alpha0);
+	}
+
+	/** Disco's floor: tiles on the ground lighting up on the beat, each with its colour and its own rhythm. */
+	private static void drawDanceFloor(PoseStack pose, MultiBufferSource buffers, Ambiance.DanceFloor floor, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		float radius = floor.radius > 0 ? floor.radius : fieldRadius * 0.95f;
+		int beat = Math.max(1, floor.beat);
+		long number = (long) (time / beat);
+		float within = (time % beat) / beat;
+		int n = (int) Math.ceil(radius / floor.tile);
+		double gap = floor.tile * 0.06;
+		for (int ix = -n; ix < n; ix++) {
+			for (int iz = -n; iz < n; iz++) {
+				double x0 = ix * floor.tile;
+				double z0 = iz * floor.tile;
+				double cx = x0 + floor.tile / 2;
+				double cz = z0 + floor.tile / 2;
+				double dist = Math.sqrt(cx * cx + cz * cz);
+				if (dist > radius) {
+					continue;
+				}
+				int seed = ix * 73856093 ^ iz * 19349663;
+				float roll = hashFloat(seed + (int) number * 83492791);
+				if (roll > 0.42f) {
+					continue; // dark this beat
+				}
+				int color = Ambiance.color(floor.colors.get(Math.floorMod(seed + (int) number, floor.colors.size())), 0xFFFFFF);
+				float edge = (float) Mth.clamp((radius - dist) / 3.0, 0, 1);
+				int alpha = Math.round(floor.alpha * (1f - 0.65f * within) * edge);
+				groundQuad(out, m, x0 + gap, z0 + gap, x0 + floor.tile - gap, z0 + floor.tile - gap, color, alpha);
+			}
+		}
+	}
+
+	/** Arcade's grid: lines on the ground fading into the distance, a wave of the accent colour running out. */
+	private static void drawNeonGrid(PoseStack pose, MultiBufferSource buffers, Ambiance.NeonGrid grid, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		float extent = fieldRadius * grid.extent;
+		int lines = (int) Math.ceil(extent / grid.spacing);
+		int color = Ambiance.color(grid.color, 0x00FFD5);
+		int accent = Ambiance.color(grid.accent, 0xFF00C8);
+		float wave = (time / 20f * grid.pulse) % (extent + 6f);
+		for (int axis = 0; axis < 2; axis++) {
+			for (int l = -lines; l <= lines; l++) {
+				double fixed = l * grid.spacing;
+				for (double run = -extent; run < extent; run += 1.0) {
+					double ax = axis == 0 ? fixed : run;
+					double az = axis == 0 ? run : fixed;
+					double bx = axis == 0 ? fixed : run + 1;
+					double bz = axis == 0 ? run + 1 : fixed;
+					double da = Math.sqrt(ax * ax + az * az);
+					double db = Math.sqrt(bx * bx + bz * bz);
+					if (da > extent && db > extent) {
+						continue;
+					}
+					boolean inWave = Math.abs(da - wave) < 1.6;
+					int c = inWave ? accent : color;
+					int a0 = Math.round(grid.alpha * (float) Mth.clamp(1 - da / extent, 0, 1) * (inWave ? 1.4f : 1f));
+					int a1 = Math.round(grid.alpha * (float) Mth.clamp(1 - db / extent, 0, 1) * (inWave ? 1.4f : 1f));
+					groundLine(out, m, ax, az, bx, bz, 0.07, c, Math.min(255, a0), Math.min(255, a1));
+				}
+			}
+		}
+	}
+
+	/** The mirror ball's light dots: thrown down from the ball, turning with it, landing on the ground. */
+	private static void drawMirrorBallDots(PoseStack pose, MultiBufferSource buffers, Ambiance.MirrorBall ball, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		double turn = time / 1200.0 * ball.speed * Math.PI * 2;
+		for (int i = 0; i < ball.dots; i++) {
+			double azimuth = i * 2.399963 + turn;
+			double drop = Math.toRadians(18 + 62 * hashFloat(i * 7919 + 13));
+			double reach = Math.min(fieldRadius * 1.4, ball.height / Math.tan(drop));
+			double x = Math.cos(azimuth) * reach;
+			double z = Math.sin(azimuth) * reach;
+			int color = Ambiance.color(ball.colors.get(i % ball.colors.size()), 0xFFFFFF);
+			Vec3 at = onGround(x, z);
+			int segments = 10;
+			float size = 0.32f + 0.18f * hashFloat(i * 104729);
+			Vec3 previous = null;
+			for (int sgm = 0; sgm <= segments; sgm++) {
+				double a = Math.PI * 2 * sgm / segments;
+				Vec3 rim = onGround(x + Math.cos(a) * size, z + Math.sin(a) * size);
+				if (previous != null) {
+					vertex(out, m, at, color, ball.alpha);
+					vertex(out, m, at, color, ball.alpha);
+					vertex(out, m, rim, color, 0);
+					vertex(out, m, previous, color, 0);
+				}
+				previous = rim;
+			}
+		}
+		// A soft round glow round the ball (2026-11-10: a flat quad showed as a big square).
+		Vec3 centre = new Vec3(0, ball.height, 0);
+		glowDisc(out, m, centre, cameraRel.subtract(centre).normalize(), ball.size * 2.4f, 0xFFF4E0, 70);
+	}
+
+	/** A round glow facing the camera: bright in the middle, fading to nothing at its rim. */
+	private static void glowDisc(VertexConsumer out, Matrix4f m, Vec3 centre, Vec3 normal, float radius, int color, int alpha) {
+		Vec3 u = normal.cross(new Vec3(0, 1, 0));
+		u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+		Vec3 v = normal.cross(u).normalize();
+		int segments = 24;
+		for (int i = 0; i < segments; i++) {
+			double a0 = Math.PI * 2 * i / segments;
+			double a1 = Math.PI * 2 * (i + 1) / segments;
+			vertex(out, m, centre, color, alpha);
+			vertex(out, m, centre, color, alpha);
+			vertex(out, m, centre.add(u.scale(Math.cos(a1) * radius)).add(v.scale(Math.sin(a1) * radius)), color, 0);
+			vertex(out, m, centre.add(u.scale(Math.cos(a0) * radius)).add(v.scale(Math.sin(a0) * radius)), color, 0);
+		}
+	}
+
+	/** The mirror ball itself: a turning sphere of small square facets, some catching the light. */
+	private static void drawMirrorBall(PoseStack pose, MultiBufferSource buffers, Ambiance.MirrorBall ball, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		Vec3 centre = new Vec3(0, ball.height, 0);
+		// The cord it hangs from.
+		vertex(out, m, centre.add(-0.03, ball.size, 0), 0x303030, 230);
+		vertex(out, m, centre.add(0.03, ball.size, 0), 0x303030, 230);
+		vertex(out, m, centre.add(0.03, ball.size + 12, 0), 0x303030, 230);
+		vertex(out, m, centre.add(-0.03, ball.size + 12, 0), 0x303030, 230);
+		double turn = time / 1200.0 * ball.speed * Math.PI * 2;
+		int rings = 9;
+		int around = 18;
+		for (int r = 0; r < rings; r++) {
+			double lat0 = Math.PI * r / rings - Math.PI / 2;
+			double lat1 = Math.PI * (r + 1) / rings - Math.PI / 2;
+			for (int a = 0; a < around; a++) {
+				double lon0 = Math.PI * 2 * a / around + turn;
+				double lon1 = Math.PI * 2 * (a + 1) / around + turn;
+				float glint = hashFloat(r * 31 + a * 17 + (int) (time / 3) % 7 * 1013);
+				int shade = glint > 0.86f ? 0xFFFFFF : (r + a) % 2 == 0 ? 0xB8C0CC : 0x8890A0;
+				vertex(out, m, sphere(centre, ball.size, lat0, lon0), shade, 255);
+				vertex(out, m, sphere(centre, ball.size, lat0, lon1), shade, 255);
+				vertex(out, m, sphere(centre, ball.size, lat1, lon1), shade, 255);
+				vertex(out, m, sphere(centre, ball.size, lat1, lon0), shade, 255);
+			}
+		}
+	}
+
+	private static Vec3 sphere(Vec3 centre, double radius, double lat, double lon) {
+		return centre.add(Math.cos(lat) * Math.cos(lon) * radius, Math.sin(lat) * radius, Math.cos(lat) * Math.sin(lon) * radius);
+	}
+
+	/** 8-bit sprites, a 7x7 grid each: '.' empty, letters a colour. */
+	private static final java.util.Map<String, String[]> SPRITE_ART = java.util.Map.of(
+			"coin", new String[] {"..YYY..", ".YyyyY.", "YyYYyyY", "YyYYyyY", "YyYYyyY", ".YyyyY.", "..YYY.."},
+			"heart", new String[] {".RR.RR.", "RrrRrrR", "RrwrrrR", "RrrrrrR", ".RrrrR.", "..RrR..", "...R..."},
+			"star", new String[] {"...Y...", "..YyY..", "YYyyyYY", ".YyyyY.", "..YyY..", ".YY.YY.", "Y.....Y"},
+			"gem", new String[] {".CCCCC.", "CcwcccC", "CccccCC", ".CcccC.", "..CcC..", "...C...", "......."});
+	private static final java.util.Map<Character, Integer> SPRITE_COLORS = java.util.Map.of(
+			'Y', 0xC88A00, 'y', 0xFFE23D, 'R', 0xA0102A, 'r', 0xFF3050, 'C', 0x0C8CA8, 'c', 0x40F0FF, 'w', 0xFFFFFF);
+
+	/** Arcade's sprites: pixel art floating round the field, always facing the camera, bobbing and turning. */
+	private static void drawSprites(PoseStack pose, MultiBufferSource buffers, Ambiance.Sprites sprites, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		for (Orbiter o : SPRITES) {
+			double angle = o.angle() + time / 1200.0 * sprites.orbit * Math.PI * 2;
+			Vec3 at = new Vec3(Math.cos(angle) * o.radius(), o.height() + Math.sin(time / 18.0 + o.phase()) * sprites.bob,
+					Math.sin(angle) * o.radius());
+			float fade = nearFade(at, 2.0, 3.0);
+			if (fade <= 0.02f) {
+				continue;
+			}
+			Vec3 toCamera = cameraRel.subtract(at);
+			Vec3 right = new Vec3(toCamera.z, 0, -toCamera.x);
+			right = right.lengthSqr() < 1.0E-6 ? new Vec3(1, 0, 0) : right.normalize();
+			Vec3 up = new Vec3(0, 1, 0);
+			String[] art = SPRITE_ART.getOrDefault(sprites.shapes.get(o.kind() % sprites.shapes.size()), SPRITE_ART.get("star"));
+			float px = sprites.pixel;
+			for (int row = 0; row < art.length; row++) {
+				for (int col = 0; col < art[row].length(); col++) {
+					Integer color = SPRITE_COLORS.get(art[row].charAt(col));
+					if (color == null) {
+						continue;
+					}
+					Vec3 corner = at.add(right.scale((col - 3.5) * px)).add(up.scale((3.5 - row) * px));
+					int alpha = Math.round(230 * fade);
+					vertex(out, m, corner, color, alpha);
+					vertex(out, m, corner.add(right.scale(px)), color, alpha);
+					vertex(out, m, corner.add(right.scale(px)).add(up.scale(-px)), color, alpha);
+					vertex(out, m, corner.add(up.scale(-px)), color, alpha);
+				}
+			}
+		}
+	}
+
+	/** Meadow's butterflies: two wings flapping, wandering round the field at grass height. */
+	private static void drawCritters(PoseStack pose, MultiBufferSource buffers, Ambiance.Critters critters, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		for (Orbiter o : CRITTERS) {
+			double t = time / 20.0;
+			double angle = o.angle() + t * 0.18 * (o.kind() % 2 == 0 ? 1 : -1) + Math.sin(t * 0.7 + o.phase()) * 0.4;
+			double radius = o.radius() + Math.sin(t * 0.5 + o.phase()) * 2.0;
+			double x = Math.cos(angle) * radius;
+			double z = Math.sin(angle) * radius;
+			Vec3 body = onGround(x, z).add(0, o.height() + Math.sin(t * 1.3 + o.phase()) * 0.5, 0);
+			if (nearFade(body, 0.8, 1.2) <= 0.05f) {
+				continue;
+			}
+			Vec3 heading = new Vec3(-Math.sin(angle), 0, Math.cos(angle));
+			Vec3 side = new Vec3(heading.z, 0, -heading.x);
+			double flap = Math.sin(time * 0.9 + o.phase() * 5) * 1.1;
+			int color = Ambiance.color(critters.colors.get(o.kind() % critters.colors.size()), 0xFFFFFF);
+			double size = 0.16;
+			for (int wing = -1; wing <= 1; wing += 2) {
+				Vec3 out1 = side.scale(wing * Math.cos(flap) * size).add(0, Math.abs(Math.sin(flap)) * size, 0);
+				vertex(out, m, body.add(heading.scale(size * 0.6)), color, 235);
+				vertex(out, m, body.add(heading.scale(size * 0.6)).add(out1), color, 235);
+				vertex(out, m, body.add(heading.scale(-size * 0.6)).add(out1), color, 235);
+				vertex(out, m, body.add(heading.scale(-size * 0.6)), color, 235);
+			}
+		}
+	}
+
+	/** A moment's big text, popping in and fading out, in Minecraft's pixel font with a hard shadow. */
+	private static void drawHudText(GuiGraphics graphics) {
+		Minecraft mc = Minecraft.getInstance();
+		float life = hudTextLeft / 26f;
+		float scale = 4f * (life > 0.85f ? 1f + (life - 0.85f) * 3f : 1f);
+		int alpha = Math.round(255 * Math.min(1f, life * 3f));
+		if (alpha < 8) {
+			return;
+		}
+		var pose = graphics.pose();
+		pose.pushPose();
+		pose.translate(graphics.guiWidth() / 2f, graphics.guiHeight() * 0.28f, 400);
+		pose.scale(scale, scale, 1f);
+		int w = mc.font.width(hudText);
+		graphics.drawString(mc.font, hudText, -w / 2 + 1, 1, (alpha << 24), false);
+		graphics.drawString(mc.font, hudText, -w / 2, 0, (alpha << 24) | hudTextColor, false);
+		pose.popPose();
+	}
+
+	private static float hashFloat(int seed) {
+		int x = seed * 0x9E3779B1;
+		x ^= x >>> 15;
+		x *= 0x85EBCA77;
+		x ^= x >>> 13;
+		return (x & 0xFFFFFF) / (float) 0x1000000;
 	}
 
 	private static void quadFacing(VertexConsumer out, Matrix4f m, Vec3 at, Vec3 normal, float size, int color, int alpha) {

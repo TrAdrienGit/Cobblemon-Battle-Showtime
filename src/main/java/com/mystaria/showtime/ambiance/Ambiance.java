@@ -137,9 +137,70 @@ public final class Ambiance {
 		public float width = 1.2f;
 		/** Coming down from the sky (sunbeams) instead of rising from around the field. */
 		public boolean fromSky;
+		/** Brightness at the beam's base, 0 to 255 (2026-11-10: capped, they blinded). */
+		public int alpha = 70;
+		/** How far beyond the field the bases stand, in blocks. */
+		public float ring = 4f;
+		/** When over 0: the bases gather in an arc this many degrees wide, around {@code facing} (the sun's side). */
+		public float sector = 0f;
+		public float facing = 0f;
 	}
 
 	/** Particles: {@code area} field (on the ground), ring (around), air (above), sky (high up). */
+	/** A mirror ball over the field, throwing light dots over the ground (Disco, 2026-11-10). */
+	public static final class MirrorBall {
+		public float height = 9f;
+		public float size = 1.4f;
+		public int dots = 44;
+		public List<String> colors = List.of("#ffffff");
+		/** Turns per minute. */
+		public float speed = 4f;
+		public int alpha = 150;
+	}
+
+	/** Coloured tiles laid on the ground round the field, lighting up on a beat (Disco). */
+	public static final class DanceFloor {
+		public float tile = 2f;
+		/** 0: the field's own size. */
+		public float radius;
+		public List<String> colors = List.of("#ff2fa8", "#ffd23d", "#b44bff", "#2fd5ff");
+		/** Ticks per beat. */
+		public int beat = 10;
+		public int alpha = 80;
+	}
+
+	/** Glowing lines on the ground in a grid, fading into the distance, a wave running through them (Arcade). */
+	public static final class NeonGrid {
+		public float spacing = 2f;
+		public String color = "#00ffd5";
+		public String accent = "#ff00c8";
+		public int alpha = 150;
+		/** Its extent, in field radii. */
+		public float extent = 1.8f;
+		/** Blocks per second of the wave. */
+		public float pulse = 6f;
+	}
+
+	/** Floating 8-bit sprites (coin, heart, star, gem), turning round the field, facing the camera (Arcade). */
+	public static final class Sprites {
+		public List<String> shapes = List.of("coin", "heart", "star", "gem");
+		public int count = 10;
+		public List<Float> radius = List.of(9f, 16f);
+		public List<Float> height = List.of(3f, 8f);
+		/** One pixel's size, in blocks. */
+		public float pixel = 0.12f;
+		public float bob = 0.4f;
+		public float orbit = 0.4f;
+	}
+
+	/** Small living things fluttering round the field: {@code butterfly} (Meadow). */
+	public static final class Critters {
+		public String kind = "butterfly";
+		public int count = 12;
+		public List<String> colors = List.of("#ffd23d", "#ffffff", "#ff9ad5", "#7fd0ff");
+		public float radius = 14f;
+	}
+
 	public static final class Particles {
 		public String type = "minecraft:end_rod";
 		/** Per tick (fractions spawn now and then). */
@@ -192,6 +253,9 @@ public final class Ambiance {
 		public float pitch = 1f;
 		public String filter;
 		public int filterTicks = 20;
+		/** Big text shown for a moment over the screen ("CRITICAL!"), in Minecraft's pixel font. */
+		public String text;
+		public String textColor = "#ffffff";
 	}
 
 	/** The battle's moments an ambiance answers: a Pokémon sent out, a move used, a critical hit, a faint, the end. */
@@ -201,6 +265,8 @@ public final class Ambiance {
 		public Moment crit;
 		public Moment faint;
 		public Moment victory;
+		/** This player lost (falls back to {@code victory} when an ambiance has no defeat of its own). */
+		public Moment defeat;
 	}
 
 	public Time time;
@@ -217,6 +283,11 @@ public final class Ambiance {
 	 */
 	public boolean hideWorld;
 	public FloorLights floorLights;
+	public MirrorBall mirrorBall;
+	public DanceFloor danceFloor;
+	public NeonGrid neonGrid;
+	public Sprites sprites;
+	public Critters critters;
 	public Strobe strobe;
 	public Rifts rifts;
 	public ShootingStars shootingStars;

@@ -12,7 +12,7 @@ public abstract class MoveEffect {
 	final String move;
 	protected final Entity user;
 	protected Entity target;
-	/** Where it goes when no target entity is known (preview, or a target that can't be found). */
+	/** Where it goes when no target entity is known (a target that can't be found). */
 	protected Vec3 targetPoint;
 	protected int age;
 
@@ -37,10 +37,6 @@ public abstract class MoveEffect {
 	/** Still waiting for its hit: Cobblemon's generic hit particle on another Pokémon is this move's. */
 	protected boolean awaitingHit() {
 		return true;
-	}
-
-	void previewTarget(Vec3 point) {
-		targetPoint = point;
 	}
 
 	boolean involves(Entity source, Entity targeted) {

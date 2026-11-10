@@ -1,73 +1,80 @@
 {
 	"time": {
-		"at": 1500,
+		"at": 1000,
 		"speed": 1
 	},
 	"sky": {
-		"sky_color": "#8fd3ff",
-		"fog_color": "#cfe9c8",
-		"strength": 0.5
+		"sky_color": "#9fd8ff",
+		"fog_color": "#f4e6c0",
+		"strength": 0.45
 	},
 	"wind": [
-		0.03,
-		0.01
+		0.025,
+		0.008
 	],
 	"spotlights": {
-		"count": 5,
+		"count": 6,
 		"colors": [
-			"#fff2b0",
-			"#ffe9a0"
+			"#fff0b8",
+			"#ffe2a0",
+			"#fff8d8"
 		],
-		"sweep": 1,
-		"height": 40,
-		"width": 1.6,
-		"from_sky": true
+		"sweep": 0.6,
+		"height": 42,
+		"width": 2.6,
+		"from_sky": true,
+		"alpha": 22,
+		"ring": 4,
+		"sector": 80,
+		"facing": 300
+	},
+	"critters": {
+		"kind": "butterfly",
+		"count": 14,
+		"colors": [
+			"#ffd23d",
+			"#ffffff",
+			"#ff9ad5",
+			"#7fd0ff",
+			"#ffa040"
+		],
+		"radius": 13
 	},
 	"particles": [
 		{
 			"type": "minecraft:cherry_leaves",
-			"rate": 2.5,
+			"rate": 1.5,
 			"area": "air"
 		},
 		{
-			"type": "minecraft:cherry_leaves",
-			"rate": 1.0,
-			"area": "sky"
-		},
-		{
 			"type": "minecraft:spore_blossom_air",
-			"rate": 3,
+			"rate": 1.5,
 			"area": "field"
 		},
 		{
 			"type": "minecraft:falling_spore_blossom",
-			"rate": 0.8,
+			"rate": 0.5,
 			"area": "sky"
-		},
-		{
-			"type": "minecraft:happy_villager",
-			"rate": 0.3,
-			"area": "field"
 		}
 	],
 	"moments": {
 		"attack": {
 			"particle": "minecraft:happy_villager",
-			"count": 8
+			"count": 6
 		},
 		"crit": {
 			"particle": "minecraft:cherry_leaves",
-			"count": 60,
+			"count": 50,
 			"flash": "#fff6c8",
 			"sound": "minecraft:block.cherry_leaves.break"
 		},
 		"faint": {
 			"particle": "minecraft:composter",
-			"count": 30
+			"count": 25
 		},
 		"victory": {
 			"particle": "minecraft:cherry_leaves",
-			"count": 150,
+			"count": 140,
 			"sound": "minecraft:entity.player.levelup"
 		}
 	}

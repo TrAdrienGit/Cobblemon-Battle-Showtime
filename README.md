@@ -9,9 +9,11 @@ server and nothing for the other players to install.
 
 ## Features
 
-- **Cinematic camera**: the camera frames each move, follows the attacker to its target, closes in on hits and
-  knock-outs. Switch to the free camera at any time with one click.
-- **Battle intros**: player-versus-player battles open on a drawn intro, picked at random.
+- **Cinematic camera**: low shots at the Pokémon's height, drifting slowly and joined by cuts, as in the stadium
+  games; each move is filmed behind the attacker, then cuts to the target on the hit. It keeps clear of blocks and
+  people. Switch to the free camera at any time with one click.
+- **Sixteen battle intros**: player-versus-player battles open on an intro after a Pokémon game, from the Game Boy
+  to today; pick your favourites, by generation, in the menu.
 - **883 redrawn moves**: every move gets its own effect, built from Minecraft particles, blocks and items (no asset
   taken from the games). 180 are hand-made; the rest are composed from each move's own data: type, category, punch,
   bite, sound, wave, projectile, healing… Pokémon without an attack animation lunge, recoil or hop instead, and
@@ -48,6 +50,7 @@ Mega, Z and Tera set pieces play when the server allows these mechanics (base Co
    - [Player Animation Library](https://modrinth.com/mod/playeranimator) (also bundled in Emotecraft): animated
      trainers. Without it, everything else works.
    - [Mod Menu](https://modrinth.com/mod/modmenu): opens the settings from the mod list.
+   - No resource pack is needed: battle music comes from a pack you make yourself (see below).
    - [Cobblemon Battle Extras](https://modrinth.com/mod/cobblemon-battle-extras): works alongside; Showtime's battle
      panel moves aside to make room for it.
 

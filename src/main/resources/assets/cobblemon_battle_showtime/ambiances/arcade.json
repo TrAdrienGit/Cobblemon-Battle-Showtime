@@ -1,117 +1,100 @@
 {
-	"filter": "cobblemon_battle_showtime:shaders/post/pixels.json",
+	"filter": "cobblemon_battle_showtime:shaders/post/old_tv.json",
 	"time": {
 		"at": 18000,
 		"speed": 0
 	},
 	"sky": {
-		"sky_color": "#0a0018",
-		"fog_color": "#140030",
-		"strength": 0.9,
+		"sky_color": "#04000c",
+		"fog_color": "#08001a",
+		"strength": 0.95,
 		"hide_clouds": true,
-		"stars": 0.6
+		"stars": 0.9
 	},
-	"spotlights": {
-		"count": 8,
-		"colors": [
-			"#00ffd5",
-			"#ff00c8",
-			"#fff200"
+	"neon_grid": {
+		"spacing": 2,
+		"color": "#00ffd5",
+		"accent": "#ff00c8",
+		"alpha": 140,
+		"extent": 1.9,
+		"pulse": 6
+	},
+	"sprites": {
+		"shapes": [
+			"coin",
+			"heart",
+			"star",
+			"gem"
 		],
-		"sweep": 24,
-		"height": 35,
-		"width": 1.2
-	},
-	"floor_lights": {
-		"count": 16,
-		"colors": [
-			"#00ffd5",
-			"#ff00c8",
-			"#fff200",
-			"#5b6bff"
-		],
-		"speed": 16,
-		"size": 1.6,
-		"alpha": 180
-	},
-	"strobe": {
-		"colors": [
-			"#00ffd5",
-			"#ff00c8"
-		],
-		"every": 8,
-		"alpha": 0.05
-	},
-	"floating_blocks": {
-		"block": "minecraft:redstone_lamp[lit=true]",
-		"count": 10,
+		"count": 12,
 		"radius": [
-			10,
-			16
+			9,
+			17
 		],
 		"height": [
 			3,
-			9
+			8
 		],
-		"bob": 0.8,
-		"orbit": 2.0
-	},
-	"shooting_stars": {
-		"rate": 0.06,
-		"color": "#00ffd5"
+		"pixel": 0.13,
+		"bob": 0.4,
+		"orbit": 0.35
 	},
 	"particles": [
 		{
 			"type": "minecraft:electric_spark",
-			"rate": 2,
-			"area": "ring"
-		},
-		{
-			"type": "minecraft:glow",
 			"rate": 1,
-			"area": "air"
-		},
-		{
-			"type": "minecraft:wax_off",
-			"rate": 1.5,
-			"area": "field"
+			"area": "ring"
 		}
 	],
 	"moments": {
 		"send_out": {
 			"particle": "minecraft:firework",
-			"count": 30,
+			"count": 20,
 			"sound": "minecraft:block.note_block.bit",
-			"pitch": 1.5
+			"pitch": 1.5,
+			"text": "READY?",
+			"text_color": "#00ffd5"
 		},
 		"attack": {
 			"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
-			"filter_ticks": 4,
-			"particle": "minecraft:electric_spark",
-			"count": 15,
-			"sound": "minecraft:block.note_block.bit"
+			"filter_ticks": 3,
+			"sound": "minecraft:block.note_block.bit",
+			"text": "HIT!",
+			"text_color": "#fff200"
 		},
 		"crit": {
 			"filter": "minecraft:shaders/post/invert.json",
-			"filter_ticks": 6,
+			"filter_ticks": 5,
 			"flash": "#00ffd5",
 			"particle": "minecraft:firework",
 			"count": 40,
 			"sound": "minecraft:block.note_block.bit",
-			"pitch": 2.0
+			"pitch": 2.0,
+			"text": "CRITICAL!",
+			"text_color": "#ff00c8"
 		},
 		"faint": {
 			"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
-			"filter_ticks": 20,
-			"particle": "minecraft:wax_off",
-			"count": 40,
-			"sound": "minecraft:entity.item.break"
+			"filter_ticks": 16,
+			"sound": "minecraft:entity.item.break",
+			"text": "K.O.!",
+			"text_color": "#ff3050"
 		},
 		"victory": {
 			"particle": "minecraft:firework",
 			"count": 120,
 			"flash": "#fff200",
-			"sound": "minecraft:ui.toast.challenge_complete"
+			"sound": "minecraft:ui.toast.challenge_complete",
+			"text": "YOU WIN!",
+			"text_color": "#fff200"
+		},
+		"defeat": {
+			"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
+			"filter_ticks": 20,
+			"sound": "minecraft:block.note_block.bit",
+			"pitch": 0.5,
+			"text": "GAME OVER",
+			"text_color": "#ff3050"
 		}
 	}
 }

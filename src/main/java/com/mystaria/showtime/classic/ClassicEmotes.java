@@ -112,21 +112,28 @@ public final class ClassicEmotes {
 			case "cobblemon.battle.crit", "cobblemon.battle.crit_spread" -> com.mystaria.showtime.ambiance.BattleAmbiance.moment("crit");
 			case "cobblemon.battle.fainted" -> com.mystaria.showtime.ambiance.BattleAmbiance.moment("faint");
 			case "cobblemon.battle.win" -> {
-				outcome(args, true);
-				com.mystaria.showtime.ambiance.BattleAmbiance.moment("victory");
+				Boolean won = outcome(args, true);
+				// The ambiance's end moment for this player: victory, or defeat (2026-11-10: "YOU WIN!" showed to the loser).
+				com.mystaria.showtime.ambiance.BattleAmbiance.moment(Boolean.FALSE.equals(won) ? "defeat" : "victory");
 			}
-			case "cobblemon.battle.forfeit" -> outcome(args, false);
+			case "cobblemon.battle.forfeit" -> {
+				Boolean won = outcome(args, false);
+				com.mystaria.showtime.ambiance.BattleAmbiance.moment(Boolean.FALSE.equals(won) ? "defeat" : "victory");
+			}
 			default -> {
 			}
 		}
 	}
 
 	/** {@code args[0]} names the winners ({@code named} true) or who gave up: they and the others win or lose. */
-	private static void outcome(Object[] args, boolean namedWin) {
+	/** Returns whether this client's player won, or null when they don't fight in it (a spectator). */
+	private static Boolean outcome(Object[] args, boolean namedWin) {
 		ClientBattle battle = CobblemonClient.INSTANCE.getBattle();
 		if (battle == null || args.length == 0) {
-			return;
+			return null;
 		}
+		var player = net.minecraft.client.Minecraft.getInstance().player;
+		Boolean localWon = null;
 		String names = args[0] instanceof Component component ? component.getString() : String.valueOf(args[0]);
 		for (ClientBattleSide side : battle.getSides()) {
 			for (ClientBattleActor actor : side.getActors()) {
@@ -135,8 +142,12 @@ public final class ClassicEmotes {
 					named |= name.trim().equals(actor.getDisplayName().getString());
 				}
 				TrainerEmotes.act(actor.getUuid(), named == namedWin ? Moment.VICTORY : Moment.DEFEAT);
+				if (player != null && actor.getUuid().equals(player.getUUID())) {
+					localWon = named == namedWin;
+				}
 			}
 		}
+		return localWon;
 	}
 
 	/**

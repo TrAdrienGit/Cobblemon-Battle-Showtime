@@ -11,6 +11,7 @@ For players, see the [project README](../README.md). For coding agents, start wi
 | [api.md](api.md) | Public API for other mods |
 | [data-formats.md](data-formats.md) | Moves, ambiances, animations, filters, music, config |
 | [compatibility.md](compatibility.md) | Other mods and Cobblemon specifics |
+| [ambiance-plan.md](ambiance-plan.md) | The ambiance quality pass: findings, per-ambiance plan, new ambiance ideas |
 | [intro-references.md](intro-references.md) | Videos of every game's battle intros, to draw new intros from |
 | [testing.md](testing.md) | Build, test setups, in-game checklist |
 | [move-usage.csv](move-usage.csv) | Smogon usage of moves (`tools/move_table.py`), to prioritise polish |

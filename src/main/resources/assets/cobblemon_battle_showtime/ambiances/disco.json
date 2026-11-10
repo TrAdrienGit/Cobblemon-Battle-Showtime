@@ -4,87 +4,59 @@
 		"speed": 0
 	},
 	"sky": {
-		"sky_color": "#1a0b2e",
-		"fog_color": "#24103f",
-		"strength": 0.9,
-		"stars": 0.2,
+		"sky_color": "#1c0a26",
+		"fog_color": "#2a0f30",
+		"strength": 0.85,
+		"stars": 0.15,
 		"hide_clouds": true
 	},
 	"spotlights": {
-		"count": 10,
+		"count": 8,
+		"colors": [
+			"#ffd23d",
+			"#ff2fa8",
+			"#c070ff",
+			"#fff4e0"
+		],
+		"sweep": 10,
+		"height": 42,
+		"width": 1.4,
+		"alpha": 45,
+		"ring": 6
+	},
+	"mirror_ball": {
+		"height": 9,
+		"size": 1.3,
+		"dots": 48,
+		"colors": [
+			"#ffffff",
+			"#fff2c8",
+			"#ffd0f0"
+		],
+		"speed": 4,
+		"alpha": 140
+	},
+	"dance_floor": {
+		"tile": 2,
 		"colors": [
 			"#ff2fa8",
-			"#2fd5ff",
+			"#ffd23d",
 			"#b44bff",
-			"#ffe23d",
-			"#3dff7a"
+			"#ff8a3d"
 		],
-		"sweep": 16,
-		"height": 45,
-		"width": 1.6
-	},
-	"floor_lights": {
-		"count": 12,
-		"colors": [
-			"#ff2fa8",
-			"#2fd5ff",
-			"#b44bff",
-			"#ffe23d",
-			"#3dff7a"
-		],
-		"speed": 10,
-		"size": 2.4,
-		"alpha": 170
-	},
-	"floating_blocks": {
-		"block": "minecraft:sea_lantern",
-		"count": 1,
-		"radius": [
-			0,
-			0
-		],
-		"height": [
-			9,
-			9
-		],
-		"bob": 0.15,
-		"orbit": 0
-	},
-	"strobe": {
-		"colors": [
-			"#ff2fa8",
-			"#2fd5ff",
-			"#b44bff",
-			"#ffe23d"
-		],
-		"every": 10,
-		"alpha": 0.08
+		"beat": 10,
+		"alpha": 70
 	},
 	"particles": [
 		{
 			"type": "minecraft:note",
-			"rate": 1.2,
+			"rate": 0.8,
 			"area": "air",
 			"spread": 0.0
 		},
 		{
-			"type": "minecraft:end_rod",
-			"rate": 1.5,
-			"area": "ring",
-			"motion": [
-				0,
-				0.08,
-				0
-			]
-		},
-		{
-			"type": "minecraft:firework",
-			"rate": 0.4,
-			"area": "sky"
-		},
-		{
 			"type": "minecraft:wax_on",
-			"rate": 2,
+			"rate": 1.2,
 			"area": "field"
 		}
 	],
@@ -96,7 +68,7 @@
 		},
 		"attack": {
 			"particle": "minecraft:note",
-			"count": 10,
+			"count": 8,
 			"sound": "minecraft:block.note_block.bell",
 			"pitch": 1.4
 		},
@@ -108,14 +80,14 @@
 		},
 		"faint": {
 			"particle": "minecraft:end_rod",
-			"count": 40,
-			"flash": "#2fd5ff",
+			"count": 30,
+			"flash": "#c070ff",
 			"sound": "minecraft:entity.firework_rocket.large_blast"
 		},
 		"victory": {
 			"particle": "minecraft:totem_of_undying",
 			"count": 120,
-			"flash": "#ffe23d",
+			"flash": "#ffd23d",
 			"sound": "minecraft:ui.toast.challenge_complete"
 		}
 	}

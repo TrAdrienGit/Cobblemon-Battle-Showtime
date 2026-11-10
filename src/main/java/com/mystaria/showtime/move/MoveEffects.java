@@ -194,27 +194,6 @@ public final class MoveEffects {
 		return true;
 	}
 
-	/** {@code /showtime preview move <move>}: from the player to a point 6 blocks ahead. */
-	public static boolean preview(String move) {
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.player == null) {
-			return false;
-		}
-		MoveEffect effect = create(move, mc.player);
-		if (effect == null) {
-			return false;
-		}
-		Vec3 ahead = mc.player.getEyePosition().add(mc.player.getViewVector(1f).multiply(6, 0, 6)).add(0, -0.6, 0);
-		effect.previewTarget(ahead);
-		PLAYING.add(effect);
-		return true;
-	}
-
-	public static List<String> ids() {
-		TreeSet<String> ids = new TreeSet<>(CUSTOM.keySet());
-		ids.addAll(MoveSpecs.ids());
-		return List.copyOf(ids);
-	}
 
 	/** The effect of that move already playing for this user (or aimed at this target). */
 	private static MoveEffect playing(String move, Entity source, Entity targeted) {

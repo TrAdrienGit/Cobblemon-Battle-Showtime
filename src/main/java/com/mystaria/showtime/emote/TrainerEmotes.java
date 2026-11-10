@@ -36,8 +36,6 @@ import com.mystaria.showtime.api.ShowtimeHooks;
 public final class TrainerEmotes {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TrainerEmotes.class);
-	/** A preview of the looping guard stops after 5 s. */
-	private static final int PREVIEW_LOOP_TICKS = 100;
 
 	/** The moments a trainer acts; the guard loops between the others. */
 	public enum Moment {
@@ -279,18 +277,6 @@ public final class TrainerEmotes {
 		inBattle = false;
 	}
 
-	/** {@code /showtime preview emote <moment>}: on the player themselves (seen in third person). */
-	public static void preview(Moment moment) {
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.player == null) {
-			return;
-		}
-		Trainer state = TRAINERS.computeIfAbsent(mc.player.getUUID(), ignored -> new Trainer());
-		state.queue.clear();
-		state.queue.add(moment);
-		state.playing = null;
-		state.stopIn = moment.loops() ? PREVIEW_LOOP_TICKS : -1;
-	}
 
 	/** Left the world: everything stops at once. */
 	public static void reset() {

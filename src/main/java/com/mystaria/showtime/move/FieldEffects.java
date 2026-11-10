@@ -53,8 +53,6 @@ public final class FieldEffects {
 	private static final Map<Side, Map<String, Integer>> SIDES = new EnumMap<>(Side.class);
 	private static final RandomSource RANDOM = RandomSource.create();
 	private static int ticks;
-	/** Shown by {@code /showtime preview field}: around the player when no battle is on. */
-	private static boolean previewing;
 
 	private FieldEffects() {
 	}
@@ -148,7 +146,6 @@ public final class FieldEffects {
 	}
 
 	public static void reset() {
-		previewing = false;
 		terrain = null;
 		weather = null;
 		ROOMS.clear();
@@ -175,11 +172,6 @@ public final class FieldEffects {
 		if (stage != null) {
 			Entity active = stage.activePokemon(side == Side.ALLY);
 			found = active != null ? active.position() : stage.trainerPosition(side == Side.ALLY);
-		}
-		Entity player = Minecraft.getInstance().player;
-		if (found == null && previewing && player != null) {
-			Vec3 ahead = player.getViewVector(1f).multiply(1, 0, 1).normalize();
-			found = side == Side.ALLY ? player.position().add(ahead.scale(1.5)) : player.position().add(ahead.scale(7));
 		}
 		return found;
 	}
@@ -574,32 +566,4 @@ public final class FieldEffects {
 		pose.popPose();
 	}
 
-	// ---------------------------------------------------------------- preview
-
-	/** {@code /showtime preview field <id>}: toggles one effect for a look, without a battle (around the player). */
-	public static boolean preview(String id) {
-		String key = switch (id) {
-			case "grassyterrain", "electricterrain", "psychicterrain", "mistyterrain", "trickroom", "magicroom", "wonderroom", "gravity" -> "cobblemon.battle.fieldstart." + id;
-			case "sunnyday", "raindance", "sandstorm", "snow", "hail" -> "cobblemon.battle.weather." + id + ".start";
-			case "stealthrock", "spikes", "toxicspikes", "stickyweb", "reflect", "lightscreen", "auroraveil", "tailwind", "safeguard", "mist" -> "cobblemon.battle.sidestart.opponent." + id;
-			case "clear" -> null;
-			default -> "";
-		};
-		if (key == null) {
-			reset();
-			return true;
-		}
-		if (key.isEmpty()) {
-			return false;
-		}
-		previewing = true;
-		onKey(key);
-		return true;
-	}
-
-	public static List<String> previewIds() {
-		return List.of("grassyterrain", "electricterrain", "psychicterrain", "mistyterrain", "trickroom", "magicroom", "wonderroom",
-				"gravity", "sunnyday", "raindance", "sandstorm", "snow", "hail", "stealthrock", "spikes", "toxicspikes", "stickyweb",
-				"reflect", "lightscreen", "auroraveil", "tailwind", "safeguard", "mist", "clear");
-	}
 }

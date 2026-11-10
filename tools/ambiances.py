@@ -22,57 +22,53 @@ OLD_TV = FILTER + "old_tv.json"
 INVERT = "minecraft:shaders/post/invert.json"
 
 AMBIANCES = {
-    # Night club: a dark violet night, sweeping coloured searchlights, notes and sparks, fireworks on the big moments.
+    # Disco (2026-11-10, its own signature): a warm violet night, a mirror ball turning over the field and throwing
+    # light dots on the ground, a dance floor of tiles lighting up on the beat, soft searchlights round the edge.
     "disco": {
         "time": {"at": 18000, "speed": 0},
-        "sky": {"sky_color": "#1a0b2e", "fog_color": "#24103f", "strength": 0.9, "stars": 0.2, "hide_clouds": True},
-        "spotlights": {"count": 10, "colors": ["#ff2fa8", "#2fd5ff", "#b44bff", "#ffe23d", "#3dff7a"], "sweep": 16,
-                       "height": 45, "width": 1.6},
-        # Coloured spots turning on the dance floor, a mirror ball over the field, the screen pulsing on the beat.
-        "floor_lights": {"count": 12, "colors": ["#ff2fa8", "#2fd5ff", "#b44bff", "#ffe23d", "#3dff7a"], "speed": 10,
-                         "size": 2.4, "alpha": 170},
-        "floating_blocks": {"block": "minecraft:sea_lantern", "count": 1, "radius": [0, 0], "height": [9, 9],
-                            "bob": 0.15, "orbit": 0},
-        "strobe": {"colors": ["#ff2fa8", "#2fd5ff", "#b44bff", "#ffe23d"], "every": 10, "alpha": 0.08},
+        "sky": {"sky_color": "#1c0a26", "fog_color": "#2a0f30", "strength": 0.85, "stars": 0.15, "hide_clouds": True},
+        "spotlights": {"count": 8, "colors": ["#ffd23d", "#ff2fa8", "#c070ff", "#fff4e0"], "sweep": 10,
+                       "height": 42, "width": 1.4, "alpha": 45, "ring": 6},
+        "mirror_ball": {"height": 9, "size": 1.3, "dots": 48, "colors": ["#ffffff", "#fff2c8", "#ffd0f0"], "speed": 4,
+                        "alpha": 140},
+        "dance_floor": {"tile": 2, "colors": ["#ff2fa8", "#ffd23d", "#b44bff", "#ff8a3d"], "beat": 10, "alpha": 70},
         "particles": [
-            {"type": "minecraft:note", "rate": 1.2, "area": "air", "spread": 0.0},
-            {"type": "minecraft:end_rod", "rate": 1.5, "area": "ring", "motion": [0, 0.08, 0]},
-            {"type": "minecraft:firework", "rate": 0.4, "area": "sky"},
-            {"type": "minecraft:wax_on", "rate": 2, "area": "field"},
+            {"type": "minecraft:note", "rate": 0.8, "area": "air", "spread": 0.0},
+            {"type": "minecraft:wax_on", "rate": 1.2, "area": "field"},
         ],
         "moments": {
             "send_out": {"particle": "minecraft:firework", "count": 25, "sound": "minecraft:entity.firework_rocket.twinkle"},
-            "attack": {"particle": "minecraft:note", "count": 10, "sound": "minecraft:block.note_block.bell", "pitch": 1.4},
+            "attack": {"particle": "minecraft:note", "count": 8, "sound": "minecraft:block.note_block.bell", "pitch": 1.4},
             "crit": {"particle": "minecraft:firework", "count": 60, "flash": "#ff2fa8",
                      "sound": "minecraft:entity.firework_rocket.blast"},
-            "faint": {"particle": "minecraft:end_rod", "count": 40, "flash": "#2fd5ff",
+            "faint": {"particle": "minecraft:end_rod", "count": 30, "flash": "#c070ff",
                       "sound": "minecraft:entity.firework_rocket.large_blast"},
-            "victory": {"particle": "minecraft:totem_of_undying", "count": 120, "flash": "#ffe23d",
+            "victory": {"particle": "minecraft:totem_of_undying", "count": 120, "flash": "#ffd23d",
                         "sound": "minecraft:ui.toast.challenge_complete"},
         },
     },
 
-    # A sunny meadow: early morning light, cherry petals blown by the wind, drifting spores.
+    # Meadow (2026-11-10): a golden spring morning. Soft sun rays come down on the sun's side, beyond the field
+    # (the old ones fell on the field and blinded everyone); butterflies, petals and pollen.
     "nature": {
-        "time": {"at": 1500, "speed": 1},
-        "sky": {"sky_color": "#8fd3ff", "fog_color": "#cfe9c8", "strength": 0.5},
-        "wind": [0.03, 0.01],
-        # Soft sunbeams coming down through the air.
-        "spotlights": {"count": 5, "colors": ["#fff2b0", "#ffe9a0"], "sweep": 1, "height": 40, "width": 1.6,
-                       "from_sky": True},
+        "time": {"at": 1000, "speed": 1},
+        "sky": {"sky_color": "#9fd8ff", "fog_color": "#f4e6c0", "strength": 0.45},
+        "wind": [0.025, 0.008],
+        "spotlights": {"count": 6, "colors": ["#fff0b8", "#ffe2a0", "#fff8d8"], "sweep": 0.6, "height": 42, "width": 2.6,
+                       "from_sky": True, "alpha": 22, "ring": 4, "sector": 80, "facing": 300},
+        "critters": {"kind": "butterfly", "count": 14, "colors": ["#ffd23d", "#ffffff", "#ff9ad5", "#7fd0ff", "#ffa040"],
+                     "radius": 13},
         "particles": [
-            {"type": "minecraft:cherry_leaves", "rate": 2.5, "area": "air"},
-            {"type": "minecraft:cherry_leaves", "rate": 1.0, "area": "sky"},
-            {"type": "minecraft:spore_blossom_air", "rate": 3, "area": "field"},
-            {"type": "minecraft:falling_spore_blossom", "rate": 0.8, "area": "sky"},
-            {"type": "minecraft:happy_villager", "rate": 0.3, "area": "field"},
+            {"type": "minecraft:cherry_leaves", "rate": 1.5, "area": "air"},
+            {"type": "minecraft:spore_blossom_air", "rate": 1.5, "area": "field"},
+            {"type": "minecraft:falling_spore_blossom", "rate": 0.5, "area": "sky"},
         ],
         "moments": {
-            "attack": {"particle": "minecraft:happy_villager", "count": 8},
-            "crit": {"particle": "minecraft:cherry_leaves", "count": 60, "flash": "#fff6c8",
+            "attack": {"particle": "minecraft:happy_villager", "count": 6},
+            "crit": {"particle": "minecraft:cherry_leaves", "count": 50, "flash": "#fff6c8",
                      "sound": "minecraft:block.cherry_leaves.break"},
-            "faint": {"particle": "minecraft:composter", "count": 30},
-            "victory": {"particle": "minecraft:cherry_leaves", "count": 150, "sound": "minecraft:entity.player.levelup"},
+            "faint": {"particle": "minecraft:composter", "count": 25},
+            "victory": {"particle": "minecraft:cherry_leaves", "count": 140, "sound": "minecraft:entity.player.levelup"},
         },
     },
 
@@ -207,34 +203,33 @@ AMBIANCES = {
         },
     },
 
-    # Arcade: fine pixels, a neon night — sweeping neon beams, neon spots racing over the floor, the screen pulsing on the
-    # beat, floating glowing blocks like pixels; every hit glitches the screen for an instant.
+    # Arcade (2026-11-10, rebuilt apart from Disco): a retro video game. A neon grid on the ground with a wave running
+    # out, 8-bit sprites (coins, hearts, stars, gems) floating round, a black sky with pixel stars, a light CRT look,
+    # and big pixel words on the battle's moments.
     "arcade": {
-        "filter": PIXELS,
+        "filter": OLD_TV,
         "time": {"at": 18000, "speed": 0},
-        "sky": {"sky_color": "#0a0018", "fog_color": "#140030", "strength": 0.9, "hide_clouds": True, "stars": 0.6},
-        "spotlights": {"count": 8, "colors": ["#00ffd5", "#ff00c8", "#fff200"], "sweep": 24, "height": 35, "width": 1.2},
-        "floor_lights": {"count": 16, "colors": ["#00ffd5", "#ff00c8", "#fff200", "#5b6bff"], "speed": 16, "size": 1.6,
-                         "alpha": 180},
-        "strobe": {"colors": ["#00ffd5", "#ff00c8"], "every": 8, "alpha": 0.05},
-        "floating_blocks": {"block": "minecraft:redstone_lamp[lit=true]", "count": 10, "radius": [10, 16],
-                            "height": [3, 9], "bob": 0.8, "orbit": 2.0},
-        "shooting_stars": {"rate": 0.06, "color": "#00ffd5"},
+        "sky": {"sky_color": "#04000c", "fog_color": "#08001a", "strength": 0.95, "hide_clouds": True, "stars": 0.9},
+        "neon_grid": {"spacing": 2, "color": "#00ffd5", "accent": "#ff00c8", "alpha": 140, "extent": 1.9, "pulse": 6},
+        "sprites": {"shapes": ["coin", "heart", "star", "gem"], "count": 12, "radius": [9, 17], "height": [3, 8],
+                    "pixel": 0.13, "bob": 0.4, "orbit": 0.35},
         "particles": [
-            {"type": "minecraft:electric_spark", "rate": 2, "area": "ring"},
-            {"type": "minecraft:glow", "rate": 1, "area": "air"},
-            {"type": "minecraft:wax_off", "rate": 1.5, "area": "field"},
+            {"type": "minecraft:electric_spark", "rate": 1, "area": "ring"},
         ],
         "moments": {
-            "send_out": {"particle": "minecraft:firework", "count": 30, "sound": "minecraft:block.note_block.bit", "pitch": 1.5},
-            "attack": {"filter": GLITCH, "filter_ticks": 4, "particle": "minecraft:electric_spark", "count": 15,
-                       "sound": "minecraft:block.note_block.bit"},
-            "crit": {"filter": INVERT, "filter_ticks": 6, "flash": "#00ffd5", "particle": "minecraft:firework",
-                     "count": 40, "sound": "minecraft:block.note_block.bit", "pitch": 2.0},
-            "faint": {"filter": GLITCH, "filter_ticks": 20, "particle": "minecraft:wax_off", "count": 40,
-                      "sound": "minecraft:entity.item.break"},
+            "send_out": {"particle": "minecraft:firework", "count": 20, "sound": "minecraft:block.note_block.bit",
+                         "pitch": 1.5, "text": "READY?", "text_color": "#00ffd5"},
+            "attack": {"filter": GLITCH, "filter_ticks": 3, "sound": "minecraft:block.note_block.bit", "text": "HIT!",
+                       "text_color": "#fff200"},
+            "crit": {"filter": INVERT, "filter_ticks": 5, "flash": "#00ffd5", "particle": "minecraft:firework",
+                     "count": 40, "sound": "minecraft:block.note_block.bit", "pitch": 2.0, "text": "CRITICAL!",
+                     "text_color": "#ff00c8"},
+            "faint": {"filter": GLITCH, "filter_ticks": 16, "sound": "minecraft:entity.item.break", "text": "K.O.!",
+                      "text_color": "#ff3050"},
             "victory": {"particle": "minecraft:firework", "count": 120, "flash": "#fff200",
-                        "sound": "minecraft:ui.toast.challenge_complete"},
+                        "sound": "minecraft:ui.toast.challenge_complete", "text": "YOU WIN!", "text_color": "#fff200"},
+            "defeat": {"filter": GLITCH, "filter_ticks": 20, "sound": "minecraft:block.note_block.bit", "pitch": 0.5,
+                       "text": "GAME OVER", "text_color": "#ff3050"},
         },
     },
 
