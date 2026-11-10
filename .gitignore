@@ -50,3 +50,5 @@ replay_pid*
 !/art/intros/intros_400px.gif
 !/art/*/screenshots/
 !/art/*/screenshots/*.png
+!/art/camera/camera.gif
+!/art/camera/camera_400px.gif
