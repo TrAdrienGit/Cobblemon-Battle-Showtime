@@ -95,6 +95,43 @@ public final class BattleAmbiance {
 	}
 
 	private static final List<PendingFirework> FIREWORKS = new ArrayList<>();
+
+	/** The line between the two trainers (horizontal, unit) and half its length: the court lies along it. */
+	private static Vec3 fieldAxis = new Vec3(1, 0, 0);
+	private static double fieldHalf = 6;
+
+	/** A wormhole opened by a moment: when (ticks), or -1. */
+	private static long wormholeBurst = -1;
+
+	/** Notes of a moment's tune waiting their tick. */
+	private record PendingNote(long at, String sound, float pitch, float volume) {
+	}
+
+	private static final List<PendingNote> NOTES = new ArrayList<>();
+
+	/** Confetti in the air: born when, from where, how fast, its colour, its tumbling. */
+	private record Confetti(long born, Vec3 from, Vec3 speed, int color, float spin, float phase) {
+	}
+
+	private static final List<Confetti> CONFETTI = new ArrayList<>();
+	private static final int CONFETTI_LIFE = 260;
+
+	/** Camera flashes in the stands: where (relative to the field) and when. */
+	private record CameraFlash(Vec3 at, long born) {
+	}
+
+	private static final List<CameraFlash> CAMERA_FLASHES = new ArrayList<>();
+	/** The crowd cheers until then (ticks). */
+	private static long cheerUntil;
+	/** The crowd's excitement, 0..1, this tick and the last (eased toward cheering, fading slowly after). */
+	private static float crowdExcite = 0.12f;
+	private static float crowdExcitePrev = 0.12f;
+	/** The LED ribbon's white flash, fading. */
+	private static float ledFlash;
+	/** When a wave started running round the stands, or -1. */
+	private static long crowdWave = -1;
+	/** Where the followspots aim now (eased toward each Pokémon), relative to the field. */
+	private static final Vec3[] SPOT_AIM = new Vec3[2];
 	private static long nextFirework = -1;
 	/** Film: the scratch running (screen x 0..1, ticks left) and a speck of dust (x, y, ticks left). */
 	private static float scratchX;
@@ -206,6 +243,17 @@ public final class BattleAmbiance {
 		flashLeft = 0;
 		FLOATING.clear();
 		FIREWORKS.clear();
+		NOTES.clear();
+		CONFETTI.clear();
+		CAMERA_FLASHES.clear();
+		wormholeBurst = -1;
+		cheerUntil = 0;
+		crowdExcite = 0.12f;
+		crowdExcitePrev = 0.12f;
+		ledFlash = 0;
+		crowdWave = -1;
+		SPOT_AIM[0] = null;
+		SPOT_AIM[1] = null;
 	}
 
 	public static boolean active() {
@@ -360,6 +408,26 @@ public final class BattleAmbiance {
 			double far = between(active.fireworks.distance);
 			FIREWORKS.add(new PendingFirework(ticks, new Vec3(Math.cos(angle) * far, between(active.fireworks.height), Math.sin(angle) * far)));
 		}
+		for (int i = NOTES.size() - 1; i >= 0; i--) {
+			if (ticks >= NOTES.get(i).at()) {
+				PendingNote note = NOTES.remove(i);
+				mc.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+						SoundEvent.createVariableRangeEvent(ResourceLocation.parse(note.sound())), note.pitch(), note.volume()));
+			}
+		}
+		CONFETTI.removeIf(piece -> ticks - piece.born() > CONFETTI_LIFE);
+		CAMERA_FLASHES.removeIf(flash -> ticks - flash.born() > 5);
+		if (active.crowd != null) {
+			crowdExcitePrev = crowdExcite;
+			float target = ticks < cheerUntil ? 1f : 0.12f; // never quite still: a murmur of movement between moments
+			crowdExcite = target > crowdExcite ? crowdExcite + (target - crowdExcite) * 0.3f : crowdExcite * 0.965f;
+			ledFlash *= calm() ? 0.8f : 0.92f;
+			float rate = active.crowd.flashes * (calm() ? 0.5f : 1f);
+			int count = (int) rate + (RANDOM.nextFloat() < rate - (int) rate ? 1 : 0);
+			for (int i = 0; i < count; i++) {
+				cameraFlash();
+			}
+		}
 		for (int i = FIREWORKS.size() - 1; i >= 0; i--) {
 			if (ticks >= FIREWORKS.get(i).at()) {
 				burst(mc.level, FIREWORKS.remove(i).where());
@@ -453,6 +521,31 @@ public final class BattleAmbiance {
 						center.z + Math.sin(angle) * r, (RANDOM.nextDouble() - 0.5) * 0.3, RANDOM.nextDouble() * 0.3,
 						(RANDOM.nextDouble() - 0.5) * 0.3);
 			}
+		}
+		if (moment.wormhole) {
+			wormholeBurst = ticks;
+		}
+		if (moment.cheer) {
+			cheerUntil = ticks + 70;
+			ledFlash = calm() ? 0.4f : 1f;
+		}
+		if (moment.wave) {
+			crowdWave = ticks;
+		}
+		for (int i = 0; i < (calm() ? moment.cameraFlashes / 2 : moment.cameraFlashes) && active.crowd != null; i++) {
+			cameraFlash();
+		}
+		for (int i = 0; i < moment.notes.size(); i++) {
+			float pitch = moment.notes.get(i);
+			if (pitch > 0) {
+				NOTES.add(new PendingNote(ticks + (long) i * Math.max(1, moment.noteEvery), moment.noteSound, pitch, moment.noteVolume));
+			}
+		}
+		if (moment.pyro) {
+			pyro(mc.level);
+		}
+		if (moment.confetti > 0) {
+			launchConfetti(moment.confetti);
 		}
 		for (int i = 0; i < moment.fireworks; i++) {
 			double angle = RANDOM.nextDouble() * Math.PI * 2;
@@ -581,6 +674,14 @@ public final class BattleAmbiance {
 			apart = Math.max(apart, (float) spot.distanceTo(center));
 		}
 		fieldRadius = Math.max(8f, apart + 5f);
+		if (spots.size() >= 2) {
+			Vec3 across = spots.get(1).subtract(spots.get(0));
+			across = new Vec3(across.x, 0, across.z);
+			if (across.length() > 0.5) {
+				fieldAxis = across.normalize();
+				fieldHalf = across.length() / 2;
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------- what the world reads (mixins)
@@ -675,7 +776,8 @@ public final class BattleAmbiance {
 		pose.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z);
 		cameraRel = camera.subtract(center);
 		MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-		if (active.moon != null || active.volcano != null || active.stripedSun != null || active.mirage != null) {
+		if (active.moon != null || active.volcano != null || active.stripedSun != null || active.mirage != null
+				|| !active.wormholes.isEmpty()) {
 			// Far things on the sky go without fog (2026-11-10): an ambiance's close fog swallowed them (Inferno's
 			// volcano, Spectral's moon). Their own batch, so the fog comes back for everything else.
 			buffers.endBatch();
@@ -693,6 +795,9 @@ public final class BattleAmbiance {
 			if (active.stripedSun != null) {
 				drawStripedSun(pose, buffers, active.stripedSun, true);
 			}
+			for (Ambiance.Wormhole wormhole : active.wormholes) {
+				drawWormhole(pose, buffers, wormholePlace(wormhole), wormhole, wormhole.size, time, 0);
+			}
 			buffers.endBatch();
 			if (active.moon != null) {
 				drawMoonDisc(pose, buffers, active.moon);
@@ -703,8 +808,32 @@ public final class BattleAmbiance {
 			if (active.stripedSun != null) {
 				drawStripedSun(pose, buffers, active.stripedSun, false);
 			}
+			for (Ambiance.Wormhole wormhole : active.wormholes) {
+				drawWormhole(pose, buffers, wormholePlace(wormhole), wormhole, wormhole.size, time, 1);
+			}
+			buffers.endBatch();
+			for (Ambiance.Wormhole wormhole : active.wormholes) {
+				drawWormhole(pose, buffers, wormholePlace(wormhole), wormhole, wormhole.size, time, 2);
+			}
 			buffers.endBatch();
 			com.mojang.blaze3d.systems.RenderSystem.setShaderFogStart(fogStart);
+		}
+		if (active.islands != null || active.island != null || active.crowd != null || active.lightTowers != null) {
+			// Solid scenery first, writing depth: the glows drawn after are hidden behind it where they should be.
+			buffers.endBatch();
+			if (active.islands != null) {
+				drawIslands(pose, buffers, active.islands, time, false);
+			}
+			if (active.island != null) {
+				drawFieldIsland(pose, buffers, active.island, time, false);
+			}
+			if (active.crowd != null) {
+				drawStands(pose, buffers, active.crowd, time, false);
+			}
+			if (active.lightTowers != null) {
+				drawLightTowers(pose, buffers, active.lightTowers, time, false);
+			}
+			buffers.endBatch();
 		}
 		if (active.backdrop != null) {
 			drawBackdrop(pose, buffers, active.backdrop, time);
@@ -753,6 +882,30 @@ public final class BattleAmbiance {
 		}
 		if (active.glints != null) {
 			drawGlints(pose, buffers, active.glints, time);
+		}
+		if (active.islands != null) {
+			drawIslands(pose, buffers, active.islands, time, true);
+		}
+		if (active.island != null) {
+			drawFieldIsland(pose, buffers, active.island, time, true);
+		}
+		if (wormholeBurst >= 0 && !active.wormholes.isEmpty()) {
+			drawWormholeBurst(pose, buffers, time, partialTick, true);
+		}
+		if (active.court != null) {
+			drawCourt(pose, buffers, active.court);
+		}
+		if (active.lightTowers != null) {
+			drawLightTowers(pose, buffers, active.lightTowers, time, true);
+		}
+		if (active.followspots != null && active.lightTowers != null) {
+			drawFollowspots(pose, buffers, active.followspots, active.lightTowers);
+		}
+		if (active.crowd != null) {
+			drawStands(pose, buffers, active.crowd, time, true);
+		}
+		if (!CAMERA_FLASHES.isEmpty()) {
+			drawCameraFlashes(pose, buffers, time);
 		}
 		if (active.shafts != null) {
 			drawShafts(pose, buffers, active.shafts, time);
@@ -809,6 +962,12 @@ public final class BattleAmbiance {
 		}
 		if (active.fogWall != null) {
 			drawFogWall(pose, buffers, active.fogWall, time);
+		}
+		if (wormholeBurst >= 0 && !active.wormholes.isEmpty()) {
+			drawWormholeBurst(pose, buffers, time, partialTick, false);
+		}
+		if (!CONFETTI.isEmpty()) {
+			drawConfetti(pose, buffers, time);
 		}
 		if (active.lanterns != null) {
 			drawLanterns(pose, buffers, active.lanterns, time, false);
@@ -2481,6 +2640,1034 @@ public final class BattleAmbiance {
 					p = q;
 				}
 			}
+		}
+	}
+
+	// ---------------------------------------------------------------- Ultra Space (2026-11-10)
+
+	/** Where scenery is lit from: up, a little to one side, so solid shapes read in three dimensions. */
+	private static final Vec3 SUN_SIDE = new Vec3(0.45, 0.75, 0.35).normalize();
+
+	/** A face's colour, lit by how much it turns toward {@link #SUN_SIDE}. */
+	private static int shade(int color, Vec3 normal, float ambient) {
+		double light = Math.max(0, normal.dot(SUN_SIDE));
+		return lerpColor(0x000000, color, (float) (ambient + (1 - ambient) * light));
+	}
+
+	private static Vec3 wormholePlace(Ambiance.Wormhole wormhole) {
+		double yaw = Math.toRadians(wormhole.yaw);
+		double pitch = Math.toRadians(wormhole.pitch);
+		return new Vec3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw)).scale(skyRadius());
+	}
+
+	/**
+	 * A wormhole facing the field (or the camera, for a moment's). In three layers, so it reads as depth: 0 the light
+	 * behind (a halo, spiral arms of light winding in, colour shifting toward the middle), 1 the dark core, 2 what is in
+	 * front (a bright rim round the core, motes of light being drawn in along the arms).
+	 */
+	private static void drawWormhole(PoseStack pose, MultiBufferSource buffers, Vec3 at, Ambiance.Wormhole wormhole, float size,
+			float time, int layer) {
+		drawWormhole(pose, buffers, at, at.normalize().scale(-1).add(0, 0.25, 0).normalize(), wormhole, size, time, layer);
+	}
+
+	private static void drawWormhole(PoseStack pose, MultiBufferSource buffers, Vec3 at, Vec3 normal, Ambiance.Wormhole wormhole,
+			float size, float time, int layer) {
+		if (size <= 0.01f) {
+			return;
+		}
+		VertexConsumer out = buffers.getBuffer(layer == 1 ? com.mystaria.showtime.ShowtimeRenderTypes.TINT : com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		Vec3 u = normal.cross(new Vec3(0, 1, 0));
+		u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+		Vec3 v = normal.cross(u).normalize();
+		int color = Ambiance.color(wormhole.color, 0x3DF0FF);
+		int accent = Ambiance.color(wormhole.accent, 0xFF4FD8);
+		double turn = time / 1200.0 * wormhole.spin * Math.PI * 2;
+		double twist = Math.PI * 2.4 * Math.signum(wormhole.spin == 0 ? 1 : wormhole.spin);
+		int arms = Math.max(1, wormhole.arms);
+		if (layer == 0) {
+			glowDisc(out, m, at, normal, size * 1.9f, color, 38);
+			glowDisc(out, m, at, normal, size * 0.5f, accent, 90);
+			int steps = 28;
+			for (int a = 0; a < arms; a++) {
+				double base = Math.PI * 2 * a / arms + turn;
+				for (int s = 0; s < steps; s++) {
+					double t0 = s / (double) steps;
+					double t1 = (s + 1) / (double) steps;
+					double th0 = base + t0 * twist;
+					double th1 = base + t1 * twist;
+					double r0 = size * (1 - 0.74 * t0);
+					double r1 = size * (1 - 0.74 * t1);
+					Vec3 radial0 = u.scale(Math.cos(th0)).add(v.scale(Math.sin(th0)));
+					Vec3 radial1 = u.scale(Math.cos(th1)).add(v.scale(Math.sin(th1)));
+					Vec3 p0 = at.add(radial0.scale(r0));
+					Vec3 p1 = at.add(radial1.scale(r1));
+					Vec3 w0 = radial0.scale(size * 0.2 * (1 - t0 * 0.6));
+					Vec3 w1 = radial1.scale(size * 0.2 * (1 - t1 * 0.6));
+					int c0 = lerpColor(color, accent, (float) t0);
+					int c1 = lerpColor(color, accent, (float) t1);
+					// 2026-11-10: at 22..142 the arms barely showed; only the core and rim read.
+					int a0 = (int) Math.round(60 + 140 * t0);
+					int a1 = (int) Math.round(60 + 140 * t1);
+					for (int half = -1; half <= 1; half += 2) {
+						vertex(out, m, p0, c0, a0);
+						vertex(out, m, p0.add(w0.scale(half)), c0, 0);
+						vertex(out, m, p1.add(w1.scale(half)), c1, 0);
+						vertex(out, m, p1, c1, a1);
+					}
+				}
+			}
+			return;
+		}
+		int segments = 40;
+		if (layer == 1) {
+			// The core: black at the heart, a deep violet toward its edge.
+			for (int i = 0; i < segments; i++) {
+				double a0 = Math.PI * 2 * i / segments;
+				double a1 = Math.PI * 2 * (i + 1) / segments;
+				double r = size * 0.27;
+				vertex(out, m, at, 0x05020F, 255);
+				vertex(out, m, at, 0x05020F, 255);
+				vertex(out, m, at.add(u.scale(Math.cos(a1) * r)).add(v.scale(Math.sin(a1) * r)), 0x1A0838, 255);
+				vertex(out, m, at.add(u.scale(Math.cos(a0) * r)).add(v.scale(Math.sin(a0) * r)), 0x1A0838, 255);
+			}
+			return;
+		}
+		Vec3 front = normal.scale(0.05);
+		float flicker = 0.85f + 0.15f * Mth.sin(time / 5f);
+		for (int i = 0; i < segments; i++) {
+			double a0 = Math.PI * 2 * i / segments;
+			double a1 = Math.PI * 2 * (i + 1) / segments;
+			double[] radii = { 0.22, 0.27, 0.34 };
+			int[] alphas = { 0, Math.round(235 * flicker), 0 };
+			int rim = lerpColor(0xFFFFFF, color, 0.35f);
+			for (int k = 0; k < 2; k++) {
+				Vec3 i0 = at.add(front).add(u.scale(Math.cos(a0) * size * radii[k])).add(v.scale(Math.sin(a0) * size * radii[k]));
+				Vec3 i1 = at.add(front).add(u.scale(Math.cos(a1) * size * radii[k])).add(v.scale(Math.sin(a1) * size * radii[k]));
+				Vec3 o0 = at.add(front).add(u.scale(Math.cos(a0) * size * radii[k + 1])).add(v.scale(Math.sin(a0) * size * radii[k + 1]));
+				Vec3 o1 = at.add(front).add(u.scale(Math.cos(a1) * size * radii[k + 1])).add(v.scale(Math.sin(a1) * size * radii[k + 1]));
+				vertex(out, m, i0, rim, alphas[k]);
+				vertex(out, m, o0, rim, alphas[k + 1]);
+				vertex(out, m, o1, rim, alphas[k + 1]);
+				vertex(out, m, i1, rim, alphas[k]);
+			}
+		}
+		// Motes drawn in along the arms, speeding up as they near the core.
+		for (int i = 0; i < 18; i++) {
+			double t = ((time / 140.0) + i / 18.0) % 1.0;
+			t = t * t;
+			double th = Math.PI * 2 * (i % arms) / arms + turn + t * twist + 0.15;
+			double r = size * (1 - 0.72 * t);
+			Vec3 p = at.add(front).add(u.scale(Math.cos(th) * r)).add(v.scale(Math.sin(th) * r));
+			glowDisc(out, m, p, normal, size * 0.05f, lerpColor(0xFFFFFF, accent, (float) t), (int) Math.round(200 * Math.sin(t * Math.PI)));
+		}
+	}
+
+	/** A moment's wormhole: tears open over the field facing the camera, holds, then snaps shut. */
+	private static void drawWormholeBurst(PoseStack pose, MultiBufferSource buffers, float time, float partialTick, boolean glow) {
+		float age = time - wormholeBurst;
+		if (age > 50) {
+			wormholeBurst = -1;
+			return;
+		}
+		float open = age < 10 ? 1 - (float) Math.pow(1 - age / 10f, 3) : age > 38 ? Math.max(0, 1 - (age - 38) / 12f) : 1f;
+		Ambiance.Wormhole wormhole = active.wormholes.get(0);
+		Vec3 at = new Vec3(0, 7.5, 0);
+		Vec3 normal = cameraRel.subtract(at).normalize();
+		float size = 3.4f * open;
+		if (glow) {
+			drawWormhole(pose, buffers, at, normal, wormhole, size, time * 4, 0);
+			drawWormhole(pose, buffers, at, normal, wormhole, size, time * 4, 2);
+		} else {
+			drawWormhole(pose, buffers, at, normal, wormhole, size, time * 4, 1);
+		}
+	}
+
+	/** One floating island's crystals: {base, tip} pairs and whether each takes the accent colour. */
+	private static List<Vec3[]> islandCrystals(int island, float size) {
+		List<Vec3[]> crystals = new ArrayList<>();
+		int count = 2 + (int) (hashFloat(island * 211 + 1) * 3);
+		for (int c = 0; c < count; c++) {
+			double angle = hashFloat(island * 211 + 10 + c) * Math.PI * 2;
+			double out = size * 0.55 * hashFloat(island * 211 + 20 + c);
+			Vec3 base = new Vec3(Math.cos(angle) * out, 0, Math.sin(angle) * out);
+			double height = size * (0.5 + 0.6 * hashFloat(island * 211 + 30 + c));
+			Vec3 lean = new Vec3(Math.cos(angle), 0, Math.sin(angle)).scale(height * 0.3 * (out / Math.max(0.1, size * 0.55)));
+			crystals.add(new Vec3[] {base, base.add(lean).add(0, height, 0)});
+		}
+		return crystals;
+	}
+
+	/**
+	 * A crystal (2026-11-10: four plain sides read as low-poly): six sides turned at random, swelling a little to a
+	 * shoulder, then a faceted point; dark at the root, clearer up its length, nearly white at the tip, each face lit
+	 * by its own angle.
+	 */
+	private static void crystal(VertexConsumer out, Matrix4f m, Vec3 base, Vec3 tip, float width, int color, double turn) {
+		Vec3[] frame = crystalFrame(base, tip);
+		Vec3 axis = tip.subtract(base);
+		Vec3 shoulder = base.add(axis.scale(0.72));
+		int sides = 6;
+		int root = lerpColor(color, 0x000000, 0.45f);
+		int body = lerpColor(color, 0xFFFFFF, 0.1f);
+		int point = lerpColor(color, 0xFFFFFF, 0.55f);
+		for (int k = 0; k < sides; k++) {
+			double a0 = turn + Math.PI * 2 * k / sides;
+			double a1 = turn + Math.PI * 2 * (k + 1) / sides;
+			Vec3 d0 = frame[0].scale(Math.cos(a0)).add(frame[1].scale(Math.sin(a0)));
+			Vec3 d1 = frame[0].scale(Math.cos(a1)).add(frame[1].scale(Math.sin(a1)));
+			Vec3 faceNormal = d0.add(d1).normalize();
+			float light = (float) (0.5 + 0.5 * Math.max(0, faceNormal.dot(SUN_SIDE)));
+			// Every other face a touch clearer: facets catching the light differently.
+			float facet = k % 2 == 0 ? 1f : 0.86f;
+			int lo = lerpColor(0x000000, root, light * facet);
+			int mid = lerpColor(0x000000, body, light * facet);
+			int hi = lerpColor(0x000000, point, Math.min(1f, light * facet + 0.2f));
+			vertex(out, m, base.add(d0.scale(width)), lo, 255);
+			vertex(out, m, base.add(d1.scale(width)), lo, 255);
+			vertex(out, m, shoulder.add(d1.scale(width * 1.08)), mid, 255);
+			vertex(out, m, shoulder.add(d0.scale(width * 1.08)), mid, 255);
+			vertex(out, m, shoulder.add(d0.scale(width * 1.08)), mid, 255);
+			vertex(out, m, shoulder.add(d1.scale(width * 1.08)), mid, 255);
+			vertex(out, m, tip, hi, 255);
+			vertex(out, m, tip, hi, 255);
+		}
+	}
+
+	/** Two directions across a crystal's length. */
+	private static Vec3[] crystalFrame(Vec3 base, Vec3 tip) {
+		Vec3 axis = tip.subtract(base);
+		Vec3 a = axis.cross(new Vec3(0, 1, 0));
+		a = a.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : a.normalize();
+		Vec3 b = axis.cross(a).normalize();
+		return new Vec3[] {a, b};
+	}
+
+	/** A crystal's light: two edges catching it as bright lines, a soft glow round its point. */
+	private static void crystalGlint(VertexConsumer out, Matrix4f m, Vec3 base, Vec3 tip, float width, int color, float strength,
+			double turn) {
+		Vec3[] frame = crystalFrame(base, tip);
+		Vec3 axis = tip.subtract(base);
+		Vec3 shoulder = base.add(axis.scale(0.72));
+		int edge = lerpColor(color, 0xFFFFFF, 0.6f);
+		for (int k : new int[] {0, 2}) {
+			double a = turn + Math.PI * 2 * k / 6;
+			Vec3 d = frame[0].scale(Math.cos(a)).add(frame[1].scale(Math.sin(a)));
+			Vec3 from = base.add(d.scale(width * 1.02)).add(axis.scale(0.15));
+			Vec3 to = shoulder.add(d.scale(width * 1.1));
+			Vec3 side = axis.cross(cameraRel.subtract(from));
+			side = side.lengthSqr() < 1.0E-8 ? frame[1].scale(0.03) : side.normalize().scale(width * 0.12);
+			int alpha = Math.round(110 * strength);
+			vertex(out, m, from.subtract(side), edge, 0);
+			vertex(out, m, from.add(side), edge, 0);
+			vertex(out, m, to.add(side), edge, alpha);
+			vertex(out, m, to.subtract(side), edge, alpha);
+			vertex(out, m, to.subtract(side), edge, alpha);
+			vertex(out, m, to.add(side), edge, alpha);
+			vertex(out, m, tip.add(side.scale(0.3)), edge, alpha);
+			vertex(out, m, tip.subtract(side.scale(0.3)), edge, alpha);
+		}
+		glowDisc(out, m, tip, cameraRel.subtract(tip).normalize(), (float) axis.length() * 0.35f, color, Math.round(60 * strength));
+	}
+
+	/**
+	 * Islands floating in the void: a rocky top with a lip, rock tapering to a jagged point below, crystals growing on
+	 * top (solid pass, writing depth); the crystals' glow (light pass). They bob and turn slowly.
+	 */
+	private static void drawIslands(PoseStack pose, MultiBufferSource buffers, Ambiance.Islands islands, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		int rock = Ambiance.color(islands.rock, 0x2A1F4A);
+		int top = Ambiance.color(islands.top, 0x5A3F9A);
+		int crystal = Ambiance.color(islands.crystal, 0x7FF8FF);
+		int accent = Ambiance.color(islands.accent, 0xFF7AE8);
+		for (int i = 0; i < islands.count; i++) {
+			double angle = Math.PI * 2 * (i + hashFloat(i * 97 + 1) * 0.6) / islands.count;
+			double distance = Mth.lerp(hashFloat(i * 97 + 2), islands.distance.get(0), islands.distance.get(1));
+			double height = Mth.lerp(hashFloat(i * 97 + 3), islands.height.get(0), islands.height.get(1)) + Math.sin(time / 70.0 + i) * 0.6;
+			float size = Mth.lerp(hashFloat(i * 97 + 4), islands.size.get(0), islands.size.get(1));
+			Vec3 c = new Vec3(Math.cos(angle) * distance, height, Math.sin(angle) * distance);
+			double spin = time / 1200.0 * 0.3 * Math.PI * 2 * (i % 2 == 0 ? 1 : -1) + hashFloat(i * 97 + 5) * 6;
+			List<Vec3[]> crystals = islandCrystals(i, size);
+			if (glow) {
+				float pulse = 0.75f + 0.25f * Mth.sin(time / 25f + i);
+				for (int k = 0; k < crystals.size(); k++) {
+					Vec3 base = c.add(rotateY(crystals.get(k)[0], spin)).add(0, -0.1, 0);
+					Vec3 tip = c.add(rotateY(crystals.get(k)[1], spin));
+					crystalGlint(out, m, base, tip, size * 0.12f * crystalWidth(i, k), k % 2 == 0 ? crystal : accent, pulse, spin + k);
+				}
+				Vec3 under = c.add(0, -size * 1.9, 0);
+				glowDisc(out, m, under, cameraRel.subtract(under).normalize(), size * 0.9f, accent, 30);
+				continue;
+			}
+			int sides = 9;
+			Vec3[][] rings = new Vec3[4][sides];
+			double[] ys = { 0, -0.25, -0.9, 0 };
+			for (int k = 0; k < sides; k++) {
+				double a = Math.PI * 2 * k / sides + spin;
+				double r = size * (0.75 + 0.25 * hashFloat(i * 97 + 40 + k));
+				Vec3 dir = new Vec3(Math.cos(a), 0, Math.sin(a));
+				rings[0][k] = c.add(dir.scale(r));
+				rings[1][k] = c.add(dir.scale(r * 1.05)).add(0, ys[1] * size, 0);
+				rings[2][k] = c.add(dir.scale(r * (0.5 + 0.2 * hashFloat(i * 97 + 60 + k)))).add(0, ys[2] * size * (0.9 + 0.3 * hashFloat(i * 97 + 70 + k)), 0);
+			}
+			Vec3 tip = c.add((hashFloat(i * 97 + 80) - 0.5) * size * 0.6, -size * (1.7 + 0.5 * hashFloat(i * 97 + 81)), (hashFloat(i * 97 + 82) - 0.5) * size * 0.6);
+			Vec3 crown = c.add(0, size * 0.08, 0);
+			for (int k = 0; k < sides; k++) {
+				int n = (k + 1) % sides;
+				// The top: a low dome, its sectors a little different from each other.
+				int topColor = lerpColor(top, 0xFFFFFF, 0.08f * hashFloat(i * 97 + 90 + k));
+				vertex(out, m, crown, topColor, 255);
+				vertex(out, m, crown, topColor, 255);
+				vertex(out, m, rings[0][n], topColor, 255);
+				vertex(out, m, rings[0][k], topColor, 255);
+				Vec3 outward = rings[1][k].add(rings[1][n]).scale(0.5).subtract(c);
+				outward = new Vec3(outward.x, 0, outward.z).normalize();
+				int lip = shade(lerpColor(top, rock, 0.45f), outward.add(0, 0.2, 0).normalize(), 0.5f);
+				quad(out, m, rings[0][k], rings[0][n], rings[1][n], rings[1][k], lip);
+				int side = shade(rock, outward.add(0, -0.3, 0).normalize(), 0.45f);
+				quad(out, m, rings[1][k], rings[1][n], rings[2][n], rings[2][k], side);
+				int deep = shade(lerpColor(rock, 0x000000, 0.35f), outward.add(0, -0.7, 0).normalize(), 0.45f);
+				quad(out, m, rings[2][k], rings[2][n], tip, tip, deep);
+			}
+			for (int k = 0; k < crystals.size(); k++) {
+				Vec3 base = c.add(rotateY(crystals.get(k)[0], spin)).add(0, -0.1, 0);
+				Vec3 end = c.add(rotateY(crystals.get(k)[1], spin));
+				crystal(out, m, base, end, size * 0.12f * crystalWidth(i, k), k % 2 == 0 ? crystal : accent, spin + k);
+			}
+		}
+	}
+
+	/** Crystals of one cluster are not all alike: some slender, some stout. */
+	private static float crystalWidth(int group, int k) {
+		return 0.7f + 0.6f * hashFloat(group * 389 + k * 41 + 7);
+	}
+
+	private static Vec3 rotateY(Vec3 p, double angle) {
+		double cos = Math.cos(angle);
+		double sin = Math.sin(angle);
+		return new Vec3(p.x * cos - p.z * sin, p.y, p.x * sin + p.z * cos);
+	}
+
+	private static void quad(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, Vec3 c, Vec3 d, int color) {
+		vertex(out, m, a, color, 255);
+		vertex(out, m, b, color, 255);
+		vertex(out, m, c, color, 255);
+		vertex(out, m, d, color, 255);
+	}
+
+	/** The field island's outline: a little irregular, so it reads as rock, not as a disc. */
+	private static double islandEdge(Ambiance.Island island, double angle) {
+		double r = fieldRadius + island.margin;
+		return r * (0.93 + 0.05 * Math.sin(3 * angle + 1) * Math.cos(5 * angle) + 0.02 * Math.sin(11 * angle));
+	}
+
+	/**
+	 * The field's island. Solid pass: its top laid on the real ground (hidden but still there: people stand on it), in
+	 * tiles of slightly different shades, then its rock hanging below in rings to a point, crystals round its rim and
+	 * hanging under it. Light pass: hexagons across the top, a wave of light running out from the middle and a few
+	 * cells sparkling, a glowing rim, the crystals' glow.
+	 */
+	private static void drawFieldIsland(PoseStack pose, MultiBufferSource buffers, Ambiance.Island island, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		int top = Ambiance.color(island.top, 0x241A52);
+		int line = Ambiance.color(island.line, 0x7FF8FF);
+		int rock = Ambiance.color(island.rock, 0x1A1238);
+		int crystal = Ambiance.color(island.crystal, 0x7FF8FF);
+		int accent = Ambiance.color(island.accent, 0xFF7AE8);
+		float depth = island.depth > 0 ? island.depth : Math.max(10f, fieldRadius * 1.1f);
+		int sectors = 64;
+		double reach = fieldRadius + island.margin;
+		int rings = (int) Math.ceil(reach);
+		Vec3 sink = new Vec3(0, -0.03, 0);
+		if (!glow) {
+			for (int j = 0; j < rings; j++) {
+				for (int k = 0; k < sectors; k++) {
+					double a0 = Math.PI * 2 * k / sectors;
+					double a1 = Math.PI * 2 * (k + 1) / sectors;
+					double f0 = j / (double) rings;
+					double f1 = (j + 1) / (double) rings;
+					double e0 = islandEdge(island, a0);
+					double e1 = islandEdge(island, a1);
+					Vec3 p00 = onGround(Math.cos(a0) * e0 * f0, Math.sin(a0) * e0 * f0).add(sink);
+					Vec3 p01 = onGround(Math.cos(a1) * e1 * f0, Math.sin(a1) * e1 * f0).add(sink);
+					Vec3 p11 = onGround(Math.cos(a1) * e1 * f1, Math.sin(a1) * e1 * f1).add(sink);
+					Vec3 p10 = onGround(Math.cos(a0) * e0 * f1, Math.sin(a0) * e0 * f1).add(sink);
+					int tile = lerpColor(top, 0x4A3A9A, 0.3f * hashFloat(j * 131 + k * 7 + 3));
+					quad(out, m, p00, p01, p11, p10, tile);
+				}
+			}
+			// The rock below: the rim on the ground, a lip, then narrower and narrower rings to a point.
+			Vec3[][] ring = new Vec3[4][sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double e = islandEdge(island, a);
+				Vec3 dir = new Vec3(Math.cos(a), 0, Math.sin(a));
+				ring[0][k] = onGround(dir.x * e, dir.z * e).add(sink);
+				ring[1][k] = dir.scale(e * 1.02).add(0, ring[0][k].y - 0.7, 0);
+				ring[2][k] = dir.scale(e * (0.72 + 0.1 * hashFloat(k * 17 + 1))).add(0, -depth * (0.35 + 0.08 * hashFloat(k * 17 + 2)), 0);
+				ring[3][k] = dir.scale(e * (0.32 + 0.12 * hashFloat(k * 17 + 3))).add(0, -depth * (0.72 + 0.1 * hashFloat(k * 17 + 4)), 0);
+			}
+			Vec3 point = new Vec3(0, -depth * 1.05, 0);
+			for (int k = 0; k < sectors; k++) {
+				int n = (k + 1) % sectors;
+				Vec3 outward = new Vec3(Math.cos(Math.PI * 2 * (k + 0.5) / sectors), 0, Math.sin(Math.PI * 2 * (k + 0.5) / sectors));
+				quad(out, m, ring[0][k], ring[0][n], ring[1][n], ring[1][k], shade(lerpColor(top, rock, 0.5f), outward.add(0, 0.1, 0).normalize(), 0.5f));
+				quad(out, m, ring[1][k], ring[1][n], ring[2][n], ring[2][k], shade(rock, outward.add(0, -0.4, 0).normalize(), 0.42f));
+				quad(out, m, ring[2][k], ring[2][n], ring[3][n], ring[3][k], shade(lerpColor(rock, 0x000000, 0.2f), outward.add(0, -0.8, 0).normalize(), 0.42f));
+				quad(out, m, ring[3][k], ring[3][n], point, point, shade(lerpColor(rock, 0x000000, 0.4f), outward.add(0, -1.2, 0).normalize(), 0.42f));
+			}
+		}
+		// Crystals round the rim, leaning outward, and hanging under the rock.
+		for (int c = 0; c < island.crystals; c++) {
+			double a = Math.PI * 2 * (c + hashFloat(c * 59 + 1) * 0.5) / Math.max(1, island.crystals);
+			double e = islandEdge(island, a) * 0.96;
+			Vec3 dir = new Vec3(Math.cos(a), 0, Math.sin(a));
+			Vec3 foot = onGround(dir.x * e, dir.z * e).add(0, -0.15, 0);
+			int many = 1 + (int) (hashFloat(c * 59 + 2) * 3);
+			for (int k = 0; k < many; k++) {
+				double h = 1.0 + 1.6 * hashFloat(c * 59 + 10 + k);
+				Vec3 side = new Vec3(-dir.z, 0, dir.x).scale((k - (many - 1) / 2.0) * 0.45);
+				Vec3 base = foot.add(side);
+				Vec3 tip = base.add(dir.scale(h * (0.25 + 0.2 * k))).add(0, h, 0);
+				if (nearFade(base.add(0, h / 2, 0), 1.0, 1.5) <= 0.05f) {
+					continue;
+				}
+				int color = (c + k) % 3 == 0 ? accent : crystal;
+				float width = (float) (0.12 + 0.06 * h) * crystalWidth(c, k);
+				if (glow) {
+					float pulse = 0.7f + 0.3f * Mth.sin(time / 20f + c * 1.7f + k);
+					crystalGlint(out, m, base, tip, width, color, pulse, c * 7 + k);
+				} else {
+					crystal(out, m, base, tip, width, color, c * 7 + k);
+				}
+			}
+			// One hanging under the island for every other rim crystal.
+			if (c % 2 == 0) {
+				Vec3 hang = dir.scale(e * 0.62).add(0, -depth * 0.36, 0);
+				Vec3 end = hang.add(0, -depth * (0.18 + 0.15 * hashFloat(c * 59 + 20)), 0);
+				if (glow) {
+					crystalGlint(out, m, hang, end, 0.35f, c % 4 == 0 ? accent : crystal, 1f, c);
+				} else {
+					crystal(out, m, hang, end, 0.35f, c % 4 == 0 ? accent : crystal, c);
+				}
+			}
+		}
+		if (!glow) {
+			return;
+		}
+		// Hexagons over the top: faint outlines everywhere, cells filling with light as the wave passes.
+		double h = Math.max(0.6, island.hex);
+		double t = time / 20.0 * island.pulse;
+		int span = (int) Math.ceil(reach / h) + 1;
+		for (int q = -span; q <= span; q++) {
+			for (int r = -span; r <= span; r++) {
+				double x = h * Math.sqrt(3) * (q + r / 2.0);
+				double z = h * 1.5 * r;
+				double d = Math.sqrt(x * x + z * z);
+				double edge = islandEdge(island, Math.atan2(z, x));
+				if (d > edge - h) {
+					continue;
+				}
+				float fade = (float) Mth.clamp((edge - h - d) / 3.0, 0, 1);
+				double wave = Math.pow(Math.max(0, Math.sin(d * 0.55 - t * 2.2)), 4);
+				double sparkle = hashFloat(q * 7919 + r * 104729 + (int) (t * 0.8) * 31) > 0.95 ? 0.8 : 0;
+				float lit = (float) Math.max(wave, sparkle);
+				Vec3[] corners = new Vec3[6];
+				for (int k = 0; k < 6; k++) {
+					double a = Math.toRadians(60 * k - 30);
+					corners[k] = onGround(x + Math.cos(a) * h * 0.96, z + Math.sin(a) * h * 0.96).add(0, 0.01, 0);
+				}
+				for (int k = 0; k < 3; k++) {
+					Vec3 a = corners[k];
+					Vec3 b = corners[k + 1];
+					groundLine(out, m, a.x, a.z, b.x, b.z, 0.05, line, Math.round((26 + 90 * lit) * fade), Math.round((26 + 90 * lit) * fade));
+				}
+				if (lit > 0.05f) {
+					Vec3 middle = onGround(x, z).add(0, 0.01, 0);
+					int alpha = Math.round(55 * lit * fade);
+					int cell = lerpColor(line, accent, (float) hashFloat(q * 31 + r * 17));
+					for (int k = 0; k < 6; k++) {
+						vertex(out, m, middle, cell, alpha);
+						vertex(out, m, middle, cell, alpha);
+						vertex(out, m, corners[(k + 1) % 6], cell, 0);
+						vertex(out, m, corners[k], cell, 0);
+					}
+				}
+			}
+		}
+		// The rim glowing softly all round.
+		for (int k = 0; k < sectors; k++) {
+			double a0 = Math.PI * 2 * k / sectors;
+			double a1 = Math.PI * 2 * (k + 1) / sectors;
+			double e0 = islandEdge(island, a0) - 0.2;
+			double e1 = islandEdge(island, a1) - 0.2;
+			groundLine(out, m, Math.cos(a0) * e0, Math.sin(a0) * e0, Math.cos(a1) * e1, Math.sin(a1) * e1, 0.35, line, 70, 70);
+		}
+	}
+
+	// ---------------------------------------------------------------- Champion's Stage (2026-11-10)
+
+	/** The court's half-length (along the trainers' axis) and half-width. */
+	private static double[] courtSize() {
+		double length = fieldHalf + 0.5;
+		return new double[] {length, Math.max(4, length * 0.62)};
+	}
+
+	/** A point on the court: {@code along} the trainers' axis, {@code across} it (relative to the field, on the ground). */
+	private static Vec3 courtPoint(double along, double across) {
+		Vec3 side = new Vec3(-fieldAxis.z, 0, fieldAxis.x);
+		Vec3 flat = fieldAxis.scale(along).add(side.scale(across));
+		return onGround(flat.x, flat.z);
+	}
+
+	/** A court line laid block by block, so it follows the ground: a bright core in a soft gold glow. */
+	private static void courtLine(VertexConsumer out, Matrix4f m, Ambiance.Court court, double a0, double c0, double a1, double c1) {
+		int color = Ambiance.color(court.color, 0xF4F0E0);
+		int accent = Ambiance.color(court.accent, 0xFFCF4A);
+		double length = Math.hypot(a1 - a0, c1 - c0);
+		int steps = Math.max(1, (int) Math.ceil(length));
+		Vec3 side = new Vec3(-fieldAxis.z, 0, fieldAxis.x);
+		for (int s = 0; s < steps; s++) {
+			double f0 = s / (double) steps;
+			double f1 = (s + 1) / (double) steps;
+			Vec3 p = fieldAxis.scale(Mth.lerp(f0, a0, a1)).add(side.scale(Mth.lerp(f0, c0, c1)));
+			Vec3 q = fieldAxis.scale(Mth.lerp(f1, a0, a1)).add(side.scale(Mth.lerp(f1, c0, c1)));
+			groundLine(out, m, p.x, p.z, q.x, q.z, 0.6, accent, Math.round(court.alpha * 0.25f), Math.round(court.alpha * 0.25f));
+			groundLine(out, m, p.x, p.z, q.x, q.z, 0.14, color, court.alpha, court.alpha);
+		}
+	}
+
+	/** The court: border, centre line, centre circle and spot, a box at each trainer's end. */
+	private static void drawCourt(PoseStack pose, MultiBufferSource buffers, Ambiance.Court court) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		double[] size = courtSize();
+		double l = size[0];
+		double w = size[1];
+		courtLine(out, m, court, -l, -w, l, -w);
+		courtLine(out, m, court, -l, w, l, w);
+		courtLine(out, m, court, -l, -w, -l, w);
+		courtLine(out, m, court, l, -w, l, w);
+		courtLine(out, m, court, 0, -w, 0, w);
+		for (double end : new double[] {-1, 1}) {
+			double inner = end * (l - 2.4);
+			courtLine(out, m, court, inner, -1.6, inner, 1.6);
+			courtLine(out, m, court, inner, -1.6, end * l, -1.6);
+			courtLine(out, m, court, inner, 1.6, end * l, 1.6);
+		}
+		for (double radius : new double[] {w * 0.38, 0.5}) {
+			int segments = radius > 1 ? 40 : 12;
+			for (int s = 0; s < segments; s++) {
+				double t0 = Math.PI * 2 * s / segments;
+				double t1 = Math.PI * 2 * (s + 1) / segments;
+				courtLine(out, m, court, Math.cos(t0) * radius, Math.sin(t0) * radius, Math.cos(t1) * radius, Math.sin(t1) * radius);
+			}
+		}
+	}
+
+	/** Inner radius of the stands. */
+	private static float standsInner(Ambiance.Crowd crowd) {
+		return crowd.distance > 0 ? crowd.distance : fieldRadius + 5f;
+	}
+
+	/** Whether the camera is in or behind the stands in that direction: then that part is left out, never in the way. */
+	private static boolean standsBlocked(double angle, double radius) {
+		double flat = Math.sqrt(cameraRel.x * cameraRel.x + cameraRel.z * cameraRel.z);
+		if (flat < radius - 2) {
+			return false;
+		}
+		double toward = Math.atan2(cameraRel.z, cameraRel.x);
+		return Math.abs(Mth.wrapDegrees(Math.toDegrees(angle - toward))) < 30;
+	}
+
+	/** How excited the crowd is, 0..1, at {@code time}: eased between ticks so nothing in the stands jumps. */
+	private static float crowdExcitement(float time) {
+		return Mth.lerp(time - ticks, crowdExcitePrev, crowdExcite);
+	}
+
+	/** How high the wave lifts the people at {@code angle} (0..1); 0 when no wave runs. */
+	private static float waveLift(double angle, float time) {
+		if (crowdWave < 0) {
+			return 0;
+		}
+		double age = time - crowdWave;
+		if (age < 0 || age > 220) {
+			return 0;
+		}
+		double front = Math.atan2(fieldAxis.z, fieldAxis.x) + age * 0.06;
+		double behind = Mth.positiveModulo(front - angle, Math.PI * 2);
+		// Up just as the front reaches them, down again over the next few seats.
+		double lift = behind < 0.05 ? behind / 0.05 : Math.exp(-Math.pow((behind - 0.05) / 0.28, 2));
+		return (float) (lift * Mth.clamp((220 - age) / 30, 0, 1));
+	}
+
+	/** A small round glow facing the camera, eight-sided: cheap enough for hundreds. */
+	private static void smallGlow(VertexConsumer out, Matrix4f m, Vec3 centre, float radius, int color, int alpha) {
+		Vec3 normal = cameraRel.subtract(centre).normalize();
+		Vec3 u = normal.cross(new Vec3(0, 1, 0));
+		u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+		Vec3 v = normal.cross(u).normalize();
+		for (int i = 0; i < 8; i++) {
+			double a0 = Math.PI * 2 * i / 8;
+			double a1 = Math.PI * 2 * (i + 1) / 8;
+			vertex(out, m, centre, color, alpha);
+			vertex(out, m, centre, color, alpha);
+			vertex(out, m, centre.add(u.scale(Math.cos(a1) * radius)).add(v.scale(Math.sin(a1) * radius)), color, 0);
+			vertex(out, m, centre.add(u.scale(Math.cos(a0) * radius)).add(v.scale(Math.sin(a0) * radius)), color, 0);
+		}
+	}
+
+	/**
+	 * The arena (2026-11-10 rework: bright blocky people looked cheap). An arena at night: dark tiers rising all round
+	 * under a canopy, a parapet in front carrying an LED ribbon in each trainer's colour, and a crowd in silhouette, its
+	 * life in the lights: phones and glow sticks held up in the side's colours, swaying, raised higher as the crowd gets
+	 * excited (eased, never switched), a wave running round the stands on victory.
+	 * <p>
+	 * Solid pass ({@code glow} false): tiers, parapet, back wall, canopy, the people. Light pass: the LED ribbon, light
+	 * strips along the rows, lamps under the canopy's edge, the lights in the crowd.
+	 */
+	private static void drawStands(PoseStack pose, MultiBufferSource buffers, Ambiance.Crowd crowd, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		float r0 = standsInner(crowd);
+		int side0 = Ambiance.color(crowd.sides.get(0), 0x2A5AD0);
+		int side1 = Ambiance.color(crowd.sides.size() > 1 ? crowd.sides.get(1) : crowd.sides.get(0), 0xD03A3A);
+		float excite = crowdExcitement(time);
+		int segments = 96;
+		double outer = r0 + crowd.rows * crowd.rowDepth;
+		double top = crowd.rows * crowd.rise;
+		// The architecture, segment by segment.
+		for (int k = 0; k < segments; k++) {
+			double a0 = Math.PI * 2 * k / segments;
+			double a1 = Math.PI * 2 * (k + 1) / segments;
+			double mid = (a0 + a1) / 2;
+			if (standsBlocked(mid, r0)) {
+				continue;
+			}
+			Vec3 d0 = new Vec3(Math.cos(a0), 0, Math.sin(a0));
+			Vec3 d1 = new Vec3(Math.cos(a1), 0, Math.sin(a1));
+			double b0 = onGround(d0.x * r0, d0.z * r0).y;
+			double b1 = onGround(d1.x * r0, d1.z * r0).y;
+			int seat = d0.add(d1).dot(fieldAxis) >= 0 ? side1 : side0;
+			boolean aisle = k % 12 == 0;
+			double front = r0 - 0.1;
+			if (glow) {
+				// The LED ribbon: the side's colour, a chase running round, brighter with the crowd, flashing white.
+				float chase = (float) (0.5 + 0.5 * Math.sin(mid * 10 - time * 0.15));
+				float lift = waveLift(mid, time);
+				float bright = Mth.clamp(0.3f + 0.3f * chase + 0.35f * excite + 0.4f * lift, 0, 1);
+				int color = lerpColor(lerpColor(seat, 0xFFFFFF, 0.2f), 0xFFFFFF, Math.min(1, ledFlash * 0.75f));
+				color = lerpColor(color, 0xFFCF4A, lift * 0.7f);
+				int alpha = Math.round(210 * bright);
+				// Clearly in front of the parapet (2026-11-10: in its very plane, the two fought for depth and the
+				// ribbon showed dark hatching).
+				double led = front - 0.08;
+				quad4(out, m, d0.scale(led).add(0, b0 + 0.35, 0), d1.scale(led).add(0, b1 + 0.35, 0),
+						d1.scale(led).add(0, b1 + 0.8, 0), d0.scale(led).add(0, b0 + 0.8, 0), color, alpha);
+				// Its bloom, just around it.
+				for (int edge = -1; edge <= 1; edge += 2) {
+					double y = edge < 0 ? 0.35 : 0.8;
+					quad4(out, m, d0.scale(led - 0.02).add(0, b0 + y, 0), d1.scale(led - 0.02).add(0, b1 + y, 0),
+							d1.scale(led - 0.02).add(0, b1 + y + edge * 0.35, 0), d0.scale(led - 0.02).add(0, b0 + y + edge * 0.35, 0),
+							color, alpha / 3, 0);
+				}
+				if (aisle) {
+					continue;
+				}
+				for (int j = 1; j < crowd.rows; j++) {
+					double ri = r0 + j * crowd.rowDepth - 0.08;
+					double y = j * crowd.rise;
+					quad4(out, m, d0.scale(ri).add(0, b0 + y - 0.06, 0), d1.scale(ri).add(0, b1 + y - 0.06, 0),
+							d1.scale(ri).add(0, b1 + y, 0), d0.scale(ri).add(0, b0 + y, 0), 0x9FC4FF, 40);
+				}
+				// Lamps along the canopy's front edge, every other segment.
+				if (k % 2 == 0) {
+					Vec3 lamp = new Vec3(Math.cos(mid), 0, Math.sin(mid)).scale(outer - 3.4).add(0, (b0 + b1) / 2 + top + 2.5, 0);
+					smallGlow(out, m, lamp, 0.5f, 0xFFF0D0, 90);
+					smallGlow(out, m, lamp, 0.12f, 0xFFFFFF, 240);
+				}
+				continue;
+			}
+			// The parapet in front of the first row.
+			quad(out, m, d0.scale(front).add(0, b0 - 0.6, 0), d1.scale(front).add(0, b1 - 0.6, 0), d1.scale(front).add(0, b1 + 1.0, 0),
+					d0.scale(front).add(0, b0 + 1.0, 0), 0x10131C);
+			quad(out, m, d0.scale(front).add(0, b0 + 1.0, 0), d1.scale(front).add(0, b1 + 1.0, 0), d1.scale(r0).add(0, b1 + 1.0, 0),
+					d0.scale(r0).add(0, b0 + 1.0, 0), 0x1A1E2A);
+			for (int j = 0; j < crowd.rows; j++) {
+				double ri = r0 + j * crowd.rowDepth;
+				double ro = ri + crowd.rowDepth;
+				double y0 = j * crowd.rise;
+				double y1 = (j + 1) * crowd.rise;
+				int riser = aisle ? 0x1E2230 : 0x161A24;
+				int tread = aisle ? 0x232838 : lerpColor(seat, 0x0A0C12, j % 2 == 0 ? 0.74f : 0.8f);
+				quad(out, m, d0.scale(ri).add(0, b0 + y0 - 0.6, 0), d1.scale(ri).add(0, b1 + y0 - 0.6, 0), d1.scale(ri).add(0, b1 + y1, 0),
+						d0.scale(ri).add(0, b0 + y1, 0), riser);
+				quad(out, m, d0.scale(ri).add(0, b0 + y1, 0), d1.scale(ri).add(0, b1 + y1, 0), d1.scale(ro).add(0, b1 + y1, 0),
+						d0.scale(ro).add(0, b0 + y1, 0), tread);
+			}
+			// Back wall, canopy over the top rows.
+			quad(out, m, d0.scale(outer).add(0, b0 - 1, 0), d1.scale(outer).add(0, b1 - 1, 0), d1.scale(outer).add(0, b1 + top + 3.2, 0),
+					d0.scale(outer).add(0, b0 + top + 3.2, 0), 0x0E1018);
+			quad(out, m, d0.scale(outer).add(0, b0 + top + 3.2, 0), d1.scale(outer).add(0, b1 + top + 3.2, 0),
+					d1.scale(outer - 3.6).add(0, b1 + top + 2.6, 0), d0.scale(outer - 3.6).add(0, b0 + top + 2.6, 0), 0x12151F);
+		}
+		// The people.
+		for (int j = 0; j < crowd.rows; j++) {
+			double radius = r0 + j * crowd.rowDepth + 0.55;
+			int count = (int) (Math.PI * 2 * radius / Math.max(0.4, crowd.spacing));
+			for (int p = 0; p < count; p++) {
+				double angle = Math.PI * 2 * (p + (j % 2) * 0.5) / count;
+				int segment = (int) Math.floor(angle / (Math.PI * 2) * segments) % segments;
+				if (segment % 12 == 0 || standsBlocked(angle, r0)) {
+					continue;
+				}
+				int id = j * 4096 + p;
+				if (hashFloat(id * 3 + 1) < 0.06f) {
+					continue; // an empty seat
+				}
+				Vec3 dir = new Vec3(Math.cos(angle), 0, Math.sin(angle));
+				double base = onGround(dir.x * r0, dir.z * r0).y + (j + 1) * crowd.rise;
+				Vec3 at = dir.scale(radius).add(0, base, 0);
+				if (nearFade(at.add(0, 0.6, 0), 1.0, 1.5) <= 0.05f) {
+					continue;
+				}
+				float s = 0.9f + 0.2f * hashFloat(id * 3 + 2);
+				float own = hashFloat(id * 3 + 3);
+				float lift = waveLift(angle, time);
+				// Everyone moves on their own beat; how much depends on the crowd's mood, eased.
+				float mood = Mth.clamp(excite * (0.6f + 0.5f * own) + lift, 0, 1);
+				double bounce = mood * Math.abs(Math.sin(time * 0.42 + id * 0.7)) * 0.16 + lift * 0.45;
+				double sway = Math.sin(time * 0.045 + id) * 0.03;
+				Vec3 right = new Vec3(-dir.z, 0, dir.x);
+				Vec3 foot = at.add(dir.scale(-0.05)).add(right.scale(sway)).add(0, bounce, 0);
+				float arms = Mth.clamp(mood * 1.4f - own * 0.4f + lift, 0, 1);
+				int seat = dir.dot(fieldAxis) >= 0 ? side1 : side0;
+				double shoulders = 0.32 * s;
+				Vec3 neck = foot.add(0, shoulders, 0);
+				Vec3 head = neck.add(0, 0.16 * s, 0);
+				Vec3 hand = null;
+				double handSide = own < 0.5 ? -1 : 1;
+				if (arms > 0.05f) {
+					double wave = Math.sin(time * 0.3 + id) * 0.08 * arms;
+					hand = foot.add(right.scale(handSide * (0.2 + wave) * s)).add(0, (0.28 + 0.55 * arms) * s, 0);
+				}
+				if (glow) {
+					if (hashFloat(id * 3 + 8) > 0.45f) {
+						continue; // no light in hand
+					}
+					boolean phone = hashFloat(id * 3 + 9) < 0.45f;
+					int color = phone ? 0xE8F0FF : lerpColor(seat, 0xFFFFFF, 0.35f);
+					Vec3 light = hand != null ? hand : foot.add(dir.scale(-0.12)).add(right.scale(handSide * 0.12 * s)).add(0, 0.28 * s, 0);
+					light = light.add(right.scale(Math.sin(time * 0.1 * (1 + 2 * mood) + id) * 0.1 * (0.3 + mood)));
+					float twinkle = phone ? 0.85f + 0.15f * Mth.sin(time * 0.2f + id) : 0.6f + 0.4f * Mth.sin(time * 0.15f + id * 1.3f);
+					float strength = (0.45f + 0.55f * mood) * twinkle;
+					smallGlow(out, m, light, phone ? 0.2f : 0.28f, color, Math.round(100 * strength));
+					smallGlow(out, m, light, 0.06f, lerpColor(color, 0xFFFFFF, 0.5f), Math.round(235 * strength));
+					continue;
+				}
+				int body = lerpColor(lerpColor(0x161922, seat, 0.12f), 0x2A2E3A, own * 0.6f);
+				double low = 0.25 * s;
+				double high = 0.18 * s;
+				quad(out, m, foot.add(right.scale(-low)), foot.add(right.scale(low)), neck.add(right.scale(high)), neck.add(right.scale(-high)), body);
+				for (int i = 0; i < 8; i++) {
+					double a0 = Math.PI * 2 * i / 8;
+					double a1 = Math.PI * 2 * (i + 1) / 8;
+					double r = 0.14 * s;
+					Vec3 p0 = head.add(right.scale(Math.cos(a0) * r)).add(0, Math.sin(a0) * r, 0);
+					Vec3 p1 = head.add(right.scale(Math.cos(a1) * r)).add(0, Math.sin(a1) * r, 0);
+					quad(out, m, head, head, p1, p0, body);
+				}
+				if (hand != null) {
+					Vec3 shoulder = foot.add(right.scale(handSide * 0.15 * s)).add(0, shoulders * 0.85, 0);
+					Vec3 w = right.scale(0.04 * s);
+					quad(out, m, shoulder.subtract(w), shoulder.add(w), hand.add(w), hand.subtract(w), body);
+				}
+			}
+		}
+	}
+
+	/** A quad of one colour, its alpha as given. */
+	private static void quad4(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, Vec3 c, Vec3 d, int color, int alpha) {
+		quad4(out, m, a, b, c, d, color, alpha, alpha);
+	}
+
+	/** A quad fading from {@code alphaAB} along its first edge to {@code alphaCD} along its last. */
+	private static void quad4(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, Vec3 c, Vec3 d, int color, int alphaAB, int alphaCD) {
+		vertex(out, m, a, color, alphaAB);
+		vertex(out, m, b, color, alphaAB);
+		vertex(out, m, c, color, alphaCD);
+		vertex(out, m, d, color, alphaCD);
+	}
+
+	/** A camera flash somewhere in the stands. */
+	private static void cameraFlash() {
+		Ambiance.Crowd crowd = active.crowd;
+		int row = RANDOM.nextInt(Math.max(1, crowd.rows));
+		double angle = RANDOM.nextDouble() * Math.PI * 2;
+		float r0 = standsInner(crowd);
+		Vec3 dir = new Vec3(Math.cos(angle), 0, Math.sin(angle));
+		double base = onGround(dir.x * r0, dir.z * r0).y + (row + 1) * crowd.rise;
+		CAMERA_FLASHES.add(new CameraFlash(dir.scale(r0 + row * crowd.rowDepth + 0.45).add(0, base + 0.55, 0), ticks));
+	}
+
+	private static void drawCameraFlashes(PoseStack pose, MultiBufferSource buffers, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		for (CameraFlash flash : CAMERA_FLASHES) {
+			float age = time - flash.born();
+			if (age < 0 || age > 5 || standsBlocked(Math.atan2(flash.at().z, flash.at().x), standsInner(active.crowd))) {
+				continue;
+			}
+			float strength = 1 - age / 5f;
+			Vec3 normal = cameraRel.subtract(flash.at()).normalize();
+			Vec3 u = normal.cross(new Vec3(0, 1, 0));
+			u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+			Vec3 v = normal.cross(u).normalize();
+			int alpha = Math.round(240 * strength);
+			for (Vec3[] axes : new Vec3[][] { {u, v}, {v, u} }) {
+				Vec3 along = axes[0].scale(0.55);
+				Vec3 across = axes[1].scale(0.05);
+				vertex(out, m, flash.at().add(along), 0xFFFFFF, 0);
+				vertex(out, m, flash.at().add(across), 0xFFFFFF, alpha);
+				vertex(out, m, flash.at().subtract(along), 0xFFFFFF, 0);
+				vertex(out, m, flash.at().subtract(across), 0xFFFFFF, alpha);
+			}
+			glowDisc(out, m, flash.at(), normal, 0.9f, 0xEEF4FF, Math.round(170 * strength));
+		}
+	}
+
+	/** Where light tower {@code k} stands (on the ground) and the horizontal direction it faces (toward the field). */
+	private static Vec3[] tower(Ambiance.LightTowers towers, int k) {
+		double distance = towers.distance > 0 ? towers.distance
+				: active.crowd != null ? standsInner(active.crowd) + active.crowd.rows * active.crowd.rowDepth + 3 : fieldRadius + 10;
+		double axis = Math.atan2(fieldAxis.z, fieldAxis.x);
+		double angle = axis + Math.PI / 4 + Math.PI * 2 * k / Math.max(1, towers.count);
+		Vec3 dir = new Vec3(Math.cos(angle), 0, Math.sin(angle));
+		return new Vec3[] {onGround(dir.x * distance, dir.z * distance), dir.scale(-1)};
+	}
+
+	/** Light tower {@code k}'s lamp bank: its centre, the way it faces (down toward the field), its right and up. */
+	private static Vec3[] lampBank(Ambiance.LightTowers towers, int k) {
+		Vec3[] t = tower(towers, k);
+		Vec3 facing = t[1];
+		Vec3 right = new Vec3(-facing.z, 0, facing.x);
+		Vec3 normal = facing.add(0, -0.42, 0).normalize();
+		Vec3 up = right.cross(normal).normalize();
+		if (up.y < 0) {
+			up = up.scale(-1);
+		}
+		Vec3 centre = t[0].add(0, towers.height + 1.0, 0).add(facing.scale(0.6));
+		return new Vec3[] {centre, normal, right, up};
+	}
+
+	/**
+	 * Light towers. Solid pass: four lattice legs narrowing upward, X braces between them every few blocks, a dark
+	 * plate behind the lamps. Light pass: a bank of five by three lamps, each with its halo, a big glow round the bank
+	 * flaring when it faces the camera, a soft wide beam falling on the field.
+	 */
+	private static void drawLightTowers(PoseStack pose, MultiBufferSource buffers, Ambiance.LightTowers towers, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		int frame = Ambiance.color(towers.frame, 0x2A2E38);
+		int lamp = Ambiance.color(towers.lamp, 0xFFF6E0);
+		for (int k = 0; k < towers.count; k++) {
+			Vec3[] t = tower(towers, k);
+			Vec3 base = t[0];
+			Vec3 facing = t[1];
+			Vec3 right = new Vec3(-facing.z, 0, facing.x);
+			Vec3[] bank = lampBank(towers, k);
+			if (nearFade(base.add(0, towers.height / 2, 0), 2, 2) <= 0.05f && !glow) {
+				continue;
+			}
+			if (!glow) {
+				int levels = Math.max(2, (int) (towers.height / 2.5));
+				Vec3[][] corners = new Vec3[levels + 1][4];
+				for (int l = 0; l <= levels; l++) {
+					double f = l / (double) levels;
+					double w = Mth.lerp(f, 1.0, 0.45);
+					double y = towers.height * f;
+					corners[l][0] = base.add(right.scale(-w)).add(facing.scale(-w)).add(0, y, 0);
+					corners[l][1] = base.add(right.scale(w)).add(facing.scale(-w)).add(0, y, 0);
+					corners[l][2] = base.add(right.scale(w)).add(facing.scale(w)).add(0, y, 0);
+					corners[l][3] = base.add(right.scale(-w)).add(facing.scale(w)).add(0, y, 0);
+				}
+				int dark = lerpColor(frame, 0x000000, 0.3f);
+				for (int l = 0; l < levels; l++) {
+					for (int c = 0; c < 4; c++) {
+						int n = (c + 1) % 4;
+						strip(out, m, corners[l][c], corners[l + 1][c], 0.12, frame);
+						strip(out, m, corners[l][c], corners[l + 1][n], 0.05, dark);
+						strip(out, m, corners[l][n], corners[l + 1][c], 0.05, dark);
+						strip(out, m, corners[l + 1][c], corners[l + 1][n], 0.06, frame);
+					}
+				}
+				Vec3 back = bank[0].subtract(bank[1].scale(0.12));
+				Vec3 r = bank[2].scale(2.3);
+				Vec3 u = bank[3].scale(1.5);
+				quad(out, m, back.subtract(r).subtract(u), back.add(r).subtract(u), back.add(r).add(u), back.subtract(r).add(u), frame);
+				// The arm holding the bank, from the mast's top.
+				strip(out, m, corners[levels][0].add(corners[levels][2]).scale(0.5), back, 0.18, frame);
+				continue;
+			}
+			Vec3 toCamera = cameraRel.subtract(bank[0]).normalize();
+			for (int x = 0; x < 5; x++) {
+				for (int y = 0; y < 3; y++) {
+					Vec3 c = bank[0].add(bank[2].scale((x - 2) * 0.9)).add(bank[3].scale((y - 1) * 0.9)).add(bank[1].scale(0.06));
+					Vec3 r = bank[2].scale(0.32);
+					Vec3 u = bank[3].scale(0.32);
+					vertex(out, m, c.subtract(r).subtract(u), lamp, 255);
+					vertex(out, m, c.add(r).subtract(u), lamp, 255);
+					vertex(out, m, c.add(r).add(u), lamp, 255);
+					vertex(out, m, c.subtract(r).add(u), lamp, 255);
+					glowDisc(out, m, c, cameraRel.subtract(c).normalize(), 1.0f, lamp, 55);
+				}
+			}
+			glowDisc(out, m, bank[0], toCamera, 6f, lamp, 30);
+			float flare = (float) Math.max(0, toCamera.dot(bank[1]));
+			if (flare > 0.3f) {
+				glowDisc(out, m, bank[0], toCamera, 13f * flare, lamp, Math.round(45 * flare * flare));
+			}
+			Vec3 target = onGround(-facing.x * 3, -facing.z * 3);
+			beam(out, m, bank[0].add(bank[1].scale(0.4)), target, 2.4f, 7.5f, lamp, towers.beam);
+		}
+	}
+
+	/** A thin flat bar between two points, turned to face the camera (truss members). */
+	private static void strip(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, double width, int color) {
+		Vec3 along = b.subtract(a);
+		Vec3 side = along.cross(cameraRel.subtract(a));
+		side = side.lengthSqr() < 1.0E-8 ? new Vec3(width, 0, 0) : side.normalize().scale(width / 2);
+		quad(out, m, a.subtract(side), a.add(side), b.add(side), b.subtract(side), color);
+	}
+
+	/** Followspots: from two opposite light towers onto each battling Pokémon, a pool of light at its feet. */
+	private static void drawFollowspots(PoseStack pose, MultiBufferSource buffers, Ambiance.Followspots spots, Ambiance.LightTowers towers) {
+		com.mystaria.showtime.api.BattleStage stage = com.mystaria.showtime.battle.BattleCameraDirector.stage();
+		if (stage == null) {
+			return;
+		}
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(spots.color, 0xFFF4D0);
+		for (int k = 0; k < 2; k++) {
+			net.minecraft.world.entity.Entity pokemon = stage.activePokemon(k == 0);
+			if (pokemon == null || pokemon.isRemoved()) {
+				continue;
+			}
+			Vec3 target = pokemon.position().subtract(center);
+			if (target.horizontalDistance() > fieldRadius * 1.5) {
+				continue;
+			}
+			// Eased: the spot glides after its Pokémon instead of snapping to it.
+			SPOT_AIM[k] = SPOT_AIM[k] == null ? target : SPOT_AIM[k].lerp(target, 0.08);
+			Vec3 pool = onGround(SPOT_AIM[k].x, SPOT_AIM[k].z);
+			Vec3 from = lampBank(towers, (k * Math.max(1, towers.count / 2)) % Math.max(1, towers.count))[0];
+			beam(out, m, from, pool.add(0, 0.2, 0), 0.35f, 1.9f, color, spots.alpha);
+			glowDisc(out, m, pool.add(0, 0.04, 0), new Vec3(0, 1, 0), 2.4f, color, Math.round(spots.alpha * 1.5f));
+		}
+	}
+
+	/** Flame and spark fountains shooting up from the court's four corners. */
+	private static void pyro(ClientLevel level) {
+		double[] size = active.court != null ? courtSize() : new double[] {fieldRadius * 0.6, fieldRadius * 0.6};
+		ParticleOptions flame = particle("minecraft:flame");
+		ParticleOptions spark = particle("minecraft:firework");
+		ParticleOptions lava = particle("minecraft:lava");
+		for (int a = -1; a <= 1; a += 2) {
+			for (int c = -1; c <= 1; c += 2) {
+				Vec3 at = center.add(courtPoint(a * (size[0] + 0.8), c * (size[1] + 0.8)));
+				for (int i = 0; i < 36 && flame != null; i++) {
+					level.addParticle(flame, at.x, at.y + 0.2, at.z, RANDOM.nextGaussian() * 0.02, 0.25 + RANDOM.nextDouble() * 0.35,
+							RANDOM.nextGaussian() * 0.02);
+				}
+				for (int i = 0; i < 18 && spark != null; i++) {
+					level.addParticle(spark, at.x, at.y + 0.2, at.z, RANDOM.nextGaussian() * 0.06, 0.35 + RANDOM.nextDouble() * 0.4,
+							RANDOM.nextGaussian() * 0.06);
+				}
+				for (int i = 0; i < 4 && lava != null; i++) {
+					level.addParticle(lava, at.x, at.y + 0.3, at.z, 0, 0, 0);
+				}
+			}
+		}
+		Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+				SoundEvent.createVariableRangeEvent(ResourceLocation.parse("minecraft:item.firecharge.use")), 0.8f, 0.6f));
+	}
+
+	/** Confetti: half drifting down from above the court, half shot up from its corners like cannons. */
+	private static void launchConfetti(int count) {
+		List<String> names = active.confettiColors.isEmpty() ? List.of("#ffcf4a", "#f4f0e0") : active.confettiColors;
+		double[] size = courtSize();
+		for (int i = 0; i < count; i++) {
+			int color = Ambiance.color(names.get(RANDOM.nextInt(names.size())), 0xFFCF4A);
+			float spin = 0.15f + RANDOM.nextFloat() * 0.35f;
+			float phase = RANDOM.nextFloat() * 6.28f;
+			long born = ticks + RANDOM.nextInt(12);
+			if (i % 2 == 0) {
+				Vec3 from = courtPoint(RANDOM.nextGaussian() * size[0] * 0.6, RANDOM.nextGaussian() * size[1] * 0.6)
+						.add(0, 11 + RANDOM.nextDouble() * 5, 0);
+				CONFETTI.add(new Confetti(born, from, new Vec3(RANDOM.nextGaussian() * 0.04, 0, RANDOM.nextGaussian() * 0.04), color, spin, phase));
+			} else {
+				int corner = RANDOM.nextInt(4);
+				Vec3 from = courtPoint((corner < 2 ? -1 : 1) * (size[0] + 0.8), (corner % 2 == 0 ? -1 : 1) * (size[1] + 0.8)).add(0, 0.8, 0);
+				Vec3 inward = new Vec3(-from.x, 0, -from.z).normalize();
+				Vec3 speed = inward.scale(0.1 + RANDOM.nextDouble() * 0.12)
+						.add(RANDOM.nextGaussian() * 0.05, 0.75 + RANDOM.nextDouble() * 0.4, RANDOM.nextGaussian() * 0.05);
+				CONFETTI.add(new Confetti(born, from, speed, color, spin, phase));
+			}
+		}
+	}
+
+	/**
+	 * Confetti pieces: slowed by the air, falling at a gentle pace, swaying, tumbling (their shine flickering as they
+	 * turn); once down they lie flat on the ground, then fade.
+	 */
+	private static void drawConfetti(PoseStack pose, MultiBufferSource buffers, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		double drag = 0.06;
+		for (Confetti piece : CONFETTI) {
+			double t = time - piece.born();
+			if (t < 0) {
+				continue;
+			}
+			double slowed = (1 - Math.exp(-drag * t)) / drag;
+			double settle = Math.min(1, t / 30);
+			Vec3 at = piece.from().add(piece.speed().scale(slowed)).add(
+					Math.sin(t * 0.12 + piece.phase()) * 0.35 * settle, -0.028 * t, Math.cos(t * 0.1 + piece.phase()) * 0.35 * settle);
+			double ground = onGround(at.x, at.z).y + 0.03;
+			boolean landed = at.y < ground;
+			if (landed) {
+				at = new Vec3(at.x, ground, at.z);
+			}
+			float fade = (float) Mth.clamp((CONFETTI_LIFE - t) / 30.0, 0, 1) * nearFade(at, 0.3, 1.0);
+			if (fade <= 0.03f) {
+				continue;
+			}
+			Vec3 u;
+			Vec3 v;
+			float shine;
+			if (landed) {
+				double a = piece.phase() * 6;
+				u = new Vec3(Math.cos(a), 0, Math.sin(a));
+				v = new Vec3(-Math.sin(a), 0, Math.cos(a));
+				shine = 0.75f;
+			} else {
+				double th = piece.spin() * t;
+				double ps = piece.spin() * 0.7 * t + piece.phase();
+				u = new Vec3(Math.cos(th), 0.5 * Math.sin(th), 0.3 * Math.sin(th)).normalize();
+				v = new Vec3(-0.3 * Math.sin(ps), Math.cos(ps), Math.sin(ps)).normalize();
+				shine = (float) Math.abs(Math.cos(th * 1.3 + piece.phase()));
+			}
+			int color = lerpColor(lerpColor(piece.color(), 0x000000, 0.45f), lerpColor(piece.color(), 0xFFFFFF, 0.25f), shine);
+			int alpha = Math.round(255 * fade);
+			Vec3 w = u.scale(0.09);
+			Vec3 h = v.scale(0.05);
+			vertex(out, m, at.subtract(w).subtract(h), color, alpha);
+			vertex(out, m, at.add(w).subtract(h), color, alpha);
+			vertex(out, m, at.add(w).add(h), color, alpha);
+			vertex(out, m, at.subtract(w).add(h), color, alpha);
 		}
 	}
 

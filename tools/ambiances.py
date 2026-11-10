@@ -423,7 +423,8 @@ AMBIANCES = {
         "time": {"at": 6000, "speed": 0},
         "sky": {"sky_color": "#cfe3f2", "fog_color": "#f0d8a8", "strength": 0.8, "fog_start": 10, "fog_end": 90,
                 "hide_clouds": True},
-        "moon": {"color": "#fff8e0", "yaw": 230, "pitch": 40, "size": 9, "seas": False, "halo": 5, "halo_alpha": 120},
+        # Higher and softer (2026-11-10: low and wide, its glow washed out the Pokemon in front of it).
+        "moon": {"color": "#fff8e0", "yaw": 230, "pitch": 55, "size": 9, "seas": False, "halo": 3, "halo_alpha": 70},
         "mirage": {"color": "#bfe0ff", "alpha": 110, "height": 3},
         "mist": {"color": "#e8c890", "alpha": 45, "height": 0.8, "layers": 2, "scale": 5, "speed": 1.6},
         "birds": {"color": "#2a2018", "count": 4, "radius": [10, 22], "height": [18, 28], "size": 0.9},
@@ -458,6 +459,81 @@ AMBIANCES = {
             "faint": {"particle": "minecraft:end_rod", "count": 30},
             "victory": {"fireworks": 6, "particle": "minecraft:end_rod", "count": 60,
                         "sound": "minecraft:block.beacon.activate"},
+        },
+    },
+    # Ultra Space (2026-11-10): another dimension. The world disappears; the battle stands on a floating island of
+    # violet stone, hexagons of light running across it, crystals round its rim and hanging under it. Round it, islands
+    # drift and turn in a starry void lit by alien nebulae, three wormholes spiral slowly on the sky, motes of light
+    # float up. A critical hit tears a wormhole open over the field.
+    "ultra_space": {
+        "hide_world": True,
+        "time": {"at": 6000, "speed": 0},
+        "sky": {"sky_color": "#120a36", "fog_color": "#2a1460", "strength": 1.0, "fog_start": 40, "fog_end": 160,
+                "stars": 0, "hide_clouds": True},
+        "backdrop": {"box": False, "radius": 60, "stars": 1200, "spin": 0.15, "stars_around": True, "star_size": 0.7,
+                     "star_colors": ["#ffffff", "#bff8ff", "#ffc8f4", "#fff4b0", "#c8b8ff"]},
+        "nebulae": [
+            {"color": "#2bf0c8", "accent": "#ff4fd8", "yaw": 40, "pitch": 20, "size": 18, "puffs": 18, "alpha": 26},
+            {"color": "#ffd23d", "accent": "#ff7a3d", "yaw": 170, "pitch": -20, "size": 16, "puffs": 16, "alpha": 22},
+            {"color": "#5a3dff", "accent": "#3df0ff", "yaw": 280, "pitch": 35, "size": 20, "puffs": 20, "alpha": 26},
+        ],
+        "wormholes": [
+            {"color": "#3df0ff", "accent": "#ff4fd8", "yaw": 30, "pitch": 28, "size": 11, "spin": 0.8, "arms": 5},
+            {"color": "#ffd23d", "accent": "#ff6a3d", "yaw": 160, "pitch": 12, "size": 5, "spin": -1.4, "arms": 4},
+            {"color": "#7a5aff", "accent": "#3df0c8", "yaw": 260, "pitch": 40, "size": 6.5, "spin": 1.1, "arms": 6},
+        ],
+        "islands": {"rock": "#2a1f4a", "top": "#5a3f9a", "crystal": "#7ff8ff", "accent": "#ff7ae8", "count": 8,
+                    "distance": [22, 40], "height": [-16, 16], "size": [2.5, 6]},
+        "island": {"top": "#241a52", "line": "#7ff8ff", "rock": "#1a1238", "crystal": "#7ff8ff", "accent": "#ff7ae8",
+                   "margin": 3, "crystals": 14, "hex": 1.6, "pulse": 1},
+        "embers": {"color": "#bff8ff", "accent": "#ff8af0", "count": 50, "radius": [2, 20], "height": 14, "size": 0.07,
+                   "rise": 0.25},
+        "sound": {"id": "minecraft:block.beacon.ambient", "volume": 0.35, "pitch": 0.6},
+        "ambient_sounds": [
+            {"id": "minecraft:block.amethyst_block.chime", "every": [80, 200], "volume": 0.5, "pitch": [0.5, 0.9]},
+        ],
+        "moments": {
+            "send_out": {"particle": "minecraft:reverse_portal", "count": 30, "sound": "minecraft:entity.enderman.teleport",
+                         "volume": 0.5},
+            "attack": {"particle": "minecraft:reverse_portal", "count": 15},
+            "crit": {"wormhole": True, "flash": "#9ffcff", "particle": "minecraft:end_rod", "count": 30,
+                     "sound": "minecraft:block.beacon.power_select", "volume": 0.7},
+            "faint": {"particle": "minecraft:reverse_portal", "count": 50, "sound": "minecraft:entity.enderman.teleport"},
+            "victory": {"wormhole": True, "particle": "minecraft:end_rod", "count": 80,
+                        "sound": "minecraft:block.end_portal.spawn", "volume": 0.4},
+        },
+    },
+
+    # Champion's Stage (2026-11-10): a league final at nightfall. A court marked on the floor between the trainers;
+    # an arena all round in the dark (tiers under a canopy, seats tinted in each trainer's colour on their side, an LED
+    # ribbon on the parapet), its crowd in silhouette lit by the phones and glow sticks they hold up, livelier on the
+    # big moments; camera flashes, four light towers, followspots gliding after each Pokemon, searchlights sweeping
+    # the sky. Flame fountains on a send-out; on victory confetti cannons, fireworks, a fanfare and a wave round the
+    # stands. (The first version's bright blocky people looked cheap.)
+    "champion": {
+        "time": {"at": 12800, "speed": 0},
+        "sky": {"sky_color": "#0a1235", "fog_color": "#1a2a5a", "strength": 0.9, "fog_start": 24, "fog_end": 130,
+                "stars": 0.5, "hide_clouds": True},
+        "court": {"color": "#f4f0e0", "accent": "#ffcf4a", "alpha": 150},
+        "crowd": {"rows": 5, "row_depth": 1.2, "rise": 0.8, "spacing": 0.75, "sides": ["#2a5ad0", "#d03a3a"],
+                  "flashes": 0.5},
+        "light_towers": {"count": 4, "height": 22, "frame": "#2a2e38", "lamp": "#fff6e0", "beam": 18},
+        "followspots": {"color": "#fff4d0", "alpha": 40},
+        "spotlights": {"count": 6, "colors": ["#fff2c0", "#ffd24a", "#9fd0ff"], "sweep": 4, "height": 40, "width": 1.2,
+                       "alpha": 28, "ring": 12},
+        "fireworks": {"every": [], "colors": ["#ffcf4a", "#ffffff", "#2a5ad0", "#d03a3a"]},
+        "confetti_colors": ["#ffcf4a", "#f4f0e0", "#2a5ad0", "#d03a3a", "#3ad0a0", "#ff7ae8"],
+        "moments": {
+            "send_out": {"pyro": True, "cheer": True, "camera_flashes": 25, "flash": "#ffe9a0"},
+            "attack": {"camera_flashes": 6},
+            "crit": {"cheer": True, "camera_flashes": 40, "flash": "#fff4d0",
+                     "sound": "minecraft:entity.firework_rocket.blast", "volume": 0.5},
+            "faint": {"cheer": True, "camera_flashes": 30, "particle": "minecraft:firework", "count": 30},
+            "victory": {"confetti": 160, "fireworks": 8, "pyro": True, "cheer": True, "wave": True, "camera_flashes": 60,
+                        "notes": [0.53, 0.667, 0.794, 1.059, 0, 0, 0.794, 1.059, 1.335, 1.587, 1.587, 1.587], "note_sound": "minecraft:block.note_block.bell",
+                        "note_every": 4},
+            # A loss: the crowd still cheers the winner, without the champion's fanfare and confetti.
+            "defeat": {"cheer": True, "camera_flashes": 30},
         },
     },
 }

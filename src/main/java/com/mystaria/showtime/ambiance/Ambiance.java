@@ -348,6 +348,91 @@ public final class Ambiance {
 		public int stripes = 6;
 	}
 
+	/** A wormhole on the sky: a slowly turning spiral of light round a dark core and a bright rim (Ultra Space). */
+	public static final class Wormhole {
+		public String color = "#3df0ff";
+		public String accent = "#ff4fd8";
+		public float yaw;
+		public float pitch = 25f;
+		public float size = 8f;
+		/** Turns per minute; negative: the other way. */
+		public float spin = 1f;
+		public int arms = 5;
+	}
+
+	/** Islands floating in the void round the field, crystals growing on them (Ultra Space). */
+	public static final class Islands {
+		public String rock = "#2a1f4a";
+		public String top = "#5a3f9a";
+		public String crystal = "#7ff8ff";
+		public String accent = "#ff7ae8";
+		public int count = 7;
+		public List<Float> distance = List.of(24f, 44f);
+		public List<Float> height = List.of(-14f, 18f);
+		public List<Float> size = List.of(2.5f, 6f);
+	}
+
+	/**
+	 * The field's own ground redrawn as the top of a floating island, its rock hanging below, crystals round its rim
+	 * and a hexagon pattern lighting up across it. Meant for an ambiance hiding the world: the battle stands on it.
+	 */
+	public static final class Island {
+		public String top = "#241a52";
+		public String line = "#7ff8ff";
+		public String rock = "#1a1238";
+		public String crystal = "#7ff8ff";
+		public String accent = "#ff7ae8";
+		/** How far it reaches beyond the field's edge, in blocks. */
+		public float margin = 3f;
+		/** How deep its rock hangs; 0: about the field's size. */
+		public float depth;
+		public int crystals = 14;
+		/** Hexagon size, in blocks, and how fast the light runs across them. */
+		public float hex = 1.6f;
+		public float pulse = 1f;
+	}
+
+	/** Court markings on the floor along the trainers' axis: the border, a centre line and circle (Champion's Stage). */
+	public static final class Court {
+		public String color = "#f4f0e0";
+		public String accent = "#ffcf4a";
+		public int alpha = 150;
+	}
+
+	/** Stadium light towers round the field: lattice masts topped with banks of lamps lighting the field. */
+	public static final class LightTowers {
+		public int count = 4;
+		public float height = 22f;
+		/** 0: behind the stands. */
+		public float distance;
+		public String frame = "#2a2e38";
+		public String lamp = "#fff6e0";
+		/** Strength of the light falling from each bank. */
+		public int beam = 18;
+	}
+
+	/** Stands round the field full of people, cheering on the big moments, camera flashes going off (Champion's Stage). */
+	public static final class Crowd {
+		/** 0: the field's edge plus 5 blocks. */
+		public float distance;
+		public int rows = 5;
+		public float rowDepth = 1.2f;
+		public float rise = 0.8f;
+		/** Room per person along a row, in blocks. */
+		public float spacing = 0.75f;
+		/** Seat colours of each trainer's side, and the clothes people wear. */
+		public List<String> sides = List.of("#2a5ad0", "#d03a3a");
+		public List<String> clothes = List.of("#f4f0e0", "#2a2a30", "#ffcf4a", "#3a9a5a", "#8a5ad0", "#e07a3a");
+		/** Camera flashes per tick. */
+		public float flashes = 0.5f;
+	}
+
+	/** Spotlights following each battling Pokémon from the light towers, a pool of light under it. */
+	public static final class Followspots {
+		public String color = "#fff4d0";
+		public int alpha = 40;
+	}
+
 	/** Palm tree silhouettes round the field (Synthwave). */
 	public static final class Palms {
 		public String color = "#1a0628";
@@ -549,6 +634,23 @@ public final class Ambiance {
 		public String textColor = "#ffffff";
 		/** Fireworks bursting over the field, one after another. */
 		public int fireworks;
+		/** A wormhole tearing open over the field for a moment (Ultra Space). */
+		public boolean wormhole;
+		/** Confetti: that many pieces, half falling from above, half shot up from the court's corners. */
+		public int confetti;
+		/** Flame and spark fountains at the court's corners. */
+		public boolean pyro;
+		/** The crowd cheers (lights up, arms up, jumping) for a few seconds, the LED ribbon flashing. */
+		public boolean cheer;
+		/** A wave running twice round the stands. */
+		public boolean wave;
+		/** A burst of camera flashes in the stands. */
+		public int cameraFlashes;
+		/** A tune: note-block pitches (0.5 to 2; 0 a rest), one every {@code noteEvery} ticks. */
+		public List<Float> notes = List.of();
+		public String noteSound = "minecraft:block.note_block.bell";
+		public int noteEvery = 4;
+		public float noteVolume = 0.7f;
 	}
 
 	/** The battle's moments an ambiance answers: a Pokémon sent out, a move used, a critical hit, a faint, the end. */
@@ -602,6 +704,15 @@ public final class Ambiance {
 	public Birds birds;
 	public StripedSun stripedSun;
 	public Palms palms;
+	public List<Wormhole> wormholes = List.of();
+	public Islands islands;
+	public Island island;
+	public Court court;
+	public LightTowers lightTowers;
+	public Crowd crowd;
+	public Followspots followspots;
+	/** Confetti colours, for a moment's confetti. */
+	public List<String> confettiColors = List.of("#ffcf4a", "#f4f0e0", "#2a5ad0", "#d03a3a", "#3ad0a0", "#ff7ae8");
 	public List<Nebula> nebulae = List.of();
 	public Galaxy galaxy;
 	public DanceFloor danceFloor;

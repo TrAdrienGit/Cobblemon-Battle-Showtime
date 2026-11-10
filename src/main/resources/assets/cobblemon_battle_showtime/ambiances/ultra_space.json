@@ -1,0 +1,182 @@
+{
+	"hide_world": true,
+	"time": {
+		"at": 6000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#120a36",
+		"fog_color": "#2a1460",
+		"strength": 1.0,
+		"fog_start": 40,
+		"fog_end": 160,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"backdrop": {
+		"box": false,
+		"radius": 60,
+		"stars": 1200,
+		"spin": 0.15,
+		"stars_around": true,
+		"star_size": 0.7,
+		"star_colors": [
+			"#ffffff",
+			"#bff8ff",
+			"#ffc8f4",
+			"#fff4b0",
+			"#c8b8ff"
+		]
+	},
+	"nebulae": [
+		{
+			"color": "#2bf0c8",
+			"accent": "#ff4fd8",
+			"yaw": 40,
+			"pitch": 20,
+			"size": 18,
+			"puffs": 18,
+			"alpha": 26
+		},
+		{
+			"color": "#ffd23d",
+			"accent": "#ff7a3d",
+			"yaw": 170,
+			"pitch": -20,
+			"size": 16,
+			"puffs": 16,
+			"alpha": 22
+		},
+		{
+			"color": "#5a3dff",
+			"accent": "#3df0ff",
+			"yaw": 280,
+			"pitch": 35,
+			"size": 20,
+			"puffs": 20,
+			"alpha": 26
+		}
+	],
+	"wormholes": [
+		{
+			"color": "#3df0ff",
+			"accent": "#ff4fd8",
+			"yaw": 30,
+			"pitch": 28,
+			"size": 11,
+			"spin": 0.8,
+			"arms": 5
+		},
+		{
+			"color": "#ffd23d",
+			"accent": "#ff6a3d",
+			"yaw": 160,
+			"pitch": 12,
+			"size": 5,
+			"spin": -1.4,
+			"arms": 4
+		},
+		{
+			"color": "#7a5aff",
+			"accent": "#3df0c8",
+			"yaw": 260,
+			"pitch": 40,
+			"size": 6.5,
+			"spin": 1.1,
+			"arms": 6
+		}
+	],
+	"islands": {
+		"rock": "#2a1f4a",
+		"top": "#5a3f9a",
+		"crystal": "#7ff8ff",
+		"accent": "#ff7ae8",
+		"count": 8,
+		"distance": [
+			22,
+			40
+		],
+		"height": [
+			-16,
+			16
+		],
+		"size": [
+			2.5,
+			6
+		]
+	},
+	"island": {
+		"top": "#241a52",
+		"line": "#7ff8ff",
+		"rock": "#1a1238",
+		"crystal": "#7ff8ff",
+		"accent": "#ff7ae8",
+		"margin": 3,
+		"crystals": 14,
+		"hex": 1.6,
+		"pulse": 1
+	},
+	"embers": {
+		"color": "#bff8ff",
+		"accent": "#ff8af0",
+		"count": 50,
+		"radius": [
+			2,
+			20
+		],
+		"height": 14,
+		"size": 0.07,
+		"rise": 0.25
+	},
+	"sound": {
+		"id": "minecraft:block.beacon.ambient",
+		"volume": 0.35,
+		"pitch": 0.6
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.amethyst_block.chime",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.5,
+			"pitch": [
+				0.5,
+				0.9
+			]
+		}
+	],
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:reverse_portal",
+			"count": 30,
+			"sound": "minecraft:entity.enderman.teleport",
+			"volume": 0.5
+		},
+		"attack": {
+			"particle": "minecraft:reverse_portal",
+			"count": 15
+		},
+		"crit": {
+			"wormhole": true,
+			"flash": "#9ffcff",
+			"particle": "minecraft:end_rod",
+			"count": 30,
+			"sound": "minecraft:block.beacon.power_select",
+			"volume": 0.7
+		},
+		"faint": {
+			"particle": "minecraft:reverse_portal",
+			"count": 50,
+			"sound": "minecraft:entity.enderman.teleport"
+		},
+		"victory": {
+			"wormhole": true,
+			"particle": "minecraft:end_rod",
+			"count": 80,
+			"sound": "minecraft:block.end_portal.spawn",
+			"volume": 0.4
+		}
+	}
+}

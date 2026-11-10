@@ -16,11 +16,11 @@
 	"moon": {
 		"color": "#fff8e0",
 		"yaw": 230,
-		"pitch": 40,
+		"pitch": 55,
 		"size": 9,
 		"seas": false,
-		"halo": 5,
-		"halo_alpha": 120
+		"halo": 3,
+		"halo_alpha": 70
 	},
 	"mirage": {
 		"color": "#bfe0ff",

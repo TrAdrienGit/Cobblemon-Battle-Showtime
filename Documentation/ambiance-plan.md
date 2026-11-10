@@ -169,4 +169,17 @@ step 7, new ambiances.
   ice glints, a fog wall round the field, howling wind), **Mirage** (desert noon, a pale sun, heat haze, blowing sand,
   a mirage of water round the horizon, circling birds), **Synthwave** (a striped sun on the horizon, a neon grid to the
   distance, palm silhouettes, neon fireworks on victory).
-- Next: Ultra Space and Champion's Stage.
+  Validated in game the same day; after its recording Mirage's sun went higher and softer (its glow washed out the
+  Pokémon in front of it).
+- 2026-11-10, last batch (built, not yet seen): **Ultra Space** (the world hidden, the battle on a floating island
+  of violet stone with hexagons of light, crystals on and under it, islands drifting round, three spiralling wormholes,
+  alien nebulae, a wormhole tearing open on a crit) and **Champion's Stage** (a court between the trainers, stands with
+  a crowd in each side's colours cheering on the big moments, camera flashes, four light towers, followspots on the
+  Pokémon, sweeping searchlights, flame fountains on a send-out, confetti cannons, fireworks and a fanfare on victory).
+  New: an `OPAQUE` render type writing depth for solid scenery, drawn before the glows.
+- 2026-11-10, after the last batch's recording: Ultra Space liked; its crystals made six-sided with a shoulder and a
+  faceted point, graded from root to tip, edges catching the light, widths varied; wormhole arms brighter (they barely
+  showed). Champion's Stage reworked: the bright blocky people looked cheap and their cheering stopped abruptly. Now an
+  arena in the dark (tiers under a canopy with lamps along its edge, seats tinted per side, an LED ribbon on the
+  parapet that chases, brightens and flashes), the crowd in silhouette lit by phones and glow sticks held up, every
+  movement eased from a crowd mood that rises fast and fades slowly, and a wave round the stands on victory.

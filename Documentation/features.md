@@ -99,8 +99,9 @@ remove it from roadmap.md.
 
 ## Ambiances (`ambiance/`)
 
-- Sixteen ambiances: disco, cosmos, storm, spectral, nature (meadow), night (starry), arcade, fairy, silver screen
-  (old film), corrupted, inferno, abyss, sakura (festival), blizzard, mirage, synthwave.
+- Eighteen ambiances: disco, cosmos, storm, spectral, nature (meadow), night (starry), arcade, fairy, silver screen
+  (old film), corrupted, inferno, abyss, sakura (festival), blizzard, mirage, synthwave, ultra space, champion
+  (Champion's Stage).
 - Layers: time and day speed, sky, fog, clouds, stars, a backdrop hiding the world (cosmos), rainbow, spotlights,
   floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe,
   ambient sound and occasional sounds, screen filters (black and white, pixels, glitch, ripple, old TV, old film);
@@ -108,7 +109,10 @@ remove it from roadmap.md.
   nebulae, a galaxy band, detailed planets, ground mist, veins, sky cracks, glitch cubes, will-o'-wisps and fireflies,
   ghosts, a moon, darkness flickers, soap bubbles, glowing mushrooms, a double rainbow, film scratches and dust,
   embers, a volcano, lava cracks, sea-floor caustics, light shafts, kelp, rising paper lanterns, real fireworks,
-  ice glints, a fog wall, a horizon mirage, circling birds, a striped 80s sun, palm silhouettes. Far things on the sky
+  ice glints, a fog wall, a horizon mirage, circling birds, a striped 80s sun, palm silhouettes, wormholes, floating
+  islands, the field's own floating island (its top laid on the hidden ground), a court marked between the trainers,
+  stands with a cheering crowd and camera flashes, light towers, followspots on the Pokémon, flame fountains,
+  confetti, a fanfare. Far things on the sky
   (moon, volcano, sun, mirage) are drawn without fog, so a close fog never swallows them.
 - Particle budget: at most 10 ambiance particles per tick, all kinds together; beyond it every kind is scaled down.
 - Reactions to battle moments: send-out, attack, critical hit, knock-out, victory.

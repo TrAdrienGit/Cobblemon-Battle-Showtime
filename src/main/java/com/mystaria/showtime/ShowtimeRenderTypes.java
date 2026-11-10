@@ -34,6 +34,19 @@ public final class ShowtimeRenderTypes extends RenderType {
 					.setOutputState(WEATHER_TARGET)
 					.createCompositeState(false));
 
+	/**
+	 * Solid shapes that hide one another properly (2026-11-10): they write depth, so an island's top hides its own
+	 * underside and a stand's rows hide the ones behind. Opaque colour, no transparency.
+	 */
+	public static final RenderType OPAQUE = create("cobblemon_battle_showtime_opaque", DefaultVertexFormat.POSITION_COLOR,
+			VertexFormat.Mode.QUADS, 1536, false, false, CompositeState.builder()
+					.setShaderState(RENDERTYPE_LIGHTNING_SHADER)
+					.setWriteMaskState(COLOR_DEPTH_WRITE)
+					.setTransparencyState(NO_TRANSPARENCY)
+					.setCullState(NO_CULL)
+					.setOutputState(WEATHER_TARGET)
+					.createCompositeState(false));
+
 	private ShowtimeRenderTypes(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumbling,
 			boolean sortOnUpload, Runnable setup, Runnable clear) {
 		super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setup, clear);

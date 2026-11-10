@@ -1,0 +1,124 @@
+{
+	"time": {
+		"at": 12800,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#0a1235",
+		"fog_color": "#1a2a5a",
+		"strength": 0.9,
+		"fog_start": 24,
+		"fog_end": 130,
+		"stars": 0.5,
+		"hide_clouds": true
+	},
+	"court": {
+		"color": "#f4f0e0",
+		"accent": "#ffcf4a",
+		"alpha": 150
+	},
+	"crowd": {
+		"rows": 5,
+		"row_depth": 1.2,
+		"rise": 0.8,
+		"spacing": 0.75,
+		"sides": [
+			"#2a5ad0",
+			"#d03a3a"
+		],
+		"flashes": 0.5
+	},
+	"light_towers": {
+		"count": 4,
+		"height": 22,
+		"frame": "#2a2e38",
+		"lamp": "#fff6e0",
+		"beam": 18
+	},
+	"followspots": {
+		"color": "#fff4d0",
+		"alpha": 40
+	},
+	"spotlights": {
+		"count": 6,
+		"colors": [
+			"#fff2c0",
+			"#ffd24a",
+			"#9fd0ff"
+		],
+		"sweep": 4,
+		"height": 40,
+		"width": 1.2,
+		"alpha": 28,
+		"ring": 12
+	},
+	"fireworks": {
+		"every": [],
+		"colors": [
+			"#ffcf4a",
+			"#ffffff",
+			"#2a5ad0",
+			"#d03a3a"
+		]
+	},
+	"confetti_colors": [
+		"#ffcf4a",
+		"#f4f0e0",
+		"#2a5ad0",
+		"#d03a3a",
+		"#3ad0a0",
+		"#ff7ae8"
+	],
+	"moments": {
+		"send_out": {
+			"pyro": true,
+			"cheer": true,
+			"camera_flashes": 25,
+			"flash": "#ffe9a0"
+		},
+		"attack": {
+			"camera_flashes": 6
+		},
+		"crit": {
+			"cheer": true,
+			"camera_flashes": 40,
+			"flash": "#fff4d0",
+			"sound": "minecraft:entity.firework_rocket.blast",
+			"volume": 0.5
+		},
+		"faint": {
+			"cheer": true,
+			"camera_flashes": 30,
+			"particle": "minecraft:firework",
+			"count": 30
+		},
+		"victory": {
+			"confetti": 160,
+			"fireworks": 8,
+			"pyro": true,
+			"cheer": true,
+			"wave": true,
+			"camera_flashes": 60,
+			"notes": [
+				0.53,
+				0.667,
+				0.794,
+				1.059,
+				0,
+				0,
+				0.794,
+				1.059,
+				1.335,
+				1.587,
+				1.587,
+				1.587
+			],
+			"note_sound": "minecraft:block.note_block.bell",
+			"note_every": 4
+		},
+		"defeat": {
+			"cheer": true,
+			"camera_flashes": 30
+		}
+	}
+}
