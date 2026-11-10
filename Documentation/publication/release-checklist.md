@@ -21,7 +21,7 @@ gallery.
 | License | Apache-2.0 |
 | Source | https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime |
 | Issues | https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime/issues |
-| Icon | **Not `art/Battle_Showtime_Icon.png`**: its background is derived from a generated image (rule 6.2.1) and it shows the Cobblemon logo. The page icon must be made without generative AI, e.g. an in-game capture with the title over it. |
+| Icon | **Not `art/icons/Battle_Showtime_Icon.png`**: its background is derived from a generated image (rule 6.2.1) and it shows the Cobblemon logo. The page icon must be made without generative AI, e.g. an in-game capture with the title over it. |
 
 ## Modrinth rules: what to tick and check
 

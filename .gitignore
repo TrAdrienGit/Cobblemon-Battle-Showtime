@@ -38,3 +38,13 @@ replay_pid*
 *.class
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
+
+# Artwork: only the two icons and the gallery GIFs are tracked; sources, screenshots, clips and reels stay local.
+/art/**
+!/art/*/
+!/art/icons/Battle_Showtime_Icon.png
+!/art/icons/Battle_Showtime_Icon_Resource_Pack.png
+!/art/ambiances/ambiances.gif
+!/art/ambiances/ambiances_400px.gif
+!/art/intros/intros.gif
+!/art/intros/intros_400px.gif

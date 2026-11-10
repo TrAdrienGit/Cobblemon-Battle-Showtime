@@ -96,6 +96,10 @@ unticked tracks (`disabled`), the favourites (`favorites`) and `onlyFavorites`;
 
 ## Artwork (`art/`)
 
-Sources of the official images, edited with Paint.NET (`.pdn`): the mod icon, the resource pack icon, the title
-banners and the Cobblemon logo used on them. The shipped copies are resized to 512 px:
+- `art/icons/`: sources of the official images, edited with Paint.NET (`.pdn`): the mod icon, the resource pack icon,
+  the title banners and the Cobblemon logo used on them.
+- `art/ambiances/` and `art/intros/`: the gallery, built by `tools/gallery.py` from in-game recordings: one
+  screenshot and one 3-second clip each, and a looping crossfade reel (MP4 and GIFs).
+
+Copies of the icons are shipped at 512 px:
 `assets/cobblemon_battle_showtime/icon.png` and the template pack's `pack.png`. Regenerate them after editing a source.
