@@ -545,6 +545,12 @@ public final class BattleAmbiance {
 		if (active.backdrop != null) {
 			drawBackdrop(pose, buffers, active.backdrop, time);
 		}
+		if (active.galaxy != null) {
+			drawGalaxy(pose, buffers, active.galaxy, time);
+		}
+		if (!active.nebulae.isEmpty()) {
+			drawNebulae(pose, buffers, time);
+		}
 		if (active.rainbow != null) {
 			drawRainbow(pose, buffers, active.rainbow, camera);
 		}
@@ -661,15 +667,19 @@ public final class BattleAmbiance {
 		if (backdrop.stars > 0) {
 			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 			int color = Ambiance.color(backdrop.starColor, 0xFFFFFF);
+			int[] colors = backdrop.starColors.stream().mapToInt(c -> Ambiance.color(c, 0xFFFFFF)).toArray();
 			RandomSource seeded = RandomSource.create(1234L);
 			float spin = time / 1200f * backdrop.spin * (float) Math.PI * 2;
 			for (int i = 0; i < backdrop.stars; i++) {
 				double yaw = seeded.nextDouble() * Math.PI * 2 + spin;
 				double pitch = backdrop.starsAround ? Math.asin(seeded.nextDouble() * 2 - 1) : Math.asin(seeded.nextDouble() * 1.8 - 0.8);
-				float size = 0.12f + seeded.nextFloat() * 0.25f;
+				// Mostly tiny, a few bright: a sky, not confetti.
+				float roll = seeded.nextFloat();
+				float size = (roll > 0.97f ? 0.35f : 0.06f + roll * roll * 0.18f) * backdrop.starSize;
 				float twinkle = 0.6f + 0.4f * Mth.sin(time * 0.1f + i);
 				Vec3 dir = new Vec3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw));
-				quadFacing(glow, m, dir.scale(r * 0.94), dir, size * r / 30f, color, (int) (220 * twinkle));
+				int c = colors.length > 0 ? colors[i % colors.length] : color;
+				quadFacing(glow, m, dir.scale(r * 0.94), dir, size * r / 30f, c, (int) (220 * twinkle));
 			}
 		}
 	}
@@ -940,13 +950,21 @@ public final class BattleAmbiance {
 			int color = Ambiance.color(planet.color, 0x9FB8FF);
 			Vec3 light = sun == null || planet.glow ? new Vec3(0, 1, 0) : sun.subtract(at).normalize();
 			if (!planet.glow) {
-				sphere(buffers.getBuffer(solidType), m, at, planet.size, color, light, false);
+				int[] bands = planet.bands.stream().mapToInt(c -> Ambiance.color(c, 0x9FB8FF)).toArray();
+				sphere(buffers.getBuffer(solidType), m, at, planet.size, color, light, false, bands);
 			}
 			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+			if (planet.atmosphere != null) {
+				// The atmosphere: a soft rim, brighter on the lit side.
+				Vec3 toCamera = cameraRel.subtract(at).normalize();
+				glowDisc(glow, m, at.add(light.scale(planet.size * 0.12)), toCamera, planet.size * 1.28f,
+						Ambiance.color(planet.atmosphere, 0x9FD8FF), 80);
+			}
 			if (planet.glow) {
-				sphere(glow, m, at, planet.size, color, light, true);
-				// Its halo: a bigger, faint glowing sphere.
-				sphere(glow, m, at, planet.size * 1.6f, color, light, true);
+				sphere(glow, m, at, planet.size, color, light, true, null);
+				// Its halo: a bigger, faint glowing sphere, and a wide soft glow round it.
+				sphere(glow, m, at, planet.size * 1.6f, color, light, true, null);
+				glowDisc(glow, m, at, cameraRel.subtract(at).normalize(), planet.size * 4f, color, 50);
 			}
 			if (planet.ring != null) {
 				int ringColor = Ambiance.color(planet.ring, 0xD8C8A0);
@@ -956,7 +974,7 @@ public final class BattleAmbiance {
 					double a1 = Math.PI * 2 * (s + 1) / segments;
 					float inner = planet.size * 1.4f;
 					float outer = planet.size * 2.2f;
-					Vec3 tilt = new Vec3(0, 0.25, 0);
+					Vec3 tilt = new Vec3(0, planet.tilt, 0);
 					vertex(glow, m, at.add(Math.cos(a0) * inner, Math.cos(a0) * inner * tilt.y, Math.sin(a0) * inner), ringColor, 120);
 					vertex(glow, m, at.add(Math.cos(a0) * outer, Math.cos(a0) * outer * tilt.y, Math.sin(a0) * outer), ringColor, 40);
 					vertex(glow, m, at.add(Math.cos(a1) * outer, Math.cos(a1) * outer * tilt.y, Math.sin(a1) * outer), ringColor, 40);
@@ -966,31 +984,51 @@ public final class BattleAmbiance {
 		}
 	}
 
-	private static void sphere(VertexConsumer out, Matrix4f m, Vec3 at, float radius, int color, Vec3 light, boolean glowing) {
-		int rings = 12;
-		int segments = 20;
+	/**
+	 * A sphere. Solid ones are lit by {@code light} with a soft terminator and, for a gas giant, coloured by latitude
+	 * with {@code bands} blended smoothly per vertex (2026-11-10: a colour per facet on a coarse sphere showed a grid).
+	 */
+	private static void sphere(VertexConsumer out, Matrix4f m, Vec3 at, float radius, int color, Vec3 light, boolean glowing, int[] bands) {
+		int rings = glowing ? 12 : 24;
+		int segments = glowing ? 20 : 40;
 		for (int r = 0; r < rings; r++) {
 			double t0 = Math.PI * r / rings;
 			double t1 = Math.PI * (r + 1) / rings;
 			for (int s = 0; s < segments; s++) {
 				double p0 = Math.PI * 2 * s / segments;
 				double p1 = Math.PI * 2 * (s + 1) / segments;
-				Vec3[] corners = { unit(t0, p0), unit(t0, p1), unit(t1, p1), unit(t1, p0) };
-				for (Vec3 n : corners) {
+				double[][] corners = { {t0, p0}, {t0, p1}, {t1, p1}, {t1, p0} };
+				for (double[] c : corners) {
+					Vec3 n = unit(c[0], c[1]);
 					Vec3 v = at.add(n.scale(radius));
 					if (glowing) {
 						vertex(out, m, v, color, 70);
-					} else {
-						float shade = 0.18f + 0.82f * (float) Math.max(0, n.dot(light));
-						int r8 = (int) (((color >> 16) & 255) * shade);
-						int g8 = (int) (((color >> 8) & 255) * shade);
-						int b8 = (int) ((color & 255) * shade);
-						out.addVertex(m, (float) v.x, (float) v.y, (float) v.z).setColor(r8, g8, b8, 255).setUv(0, 0)
-								.setOverlay(OverlayTexture.NO_OVERLAY).setLight(0xF000F0).setNormal(0, 1, 0);
+						continue;
 					}
+					int base = bandColor(bands, color, c[0] / Math.PI);
+					float lit = (float) Mth.clamp((n.dot(light) + 0.15) / 1.15, 0, 1);
+					float shade = 0.10f + 0.90f * lit * lit * (3 - 2 * lit);
+					out.addVertex(m, (float) v.x, (float) v.y, (float) v.z)
+							.setColor((int) ((base >> 16 & 255) * shade), (int) ((base >> 8 & 255) * shade), (int) ((base & 255) * shade), 255)
+							.setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(0xF000F0).setNormal(0, 1, 0);
 				}
 			}
 		}
+	}
+
+	/** The band colour at a latitude ({@code k}: 0 at one pole, 1 at the other), blended between neighbouring bands. */
+	private static int bandColor(int[] bands, int color, double k) {
+		if (bands == null || bands.length == 0) {
+			return color;
+		}
+		if (bands.length == 1) {
+			return bands[0];
+		}
+		double at = Mth.clamp(k, 0, 1) * (bands.length - 1);
+		int low = Math.min(bands.length - 2, (int) at);
+		float t = (float) (at - low);
+		t = t * t * (3 - 2 * t);
+		return lerpColor(bands[low], bands[low + 1], t);
 	}
 
 	private static Vec3 unit(double theta, double phi) {
@@ -1179,6 +1217,80 @@ public final class BattleAmbiance {
 		// A soft round glow round the ball (2026-11-10: a flat quad showed as a big square).
 		Vec3 centre = new Vec3(0, ball.height, 0);
 		glowDisc(out, m, centre, cameraRel.subtract(centre).normalize(), ball.size * 2.4f, 0xFFF4E0, 70);
+	}
+
+	/** The sky's distance for nebulae and the galaxy: inside the star sphere, outside everything else. */
+	private static float skyRadius() {
+		return active.backdrop != null ? Math.max(active.backdrop.radius, fieldRadius + 6f) * 0.88f : 50f;
+	}
+
+	/** Nebulae: clusters of soft glowing puffs, mixing two colours, far away on the sky. */
+	private static void drawNebulae(PoseStack pose, MultiBufferSource buffers, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		float r = skyRadius();
+		int index = 0;
+		for (Ambiance.Nebula nebula : active.nebulae) {
+			double yaw = Math.toRadians(nebula.yaw) + time / 1200.0 * (active.backdrop != null ? active.backdrop.spin : 0) * Math.PI * 2;
+			double pitch = Math.toRadians(nebula.pitch);
+			Vec3 dir = new Vec3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw));
+			Vec3 u = dir.cross(new Vec3(0, 1, 0));
+			u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
+			Vec3 v = dir.cross(u).normalize();
+			int a = Ambiance.color(nebula.color, 0x7A3DFF);
+			int b = Ambiance.color(nebula.accent, 0x3DD0FF);
+			for (int p = 0; p < nebula.puffs; p++) {
+				int seed = index * 7919 + p * 104729;
+				// Puffs gather toward the middle, in a stretched, uneven shape.
+				double spread = nebula.size * Math.sqrt(hashFloat(seed));
+				double angle = hashFloat(seed + 1) * Math.PI * 2;
+				Vec3 at = dir.scale(r).add(u.scale(Math.cos(angle) * spread * 1.5)).add(v.scale(Math.sin(angle) * spread * 0.8));
+				float size = nebula.size * (0.25f + 0.45f * hashFloat(seed + 2));
+				int color = lerpColor(a, b, hashFloat(seed + 3));
+				float breathe = 0.85f + 0.15f * Mth.sin(time / 60f + p);
+				glowDisc(out, m, at, dir.scale(-1), size, color, Math.round(nebula.alpha * breathe));
+			}
+			index++;
+		}
+	}
+
+	/** The galaxy's band: a soft glowing strip along a great circle, sprinkled with fine stars. */
+	private static void drawGalaxy(PoseStack pose, MultiBufferSource buffers, Ambiance.Galaxy galaxy, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		float r = skyRadius() * 1.02f;
+		int color = Ambiance.color(galaxy.color, 0xC8D0FF);
+		double tilt = Math.toRadians(galaxy.tilt);
+		double yaw = Math.toRadians(galaxy.yaw);
+		int glows = 60;
+		for (int i = 0; i < glows; i++) {
+			Vec3 dir = galaxyPoint(i * Math.PI * 2 / glows, 0, tilt, yaw);
+			glowDisc(out, m, dir.scale(r), dir.scale(-1), r * 0.11f, color, galaxy.alpha);
+		}
+		for (int i = 0; i < galaxy.stars; i++) {
+			double along = hashFloat(i * 31 + 7) * Math.PI * 2;
+			double off = (hashFloat(i * 31 + 8) - 0.5) * 0.22 * (0.4 + hashFloat(i * 31 + 9));
+			Vec3 dir = galaxyPoint(along, off, tilt, yaw);
+			float twinkle = 0.55f + 0.45f * Mth.sin(time * 0.08f + i);
+			quadFacing(out, m, dir.scale(r * 0.99), dir, r / 30f * 0.05f, 0xF0F4FF, Math.round(170 * twinkle));
+		}
+	}
+
+	/** A point on the galaxy's great circle ({@code along}), {@code off} radians to one side of it. */
+	private static Vec3 galaxyPoint(double along, double off, double tilt, double yaw) {
+		Vec3 flat = new Vec3(Math.cos(along) * Math.cos(off), Math.sin(off), Math.sin(along) * Math.cos(off));
+		// Tilt round the X axis, then turn round the vertical.
+		double y = flat.y * Math.cos(tilt) - flat.z * Math.sin(tilt);
+		double z = flat.y * Math.sin(tilt) + flat.z * Math.cos(tilt);
+		double x = flat.x;
+		return new Vec3(x * Math.cos(yaw) - z * Math.sin(yaw), y, x * Math.sin(yaw) + z * Math.cos(yaw));
+	}
+
+	private static int lerpColor(int a, int b, float t) {
+		int r = (int) Mth.lerp(t, a >> 16 & 0xFF, b >> 16 & 0xFF);
+		int g = (int) Mth.lerp(t, a >> 8 & 0xFF, b >> 8 & 0xFF);
+		int bl = (int) Mth.lerp(t, a & 0xFF, b & 0xFF);
+		return r << 16 | g << 8 | bl;
 	}
 
 	/** A round glow facing the camera: bright in the middle, fading to nothing at its rim. */

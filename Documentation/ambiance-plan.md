@@ -8,7 +8,11 @@ Status: **in progress**. Tick items off here as they land; move finished ambianc
 
 Done 2026-11-10 (built, not yet seen in game): E1 soft capped cones with near-camera fade (`beam`), new layers
 `mirror_ball`, `dance_floor`, `neon_grid`, `sprites`, `critters` and a moment `text`, a `TINT` render type for solid
-shapes; Meadow, Disco and Arcade remade.
+shapes; Meadow, Disco and Arcade remade. Validated in game the same day.
+
+Done 2026-11-10 (built, not yet seen): E3 sky layers (`nebulae`, `galaxy`, finer coloured stars), detailed
+planets (`bands`, `atmosphere`, ring `tilt`, a soft terminator, a sun glow); Cosmos remade with them, its white specks
+removed. Note: the yellow rings seen in the first Cosmos recording were Electric Terrain, not the ambiance.
 
 ## What the recording shows
 

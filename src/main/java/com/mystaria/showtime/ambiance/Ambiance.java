@@ -52,6 +52,10 @@ public final class Ambiance {
 		public boolean box = true;
 		/** Stars below the field too (all around), not only in the sky. */
 		public boolean starsAround;
+		/** Star size factor (2026-11-10: 1 made them read as confetti; finer looks like a sky). */
+		public float starSize = 1f;
+		/** When set, stars take these colours in turn (white, blue, gold…) instead of {@code starColor}. */
+		public List<String> starColors = List.of();
 	}
 
 	/** Coloured light spots turning on the ground (a night club's floor). */
@@ -112,9 +116,38 @@ public final class Ambiance {
 		public boolean glow;
 		/** A ring around it (Saturn). */
 		public String ring;
+		/** Colour bands from pole to pole (a gas giant); empty: one colour. */
+		public List<String> bands = List.of();
+		/** A thin glowing rim round it (its atmosphere). */
+		public String atmosphere;
+		/** Its ring's tilt, 0 (flat) to 1. */
+		public float tilt = 0.25f;
 	}
 
 	/** An aurora: curtains of light waving high over the field. */
+	/** A nebula: a cloud of soft glowing puffs far away in the sky (Cosmos, 2026-11-10). */
+	public static final class Nebula {
+		public String color = "#7a3dff";
+		public String accent = "#3dd0ff";
+		/** Where it is, in degrees round the field and above the horizon. */
+		public float yaw;
+		public float pitch = 20f;
+		/** Its size, in blocks at the sky's distance. */
+		public float size = 18f;
+		public int puffs = 16;
+		public int alpha = 34;
+	}
+
+	/** The galaxy's band: a glowing strip of dense stars across the sky. */
+	public static final class Galaxy {
+		public String color = "#c8d0ff";
+		/** The band's tilt, in degrees, and where it crosses the horizon. */
+		public float tilt = 35f;
+		public float yaw;
+		public int alpha = 26;
+		public int stars = 700;
+	}
+
 	public static final class Aurora {
 		public List<String> colors = List.of("#3dff9a", "#38e0ff", "#a24bff");
 		public float height = 38f;
@@ -284,6 +317,8 @@ public final class Ambiance {
 	public boolean hideWorld;
 	public FloorLights floorLights;
 	public MirrorBall mirrorBall;
+	public List<Nebula> nebulae = List.of();
+	public Galaxy galaxy;
 	public DanceFloor danceFloor;
 	public NeonGrid neonGrid;
 	public Sprites sprites;

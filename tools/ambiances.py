@@ -162,25 +162,38 @@ AMBIANCES = {
         "hide_world": True,
         "time": {"at": 18000, "speed": 0},
         "sky": {"sky_color": "#020008", "fog_color": "#020008", "strength": 1.0, "stars": 1.0, "hide_clouds": True},
-        # Stars all around, below too: the battle floats in space, over a solar system.
-        "backdrop": {"box": False, "radius": 60, "stars": 2200, "spin": 0.3, "star_color": "#dfe6ff", "stars_around": True},
+        # Stars all around, below too: the battle floats in space, over a solar system (2026-11-10: finer stars in
+        # several colours, nebulae, the galaxy's band, detailed planets; the white specks in front are gone).
+        "backdrop": {"box": False, "radius": 60, "stars": 2600, "spin": 0.3, "star_color": "#dfe6ff", "stars_around": True,
+                     "star_size": 0.7, "star_colors": ["#ffffff", "#dfe6ff", "#bcd2ff", "#fff1c8", "#ffd2b0"]},
+        "galaxy": {"color": "#b8c4ff", "tilt": 38, "yaw": 20, "alpha": 22, "stars": 900},
+        "nebulae": [
+            {"color": "#7a2dff", "accent": "#ff4fb8", "yaw": 60, "pitch": 28, "size": 16, "puffs": 18, "alpha": 30},
+            {"color": "#1f6bff", "accent": "#3df0d8", "yaw": 200, "pitch": 12, "size": 20, "puffs": 20, "alpha": 26},
+            {"color": "#ff6a3d", "accent": "#ffd23d", "yaw": 300, "pitch": -24, "size": 13, "puffs": 14, "alpha": 22},
+        ],
         # Meteors: big, trailing fire, crossing above and below.
-        "shooting_stars": {"rate": 0.08, "color": "#ffd9a0", "size": 4, "trail": "minecraft:flame", "below": True},
+        "shooting_stars": {"rate": 0.06, "color": "#ffd9a0", "size": 4, "trail": "minecraft:flame", "below": True},
         "planets": [
             {"color": "#ffd25a", "size": 7, "orbit": 0, "height": -45, "speed": 0, "glow": True},
-            {"color": "#b5683c", "size": 1.4, "orbit": 18, "height": -40, "speed": 3},
-            {"color": "#3d7bff", "size": 2.4, "orbit": 30, "height": -36, "speed": 1.6},
-            {"color": "#d9b77a", "size": 3.6, "orbit": 44, "height": -30, "speed": 0.8, "ring": "#e8d8b0"},
-            {"color": "#7fd6ff", "size": 2.8, "orbit": 58, "height": -26, "speed": 0.5},
-            # Above too (2026-10-30): a gas giant and a small moon passing over the field, a pale far sun.
-            {"color": "#c46ad6", "size": 5, "orbit": 50, "height": 34, "speed": -0.4, "ring": "#f0c8ff"},
-            {"color": "#d8dde8", "size": 1.6, "orbit": 26, "height": 22, "speed": -1.2},
+            {"color": "#b5683c", "size": 1.4, "orbit": 18, "height": -40, "speed": 3, "bands": ["#b5683c", "#9a5530", "#c47a48"]},
+            {"color": "#3d7bff", "size": 2.4, "orbit": 30, "height": -36, "speed": 1.6, "atmosphere": "#9fd8ff",
+             "bands": ["#f0f6ff", "#3d7bff", "#3a9a5a", "#3d7bff", "#2a5ad0", "#3d7bff", "#f0f6ff"]},
+            {"color": "#d9b77a", "size": 3.6, "orbit": 44, "height": -30, "speed": 0.8, "ring": "#e8d8b0", "tilt": 0.3,
+             "bands": ["#e8d2a0", "#d9b77a", "#c8a060", "#e0c48a", "#b88a50", "#d9b77a", "#e8d2a0"]},
+            {"color": "#7fd6ff", "size": 2.8, "orbit": 58, "height": -26, "speed": 0.5, "atmosphere": "#bff0ff",
+             "bands": ["#9fe4ff", "#7fd6ff", "#6ac4f0", "#7fd6ff"]},
+            # Above too: a banded gas giant with its rings and a small moon passing over the field, a pale far sun.
+            {"color": "#c46ad6", "size": 6, "orbit": 50, "height": 34, "speed": -0.4, "ring": "#f0c8ff", "tilt": 0.45,
+             "atmosphere": "#e8b0ff",
+             "bands": ["#f0d0ff", "#c46ad6", "#a050c0", "#d888e8", "#8a40a8", "#c46ad6", "#e0a8f0", "#b060c8", "#f0d0ff"]},
+            {"color": "#d8dde8", "size": 1.6, "orbit": 26, "height": 22, "speed": -1.2,
+             "bands": ["#d8dde8", "#b8bec8", "#d8dde8", "#c8ced8"]},
             {"color": "#9fd8ff", "size": 3, "orbit": 70, "height": 48, "speed": 0.2, "glow": True},
         ],
-        "aurora": {"colors": ["#6a4bff", "#3d8bff", "#c24bff"], "height": 20, "alpha": 60},
+        "aurora": {"colors": ["#6a4bff", "#3d8bff", "#c24bff"], "height": 20, "alpha": 40},
         "particles": [
-            {"type": "minecraft:end_rod", "rate": 0.6, "area": "air", "motion": [0, 0.005, 0], "spread": 0.01},
-            {"type": "minecraft:reverse_portal", "rate": 2, "area": "ring"},
+            {"type": "minecraft:reverse_portal", "rate": 1, "area": "ring"},
         ],
         "sound": {"id": "minecraft:block.beacon.ambient", "volume": 0.5, "pitch": 0.6},
         "moments": {
