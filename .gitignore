@@ -48,3 +48,5 @@ replay_pid*
 !/art/ambiances/ambiances_400px.gif
 !/art/intros/intros.gif
 !/art/intros/intros_400px.gif
+!/art/*/screenshots/
+!/art/*/screenshots/*.png
