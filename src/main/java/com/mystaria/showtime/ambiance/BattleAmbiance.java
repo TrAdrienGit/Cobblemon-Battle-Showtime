@@ -88,6 +88,14 @@ public final class BattleAmbiance {
 	/** Corrupted's veins: segments on the ground (x0, z0, x1, z1, distance from their root), built once. */
 	private static final List<double[]> VEINS = new ArrayList<>();
 	private static long nextFlicker = -1;
+	/** When each of the ambiance's ambient sounds plays next (ticks). */
+	private static long[] nextAmbientSound = new long[0];
+	/** Film: the scratch running (screen x 0..1, ticks left) and a speck of dust (x, y, ticks left). */
+	private static float scratchX;
+	private static int scratchLeft;
+	private static float dustX;
+	private static float dustY;
+	private static int dustLeft;
 	private static int flickerLeft;
 	private static final List<Orbiter> CRITTERS = new ArrayList<>();
 	/** A moment's big text (Arcade's "CRITICAL!"), and how long it stays. */
@@ -242,6 +250,12 @@ public final class BattleAmbiance {
 		if (ambiance.veins != null) {
 			buildVeins(ambiance.veins);
 		}
+		nextAmbientSound = new long[ambiance.ambientSounds.size()];
+		for (int i = 0; i < nextAmbientSound.length; i++) {
+			nextAmbientSound[i] = ticks + 40 + betweenTicks(ambiance.ambientSounds.get(i).every);
+		}
+		scratchLeft = 0;
+		dustLeft = 0;
 		flickerLeft = 0;
 		nextFlicker = ambiance.flicker != null ? ticks + 60 + betweenTicks(ambiance.flicker.every) : -1;
 		CRITTERS.clear();
@@ -313,11 +327,46 @@ public final class BattleAmbiance {
 		for (Ambiance.Particles particles : active.particles) {
 			spawn(mc.level, particles);
 		}
+		if (active.film != null) {
+			if (scratchLeft > 0) {
+				scratchLeft--;
+				scratchX += (RANDOM.nextFloat() - 0.5f) * 0.004f;
+			} else if (RANDOM.nextFloat() < active.film.scratches) {
+				scratchX = 0.1f + RANDOM.nextFloat() * 0.8f;
+				scratchLeft = 4 + RANDOM.nextInt(10);
+			}
+			if (dustLeft > 0) {
+				dustLeft--;
+			} else if (RANDOM.nextFloat() < active.film.dust) {
+				dustX = RANDOM.nextFloat();
+				dustY = RANDOM.nextFloat();
+				dustLeft = 1 + RANDOM.nextInt(2);
+			}
+		}
+		if (!distant || inside) {
+			for (int i = 0; i < nextAmbientSound.length && i < active.ambientSounds.size(); i++) {
+				if (ticks >= nextAmbientSound[i]) {
+					Ambiance.AmbientSound ambient = active.ambientSounds.get(i);
+					nextAmbientSound[i] = ticks + Math.max(20, betweenTicks(ambient.every));
+					playAmbient(mc, ambient);
+				}
+			}
+		}
 		if (active.floatingBlocks != null && active.floatingBlocks.flame && ticks % 4 == 0) {
 			for (Floating floating : FLOATING) {
 				Vec3 at = floatingPosition(floating, 0f);
 				if (RANDOM.nextInt(3) == 0) {
 					mc.level.addParticle(ParticleTypes.SMALL_FLAME, at.x, at.y + 0.55, at.z, 0, 0.005, 0);
+				}
+			}
+		}
+		if (active.floatingBlocks != null && active.floatingBlocks.sparkle != null && ticks % 3 == 0) {
+			ParticleOptions sparkle = particle(active.floatingBlocks.sparkle);
+			for (Floating floating : FLOATING) {
+				if (sparkle != null && RANDOM.nextInt(4) == 0) {
+					Vec3 at = floatingPosition(floating, 0f);
+					mc.level.addParticle(sparkle, at.x + RANDOM.nextGaussian() * 0.6, at.y + 0.5 + RANDOM.nextGaussian() * 0.6,
+							at.z + RANDOM.nextGaussian() * 0.6, 0, 0, 0);
 				}
 			}
 		}
@@ -598,6 +647,12 @@ public final class BattleAmbiance {
 		if (active.wisps != null) {
 			drawWisps(pose, buffers, active.wisps, time);
 		}
+		if (active.bubbles != null) {
+			drawBubbles(pose, buffers, active.bubbles, time);
+		}
+		if (active.mushrooms != null) {
+			drawMushrooms(pose, buffers, active.mushrooms, time, true);
+		}
 		if (active.moon != null) {
 			drawMoonHalo(pose, buffers, active.moon);
 		}
@@ -632,6 +687,9 @@ public final class BattleAmbiance {
 		}
 		if (active.ghosts != null) {
 			drawGhosts(pose, buffers, active.ghosts, time);
+		}
+		if (active.mushrooms != null) {
+			drawMushrooms(pose, buffers, active.mushrooms, time, false);
 		}
 		if (active.mist != null) {
 			drawMist(pose, buffers, active.mist, time);
@@ -668,6 +726,9 @@ public final class BattleAmbiance {
 			if (alpha > 0) {
 				graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), (alpha << 24) | color);
 			}
+		}
+		if (active() && active.film != null) {
+			drawFilm(graphics, active.film);
 		}
 		if (hudTextLeft > 0 && hudText != null) {
 			drawHudText(graphics);
@@ -740,19 +801,49 @@ public final class BattleAmbiance {
 		Vec3 back = rainbowBack;
 		Vec3 across = new Vec3(-back.z, 0, back.x);
 		Vec3 origin = back.scale(rainbow.radius * 0.6);
-		float width = rainbow.radius * 0.035f;
 		int alpha = (int) (255 * Mth.clamp(rainbow.alpha, 0f, 1f));
-		int segments = 48;
+		bow(out, m, origin, across, rainbow.radius, rainbow.radius * 0.035f, bands, alpha);
+		if (rainbow.doubled) {
+			// The second bow: further out, wider bands, fainter, red on the inside.
+			int[] reversed = new int[bands.length];
+			for (int b = 0; b < bands.length; b++) {
+				reversed[b] = bands[bands.length - 1 - b];
+			}
+			bow(out, m, origin, across, rainbow.radius * 1.32f, rainbow.radius * 0.05f, reversed, Math.round(alpha * 0.4f));
+		}
+	}
+
+	/**
+	 * One bow: its colours blend into each other (one stop per band, in the band's middle), and its two edges fade to
+	 * nothing, so it reads as light, not as painted stripes.
+	 */
+	private static void bow(VertexConsumer out, Matrix4f m, Vec3 origin, Vec3 across, float radius, float width, int[] bands,
+			int alpha) {
+		int stops = bands.length + 2;
+		float[] r = new float[stops];
+		int[] c = new int[stops];
+		int[] a = new int[stops];
+		r[0] = radius;
+		c[0] = bands[0];
+		r[stops - 1] = radius - bands.length * width;
+		c[stops - 1] = bands[bands.length - 1];
 		for (int b = 0; b < bands.length; b++) {
-			float inner = rainbow.radius - (b + 1) * width;
-			float outer = inner + width;
+			r[b + 1] = radius - (b + 0.5f) * width;
+			c[b + 1] = bands[b];
+			a[b + 1] = alpha;
+		}
+		int segments = 64;
+		for (int k = 0; k < stops - 1; k++) {
 			for (int s = 0; s < segments; s++) {
 				double a0 = Math.PI * s / segments;
 				double a1 = Math.PI * (s + 1) / segments;
-				vertex(out, m, origin.add(across.scale(Math.cos(a0) * inner)).add(0, Math.sin(a0) * inner, 0), bands[b], alpha);
-				vertex(out, m, origin.add(across.scale(Math.cos(a0) * outer)).add(0, Math.sin(a0) * outer, 0), bands[b], alpha);
-				vertex(out, m, origin.add(across.scale(Math.cos(a1) * outer)).add(0, Math.sin(a1) * outer, 0), bands[b], alpha);
-				vertex(out, m, origin.add(across.scale(Math.cos(a1) * inner)).add(0, Math.sin(a1) * inner, 0), bands[b], alpha);
+				// The bow's feet fade into the ground haze.
+				float f0 = (float) Mth.clamp(Math.sin(a0) * 4, 0, 1);
+				float f1 = (float) Mth.clamp(Math.sin(a1) * 4, 0, 1);
+				vertex(out, m, origin.add(across.scale(Math.cos(a0) * r[k])).add(0, Math.sin(a0) * r[k], 0), c[k], Math.round(a[k] * f0));
+				vertex(out, m, origin.add(across.scale(Math.cos(a0) * r[k + 1])).add(0, Math.sin(a0) * r[k + 1], 0), c[k + 1], Math.round(a[k + 1] * f0));
+				vertex(out, m, origin.add(across.scale(Math.cos(a1) * r[k + 1])).add(0, Math.sin(a1) * r[k + 1], 0), c[k + 1], Math.round(a[k + 1] * f1));
+				vertex(out, m, origin.add(across.scale(Math.cos(a1) * r[k])).add(0, Math.sin(a1) * r[k], 0), c[k], Math.round(a[k] * f1));
 			}
 		}
 	}
@@ -1524,10 +1615,18 @@ public final class BattleAmbiance {
 				continue;
 			}
 			float flicker = 0.7f + 0.3f * Mth.sin(time * 0.7f + i * 3) * Mth.sin(time * 0.31f + i);
+			if (wisps.blink) {
+				// A firefly: lit for a second or two, then dark for a while, each on its own beat.
+				float beat = (time / 20f + hashFloat(i * 17 + 5) * 7f) % 4f;
+				flicker = beat < 1.6f ? Mth.sin(beat / 1.6f * Mth.PI) : 0f;
+				if (flicker <= 0.02f) {
+					continue;
+				}
+			}
 			Vec3 toCamera = cameraRel.subtract(at).normalize();
 			int color = lerpColor(a, b, hashFloat(i * 17 + 4));
-			glowDisc(out, m, at, toCamera, 0.9f, color, Math.round(55 * flicker * fade));
-			glowDisc(out, m, at, toCamera, 0.28f, 0xF0FFFA, Math.round(230 * flicker * fade));
+			glowDisc(out, m, at, toCamera, 0.9f * wisps.size, color, Math.round(55 * flicker * fade));
+			glowDisc(out, m, at, toCamera, 0.28f * wisps.size, 0xF0FFFA, Math.round(230 * flicker * fade));
 		}
 	}
 
@@ -1572,6 +1671,186 @@ public final class BattleAmbiance {
 				}
 			}
 		}
+	}
+
+	/** Soap bubbles: a thin bright rim, a faint body and a glint, rising and swaying, popping at the top. */
+	private static void drawBubbles(PoseStack pose, MultiBufferSource buffers, Ambiance.Bubbles bubbles, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(bubbles.color, 0xE8F4FF);
+		int[] sheen = { 0xFFB0E0, 0xB0FFE8, 0xB8C8FF };
+		for (int i = 0; i < bubbles.count; i++) {
+			double cycle = 160 + 120 * hashFloat(i * 41 + 1);
+			double phase = ((time + hashFloat(i * 41 + 2) * cycle) % cycle) / cycle;
+			int round = (int) ((time + hashFloat(i * 41 + 2) * cycle) / cycle);
+			int seed = i * 41 + round * 7307;
+			double angle = hashFloat(seed + 3) * Math.PI * 2;
+			double radius = Mth.lerp(hashFloat(seed + 4), bubbles.radius.get(0), bubbles.radius.get(1));
+			double sway = Math.sin(time / 15.0 + i) * 0.6;
+			Vec3 at = onGround(Math.cos(angle) * radius + sway, Math.sin(angle) * radius).add(0, 0.5 + phase * bubbles.height, 0);
+			float size = Mth.lerp(hashFloat(seed + 5), bubbles.size.get(0), bubbles.size.get(1));
+			// Fades in from the ground, pops (grows a hair and vanishes) at the very top.
+			float life = (float) Mth.clamp(Math.min(phase / 0.1, (1 - phase) / 0.04), 0, 1);
+			float pop = phase > 0.96 ? 1 + (float) (phase - 0.96) * 6 : 1;
+			float fade = life * nearFade(at, 0.5, 2.0);
+			if (fade <= 0.03f) {
+				continue;
+			}
+			Vec3 normal = cameraRel.subtract(at).normalize();
+			Vec3 u = normal.cross(new Vec3(0, 1, 0)).normalize();
+			if (u.lengthSqr() < 1.0E-6) {
+				u = new Vec3(1, 0, 0);
+			}
+			Vec3 v = normal.cross(u).normalize();
+			float r = size * pop;
+			int segments = 20;
+			for (int s = 0; s < segments; s++) {
+				double a0 = Math.PI * 2 * s / segments;
+				double a1 = Math.PI * 2 * (s + 1) / segments;
+				// The rim shimmers in pastel colours round the bubble, as a soap film does.
+				int c0 = lerpColor(color, sheen[(s * 3 / segments) % 3], 0.6f);
+				Vec3 in0 = at.add(u.scale(Math.cos(a0) * r * 0.86)).add(v.scale(Math.sin(a0) * r * 0.86));
+				Vec3 in1 = at.add(u.scale(Math.cos(a1) * r * 0.86)).add(v.scale(Math.sin(a1) * r * 0.86));
+				Vec3 out0 = at.add(u.scale(Math.cos(a0) * r)).add(v.scale(Math.sin(a0) * r));
+				Vec3 out1 = at.add(u.scale(Math.cos(a1) * r)).add(v.scale(Math.sin(a1) * r));
+				int rim = Math.round(120 * fade);
+				vertex(out, m, in0, c0, 0);
+				vertex(out, m, out0, c0, rim);
+				vertex(out, m, out1, c0, rim);
+				vertex(out, m, in1, c0, 0);
+				// The body: barely there, a little brighter toward the rim.
+				vertex(out, m, at, color, 0);
+				vertex(out, m, at, color, 0);
+				vertex(out, m, in1, color, Math.round(18 * fade));
+				vertex(out, m, in0, color, Math.round(18 * fade));
+			}
+			Vec3 glint = at.add(u.scale(-r * 0.45)).add(v.scale(r * 0.45));
+			glowDisc(out, m, glint, normal, r * 0.22f, 0xFFFFFF, Math.round(200 * fade));
+		}
+	}
+
+	/**
+	 * Mushrooms in clumps round the field: a stem and a domed cap, softly lit from within (solid pass), and a glow on the
+	 * ground and round the cap that breathes slowly (light pass).
+	 */
+	private static void drawMushrooms(PoseStack pose, MultiBufferSource buffers, Ambiance.Mushrooms mushrooms, float time,
+			boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		for (int c = 0; c < mushrooms.clumps; c++) {
+			double angle = Math.PI * 2 * (c + hashFloat(c * 53 + 1) * 0.6) / mushrooms.clumps;
+			double ring = fieldRadius + mushrooms.ring + hashFloat(c * 53 + 2) * 2;
+			int color = Ambiance.color(mushrooms.colors.get(c % Math.max(1, mushrooms.colors.size())), 0xFF9AD8);
+			int many = 1 + (int) (hashFloat(c * 53 + 3) * 3);
+			for (int k = 0; k < many; k++) {
+				double x = Math.cos(angle) * ring + (hashFloat(c * 53 + 10 + k) - 0.5) * 1.2;
+				double z = Math.sin(angle) * ring + (hashFloat(c * 53 + 20 + k) - 0.5) * 1.2;
+				float size = mushrooms.size * (0.6f + 0.7f * hashFloat(c * 53 + 30 + k));
+				Vec3 foot = onGround(x, z);
+				if (nearFade(foot, 0.5, 1.5) <= 0.05f) {
+					continue;
+				}
+				float breathe = 0.7f + 0.3f * Mth.sin(time / 30f + c + k);
+				Vec3 cap = foot.add(0, size * 1.1, 0);
+				if (glow) {
+					glowDisc(out, m, foot.add(0, 0.03, 0), new Vec3(0, 1, 0), size * 2.2f, color, Math.round(60 * breathe));
+					glowDisc(out, m, cap, cameraRel.subtract(cap).normalize(), size * 1.6f, color, Math.round(45 * breathe));
+				} else {
+					mushroom(out, m, foot, size, color);
+				}
+			}
+		}
+	}
+
+	/**
+	 * One mushroom. TINT writes no depth, so the parts go back to front as seen from above (where the camera nearly always
+	 * is): the cap's underside, then the stem, then the dome.
+	 */
+	private static void mushroom(VertexConsumer out, Matrix4f m, Vec3 foot, float size, int color) {
+		int sides = 10;
+		double stem = size * 0.16;
+		double stemTop = size * 1.1;
+		double cap = size * 0.62;
+		int stemColor = 0xF4ECE0;
+		int under = lerpColor(color, 0x302030, 0.55f);
+		double[] rings = { 1.0, 0.85, 0.55, 0.0 };
+		double[] lift = { 0.0, 0.28, 0.5, 0.6 };
+		for (int part = 0; part < 3; part++) {
+			for (int s = 0; s < sides; s++) {
+				double a0 = Math.PI * 2 * s / sides;
+				double a1 = Math.PI * 2 * (s + 1) / sides;
+				if (part == 0) {
+					Vec3 u0 = foot.add(Math.cos(a0) * cap, stemTop, Math.sin(a0) * cap);
+					Vec3 u1 = foot.add(Math.cos(a1) * cap, stemTop, Math.sin(a1) * cap);
+					Vec3 mid = foot.add(0, stemTop - size * 0.05, 0);
+					vertex(out, m, u0, under, 255);
+					vertex(out, m, mid, under, 255);
+					vertex(out, m, mid, under, 255);
+					vertex(out, m, u1, under, 255);
+				} else if (part == 1) {
+					Vec3 b0 = foot.add(Math.cos(a0) * stem, 0, Math.sin(a0) * stem);
+					Vec3 b1 = foot.add(Math.cos(a1) * stem, 0, Math.sin(a1) * stem);
+					vertex(out, m, b0, stemColor, 255);
+					vertex(out, m, b1, stemColor, 255);
+					vertex(out, m, b1.add(0, stemTop, 0), stemColor, 255);
+					vertex(out, m, b0.add(0, stemTop, 0), stemColor, 255);
+				} else {
+					// A dome in three rings, lighter toward the top.
+					for (int r = 0; r < rings.length - 1; r++) {
+						int lo = lerpColor(color, 0xFFFFFF, r * 0.18f);
+						int hi = lerpColor(color, 0xFFFFFF, (r + 1) * 0.18f);
+						Vec3 c0 = foot.add(Math.cos(a0) * cap * rings[r], stemTop + size * lift[r], Math.sin(a0) * cap * rings[r]);
+						Vec3 c1 = foot.add(Math.cos(a1) * cap * rings[r], stemTop + size * lift[r], Math.sin(a1) * cap * rings[r]);
+						Vec3 d0 = foot.add(Math.cos(a0) * cap * rings[r + 1], stemTop + size * lift[r + 1], Math.sin(a0) * cap * rings[r + 1]);
+						Vec3 d1 = foot.add(Math.cos(a1) * cap * rings[r + 1], stemTop + size * lift[r + 1], Math.sin(a1) * cap * rings[r + 1]);
+						vertex(out, m, c0, lo, 255);
+						vertex(out, m, c1, lo, 255);
+						vertex(out, m, d1, hi, 255);
+						vertex(out, m, d0, hi, 255);
+					}
+				}
+			}
+		}
+	}
+
+	/** Old film, over the screen: the light breathing, now and then a scratch running down, a speck of dust. */
+	private static void drawFilm(GuiGraphics graphics, Ambiance.Film film) {
+		int w = graphics.guiWidth();
+		int h = graphics.guiHeight();
+		float breathe = film.flicker * (0.5f + 0.5f * hashFloat((int) ticks * 31 + 7));
+		int dark = Math.round(255 * Mth.clamp(breathe, 0, 1));
+		if (dark > 0) {
+			graphics.fill(0, 0, w, h, dark << 24);
+		}
+		if (scratchLeft > 0) {
+			int x = Math.round(scratchX * w);
+			int light = (scratchLeft % 3 == 0) ? 0x50FFFFFF : 0x38FFFFFF;
+			graphics.fill(x, 0, x + 1, h, light);
+			// Scratches are not straight: a short kink partway down.
+			int kink = Math.round(h * (0.3f + 0.4f * hashFloat(Math.round(scratchX * 1000))));
+			graphics.fill(x + 1, kink, x + 2, Math.min(h, kink + h / 6), light);
+		}
+		if (dustLeft > 0) {
+			int x = Math.round(dustX * w);
+			int y = Math.round(dustY * h);
+			int s = 1 + Math.round(hashFloat(Math.round(dustX * 997)) * 2);
+			graphics.fill(x, y, x + s + 1, y + s, 0xB0101010);
+			graphics.fill(x + s, y + 1, x + s + 2, y + s + 1, 0x80101010);
+		}
+	}
+
+	/** One of the ambiance's occasional sounds, from a random side of the camera, not too close. */
+	private static void playAmbient(Minecraft mc, Ambiance.AmbientSound ambient) {
+		if (ambient.id == null) {
+			return;
+		}
+		Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
+		double angle = RANDOM.nextDouble() * Math.PI * 2;
+		float pitch = ambient.pitch.isEmpty() ? 1f : between(ambient.pitch);
+		mc.getSoundManager().play(new net.minecraft.client.resources.sounds.SimpleSoundInstance(
+				SoundEvent.createVariableRangeEvent(ResourceLocation.parse(ambient.id)), SoundSource.AMBIENT, ambient.volume,
+				pitch, RandomSource.create(RANDOM.nextLong()), camera.x + Math.cos(angle) * 4, camera.y + 1,
+				camera.z + Math.sin(angle) * 4));
 	}
 
 	private static Vec3 moonPlace(Ambiance.Moon moon) {

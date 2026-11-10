@@ -18,8 +18,15 @@ Validated in game the same day.
 Done 2026-11-10 (built, not yet seen): E4 ground `mist`; new layers `veins`, `sky_cracks`, `glitch_cubes`, `wisps`,
 `ghosts`, `moon` and a darkness `flicker`. Corrupted remade (violet and readable, cracks, veins, cubes, mist) and
 Spectral remade (pale green moon, thick mist, wisps, distant ghosts, light dying now and then). Still to do from their
-plans: the crit screen tear and the cube shattering on a knock-out (Corrupted), a ghost rising on a knock-out and
-whispers (Spectral).
+plans: the crit screen tear and the cube shattering on a knock-out (Corrupted), a ghost rising on a knock-out
+(Spectral). Validated in game the same day.
+
+Done 2026-11-10 (built, not yet seen): new layers `bubbles`, `mushrooms`, `film`, `ambient_sounds`, a `doubled`
+rainbow with soft blended bands, `sparkle` on floating blocks, wisps with a `size` and a firefly `blink`, and a `film`
+screen filter (grain, dark rim). Fairy Tale remade (pastel sky, double rainbow, fireflies, bubbles, glowing mushrooms,
+sparkling crystals, cherry petals, chimes); Starry Night gets a moon, fireflies and frogs; Silver Screen real old film
+(grain, rim, scratches, dust, breathing light); Storm a distant rumble; Spectral cave whispers. Minecraft has no
+cricket or projector sound: frogs stand in for crickets, the projector is left out.
 
 ## What the recording shows
 

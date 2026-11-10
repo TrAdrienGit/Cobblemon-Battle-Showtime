@@ -198,6 +198,10 @@ public final class Ambiance {
 		public int count = 10;
 		public List<Float> radius = List.of(5f, 14f);
 		public List<Float> height = List.of(0.8f, 3f);
+		/** Size factor: 1 a will-o'-wisp, about 0.3 a firefly. */
+		public float size = 1f;
+		/** Blinking on and off, as fireflies do, instead of a steady flicker. */
+		public boolean blink;
 	}
 
 	/** Pale ghost silhouettes drifting far beyond the field, fading in and out (Spectral). */
@@ -235,6 +239,46 @@ public final class Ambiance {
 	public static final class Rainbow {
 		public float radius = 30f;
 		public float alpha = 0.45f;
+		/** A fainter second bow outside the first, its colours reversed, as in a real double rainbow. */
+		public boolean doubled;
+	}
+
+	/** Soap bubbles rising slowly round the field, catching the light, popping at the top (Fairy Tale). */
+	public static final class Bubbles {
+		public String color = "#e8f4ff";
+		public int count = 14;
+		public List<Float> radius = List.of(5f, 14f);
+		public float height = 9f;
+		public List<Float> size = List.of(0.25f, 0.6f);
+	}
+
+	/** Small glowing mushrooms in clumps round the field (Fairy Tale). */
+	public static final class Mushrooms {
+		public List<String> colors = List.of("#ff9ad8", "#9ad8ff", "#c8a8ff");
+		public int clumps = 12;
+		/** Distance beyond the field's edge, in blocks. */
+		public float ring = 1.5f;
+		public float size = 0.5f;
+	}
+
+	/** Old film over the screen: a scratch running down now and then, specks of dust, the light breathing. */
+	public static final class Film {
+		/** Chance per tick that a scratch starts. */
+		public float scratches = 0.02f;
+		/** Chance per tick of a speck of dust. */
+		public float dust = 0.15f;
+		/** How much the light breathes, 0..1. */
+		public float flicker = 0.05f;
+	}
+
+	/** A sound playing now and then somewhere round the camera: distant thunder, a chime, a whisper. */
+	public static final class AmbientSound {
+		public String id;
+		/** Ticks between two: [min, max]. */
+		public List<Integer> every = List.of(200, 400);
+		public float volume = 0.5f;
+		/** Pitch: [min, max]. */
+		public List<Float> pitch = List.of(1f, 1f);
 	}
 
 	/** Searchlight beams around the field, sweeping the sky. */
@@ -334,6 +378,8 @@ public final class Ambiance {
 		public float orbit = 0.5f;
 		/** A flame on top (candles). */
 		public boolean flame;
+		/** A particle glinting round each block now and then (crystals sparkling); null: none. */
+		public String sparkle;
 	}
 
 	/** Lightning striking around the field now and then (visual only). */
@@ -402,6 +448,10 @@ public final class Ambiance {
 	public Ghosts ghosts;
 	public Moon moon;
 	public Flicker flicker;
+	public Bubbles bubbles;
+	public Mushrooms mushrooms;
+	public Film film;
+	public List<AmbientSound> ambientSounds = List.of();
 	public List<Nebula> nebulae = List.of();
 	public Galaxy galaxy;
 	public DanceFloor danceFloor;

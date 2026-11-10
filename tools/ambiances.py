@@ -19,6 +19,7 @@ GLITCH = FILTER + "glitch.json"
 GLITCH_SOFT = FILTER + "glitch_soft.json"
 WOBBLE = FILTER + "wobble.json"
 OLD_TV = FILTER + "old_tv.json"
+FILM = FILTER + "film.json"
 INVERT = "minecraft:shaders/post/invert.json"
 
 AMBIANCES = {
@@ -78,9 +79,14 @@ AMBIANCES = {
         "sky": {"sky_color": "#0b1a3a", "fog_color": "#0f1d36", "strength": 0.75, "stars": 1.0},
         "aurora": {"colors": ["#3dff9a", "#38e0ff", "#a24bff"], "height": 36, "alpha": 100},
         "shooting_stars": {"rate": 0.05, "color": "#e8f0ff"},
+        "moon": {"color": "#eef4ff", "yaw": 140, "pitch": 30, "size": 4},
+        "wisps": {"color": "#d8ff70", "accent": "#fff090", "count": 14, "radius": [4, 14], "height": [0.4, 2],
+                  "size": 0.3, "blink": True},
         "particles": [
-            {"type": "minecraft:glow", "rate": 0.5, "area": "field", "motion": [0, 0.01, 0], "spread": 0.03},
             {"type": "minecraft:white_ash", "rate": 2, "area": "air"},
+        ],
+        "ambient_sounds": [
+            {"id": "minecraft:entity.frog.ambient", "every": [120, 300], "volume": 0.3, "pitch": [0.8, 1.1]},
         ],
         "moments": {
             "crit": {"particle": "minecraft:electric_spark", "count": 40, "flash": "#9fc4ff"},
@@ -96,6 +102,10 @@ AMBIANCES = {
                 "cloud_color": "#3a3740", "cloud_height": 110, "rain": 1.0, "thunder": 1.0},
         "wind": [0.12, 0.04],
         "lightning": {"every": [60, 180]},
+        "ambient_sounds": [
+            {"id": "minecraft:entity.lightning_bolt.thunder", "every": [160, 360], "volume": 0.3,
+             "pitch": [0.5, 0.7]},
+        ],
         "particles": [
             {"type": "minecraft:electric_spark", "rate": 1.5, "area": "field", "spread": 0.2},
             {"type": "minecraft:white_ash", "rate": 6, "area": "air"},
@@ -128,6 +138,9 @@ AMBIANCES = {
             {"type": "minecraft:soul", "rate": 0.3, "area": "field", "motion": [0, 0.03, 0]},
         ],
         "sound": {"id": "minecraft:ambient.soul_sand_valley.loop", "volume": 0.6},
+        "ambient_sounds": [
+            {"id": "minecraft:ambient.cave", "every": [300, 600], "volume": 0.4, "pitch": [0.8, 1.0]},
+        ],
         "moments": {
             "attack": {"particle": "minecraft:soul_fire_flame", "count": 15},
             "crit": {"particle": "minecraft:sculk_soul", "count": 30, "flash": "#2bff9a",
@@ -138,18 +151,27 @@ AMBIANCES = {
         },
     },
 
-    # Fairy tale: pastel sky, a rainbow over the field, the sun racing across the sky, glittering spores, amethyst floating.
+    # Fairy tale: a pastel sky, a soft double rainbow, the sun racing across the sky, fireflies, soap bubbles, glowing
+    # mushrooms round the field, sparkling amethyst floating, cherry petals, chimes.
     "fairy": {
         "time": {"at": 0, "speed": 30},
-        "sky": {"sky_color": "#ffc3e6", "fog_color": "#ffe0f2", "strength": 0.6, "cloud_color": "#ffd6ee"},
-        "rainbow": {"radius": 34, "alpha": 0.5},
+        # Light blue overhead melting into pink at the horizon (Minecraft blends sky colour into fog colour): lilac
+        # between the two.
+        "sky": {"sky_color": "#b8d4ff", "fog_color": "#ffcfe8", "strength": 0.6, "cloud_color": "#ffd6ee"},
+        "rainbow": {"radius": 34, "alpha": 0.45, "doubled": True},
         "floating_blocks": {"block": "minecraft:amethyst_cluster", "count": 7, "radius": [11, 17], "height": [5, 10],
-                            "bob": 0.6, "orbit": 0.6},
+                            "bob": 0.6, "orbit": 0.6, "sparkle": "minecraft:wax_off"},
+        "wisps": {"color": "#fff2a0", "accent": "#ffc8f0", "count": 16, "radius": [4, 15], "height": [0.5, 3],
+                  "size": 0.35, "blink": True},
+        "bubbles": {"color": "#e8f4ff", "count": 14, "radius": [5, 14], "height": 9, "size": [0.25, 0.6]},
+        "mushrooms": {"colors": ["#ff9ad8", "#9ad8ff", "#c8a8ff"], "clumps": 12, "ring": 1.5, "size": 0.5},
         "wind": [0.01, 0.0],
         "particles": [
-            {"type": "minecraft:spore_blossom_air", "rate": 1.5, "area": "air"},
-            {"type": "minecraft:wax_on", "rate": 1.0, "area": "field"},
-            {"type": "minecraft:end_rod", "rate": 0.3, "area": "air", "motion": [0, 0.02, 0]},
+            {"type": "minecraft:cherry_leaves", "rate": 0.8, "area": "air"},
+            {"type": "minecraft:spore_blossom_air", "rate": 0.8, "area": "air"},
+        ],
+        "ambient_sounds": [
+            {"id": "minecraft:block.amethyst_block.chime", "every": [60, 160], "volume": 0.35, "pitch": [0.9, 1.5]},
         ],
         "moments": {
             "send_out": {"particle": "minecraft:wax_on", "count": 30, "sound": "minecraft:block.amethyst_block.chime"},
@@ -211,10 +233,11 @@ AMBIANCES = {
         },
     },
 
-    # Old film: black and white for the whole battle, dust in the air.
+    # Old film: black and white with grain and a dark rim, a scratch or a speck of dust now and then, the light breathing.
     "silver_screen": {
-        "filter": BLACK_WHITE,
-        "particles": [{"type": "minecraft:white_ash", "rate": 3, "area": "air"}],
+        "filter": FILM,
+        "film": {"scratches": 0.02, "dust": 0.15, "flicker": 0.05},
+        "particles": [{"type": "minecraft:white_ash", "rate": 1.5, "area": "air"}],
         "moments": {
             "crit": {"flash": "#ffffff"},
             "victory": {"flash": "#ffffff", "sound": "minecraft:block.note_block.chime"},

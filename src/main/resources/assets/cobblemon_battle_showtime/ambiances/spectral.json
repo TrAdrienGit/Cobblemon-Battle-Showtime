@@ -88,6 +88,20 @@
 		"id": "minecraft:ambient.soul_sand_valley.loop",
 		"volume": 0.6
 	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:ambient.cave",
+			"every": [
+				300,
+				600
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.8,
+				1.0
+			]
+		}
+	],
 	"moments": {
 		"attack": {
 			"particle": "minecraft:soul_fire_flame",

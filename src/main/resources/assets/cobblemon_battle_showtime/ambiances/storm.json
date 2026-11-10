@@ -24,6 +24,20 @@
 			180
 		]
 	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.lightning_bolt.thunder",
+			"every": [
+				160,
+				360
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		}
+	],
 	"particles": [
 		{
 			"type": "minecraft:electric_spark",

@@ -22,22 +22,46 @@
 		"rate": 0.05,
 		"color": "#e8f0ff"
 	},
+	"moon": {
+		"color": "#eef4ff",
+		"yaw": 140,
+		"pitch": 30,
+		"size": 4
+	},
+	"wisps": {
+		"color": "#d8ff70",
+		"accent": "#fff090",
+		"count": 14,
+		"radius": [
+			4,
+			14
+		],
+		"height": [
+			0.4,
+			2
+		],
+		"size": 0.3,
+		"blink": true
+	},
 	"particles": [
-		{
-			"type": "minecraft:glow",
-			"rate": 0.5,
-			"area": "field",
-			"motion": [
-				0,
-				0.01,
-				0
-			],
-			"spread": 0.03
-		},
 		{
 			"type": "minecraft:white_ash",
 			"rate": 2,
 			"area": "air"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.frog.ambient",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.8,
+				1.1
+			]
 		}
 	],
 	"moments": {

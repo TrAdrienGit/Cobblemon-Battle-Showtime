@@ -42,6 +42,27 @@ void main() {
     fragColor = vec4(texture(DiffuseSampler, uv).rgb, 1.0);
 }
 """),
+    # Old black and white film (Silver Screen, 2026-11-10): a little more contrast, grain changing every frame, a soft
+    # dark rim. Time cycles once a second, so the grain takes 24 different looks a second; scratches and dust are drawn
+    # by the ambiance itself, which has real randomness.
+    "showtime_film": ("Amount", 1.0, """
+float noise(vec2 p) {
+    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+    vec3 color = texture(DiffuseSampler, texCoord).rgb;
+    float grey = dot(color, vec3(0.299, 0.587, 0.114));
+    grey = clamp((grey - 0.5) * 1.12 + 0.5, 0.0, 1.0);
+    float frame = floor(Time * 24.0);
+    float grain = noise(floor(texCoord * OutSize / 1.5) + frame * 17.31) - 0.5;
+    grey += grain * 0.07 * Amount;
+    vec2 centred = texCoord - 0.5;
+    float rim = 1.0 - smoothstep(0.25, 0.85, length(centred * vec2(1.0, 0.8)) * 1.25);
+    grey *= mix(1.0, rim, 0.6 * Amount);
+    fragColor = vec4(vec3(grey), 1.0);
+}
+"""),
     # An old television: scanlines, a dark rim, washed-out colour, a flicker.
     "showtime_old_tv": ("Amount", 1.0, """
 void main() {
@@ -92,4 +113,5 @@ post("glitch", "showtime_split")
 post("glitch_soft", "showtime_split", {"Amount": [0.0022]})
 post("wobble", "showtime_wobble")
 post("old_tv", "showtime_old_tv")
+post("film", "showtime_film")
 print("filters written")

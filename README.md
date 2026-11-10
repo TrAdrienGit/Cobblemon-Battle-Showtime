@@ -103,5 +103,7 @@ A track from the pack replaces the music the server plays through Cobblemon; wit
 Apache License 2.0, see [`LICENSE`](./LICENSE). Free to use, modify and redistribute; forks and redistributions must
 keep [`NOTICE`](./NOTICE) and credit the original author.
 
+If you include Phantasmon in your modpack, please credit the original project and provide a link to its official Modrinth or CurseForge page. Attribution is appreciated!
+
 Cobblemon Battle Showtime is a fan project, not affiliated with Nintendo, The Pokémon Company, Game Freak or the
 Cobblemon team.

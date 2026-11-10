@@ -4,14 +4,15 @@
 		"speed": 30
 	},
 	"sky": {
-		"sky_color": "#ffc3e6",
-		"fog_color": "#ffe0f2",
+		"sky_color": "#b8d4ff",
+		"fog_color": "#ffcfe8",
 		"strength": 0.6,
 		"cloud_color": "#ffd6ee"
 	},
 	"rainbow": {
 		"radius": 34,
-		"alpha": 0.5
+		"alpha": 0.45,
+		"doubled": true
 	},
 	"floating_blocks": {
 		"block": "minecraft:amethyst_cluster",
@@ -25,7 +26,46 @@
 			10
 		],
 		"bob": 0.6,
-		"orbit": 0.6
+		"orbit": 0.6,
+		"sparkle": "minecraft:wax_off"
+	},
+	"wisps": {
+		"color": "#fff2a0",
+		"accent": "#ffc8f0",
+		"count": 16,
+		"radius": [
+			4,
+			15
+		],
+		"height": [
+			0.5,
+			3
+		],
+		"size": 0.35,
+		"blink": true
+	},
+	"bubbles": {
+		"color": "#e8f4ff",
+		"count": 14,
+		"radius": [
+			5,
+			14
+		],
+		"height": 9,
+		"size": [
+			0.25,
+			0.6
+		]
+	},
+	"mushrooms": {
+		"colors": [
+			"#ff9ad8",
+			"#9ad8ff",
+			"#c8a8ff"
+		],
+		"clumps": 12,
+		"ring": 1.5,
+		"size": 0.5
 	},
 	"wind": [
 		0.01,
@@ -33,23 +73,27 @@
 	],
 	"particles": [
 		{
-			"type": "minecraft:spore_blossom_air",
-			"rate": 1.5,
+			"type": "minecraft:cherry_leaves",
+			"rate": 0.8,
 			"area": "air"
 		},
 		{
-			"type": "minecraft:wax_on",
-			"rate": 1.0,
-			"area": "field"
-		},
+			"type": "minecraft:spore_blossom_air",
+			"rate": 0.8,
+			"area": "air"
+		}
+	],
+	"ambient_sounds": [
 		{
-			"type": "minecraft:end_rod",
-			"rate": 0.3,
-			"area": "air",
-			"motion": [
-				0,
-				0.02,
-				0
+			"id": "minecraft:block.amethyst_block.chime",
+			"every": [
+				60,
+				160
+			],
+			"volume": 0.35,
+			"pitch": [
+				0.9,
+				1.5
 			]
 		}
 	],

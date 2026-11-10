@@ -1,9 +1,14 @@
 {
-	"filter": "cobblemon_battle_showtime:shaders/post/black_white.json",
+	"filter": "cobblemon_battle_showtime:shaders/post/film.json",
+	"film": {
+		"scratches": 0.02,
+		"dust": 0.15,
+		"flicker": 0.05
+	},
 	"particles": [
 		{
 			"type": "minecraft:white_ash",
-			"rate": 3,
+			"rate": 1.5,
 			"area": "air"
 		}
 	],
