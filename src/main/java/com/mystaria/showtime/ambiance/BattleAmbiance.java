@@ -85,6 +85,10 @@ public final class BattleAmbiance {
 	}
 
 	private static final List<Orbiter> SPRITES = new ArrayList<>();
+	/** Corrupted's veins: segments on the ground (x0, z0, x1, z1, distance from their root), built once. */
+	private static final List<double[]> VEINS = new ArrayList<>();
+	private static long nextFlicker = -1;
+	private static int flickerLeft;
 	private static final List<Orbiter> CRITTERS = new ArrayList<>();
 	/** A moment's big text (Arcade's "CRITICAL!"), and how long it stays. */
 	private static String hudText;
@@ -234,6 +238,12 @@ public final class BattleAmbiance {
 						between(sp.radius), between(sp.height), RANDOM.nextFloat() * 6.28f, i % Math.max(1, sp.shapes.size())));
 			}
 		}
+		VEINS.clear();
+		if (ambiance.veins != null) {
+			buildVeins(ambiance.veins);
+		}
+		flickerLeft = 0;
+		nextFlicker = ambiance.flicker != null ? ticks + 60 + betweenTicks(ambiance.flicker.every) : -1;
 		CRITTERS.clear();
 		if (ambiance.critters != null) {
 			for (int i = 0; i < ambiance.critters.count; i++) {
@@ -269,6 +279,13 @@ public final class BattleAmbiance {
 		}
 		if (hudTextLeft > 0) {
 			hudTextLeft--;
+		}
+		if (flickerLeft > 0) {
+			flickerLeft--;
+		}
+		if (active != null && active.flicker != null && nextFlicker >= 0 && ticks >= nextFlicker) {
+			flickerLeft = active.flicker.ticks;
+			nextFlicker = ticks + Math.max(20, betweenTicks(active.flicker.every));
 		}
 		if (momentFilterLeft > 0 && --momentFilterLeft == 0) {
 			setFilter(active.filter); // the moment's filter is over: back to the ambiance's own
@@ -572,6 +589,21 @@ public final class BattleAmbiance {
 		if (active.sprites != null) {
 			drawSprites(pose, buffers, active.sprites, time);
 		}
+		if (active.veins != null) {
+			drawVeins(pose, buffers, active.veins, time);
+		}
+		if (active.skyCracks != null) {
+			drawSkyCracks(pose, buffers, active.skyCracks, time);
+		}
+		if (active.wisps != null) {
+			drawWisps(pose, buffers, active.wisps, time);
+		}
+		if (active.moon != null) {
+			drawMoonHalo(pose, buffers, active.moon);
+		}
+		if (active.glitchCubes != null) {
+			drawGlitchCubes(pose, buffers, active.glitchCubes, true);
+		}
 		if (active.rifts != null) {
 			drawRifts(pose, buffers, active.rifts, partialTick);
 		}
@@ -591,6 +623,18 @@ public final class BattleAmbiance {
 		}
 		if (active.critters != null) {
 			drawCritters(pose, buffers, active.critters, time);
+		}
+		if (active.moon != null) {
+			drawMoonDisc(pose, buffers, active.moon);
+		}
+		if (active.glitchCubes != null) {
+			drawGlitchCubes(pose, buffers, active.glitchCubes, false);
+		}
+		if (active.ghosts != null) {
+			drawGhosts(pose, buffers, active.ghosts, time);
+		}
+		if (active.mist != null) {
+			drawMist(pose, buffers, active.mist, time);
 		}
 		buffers.endBatch();
 		if (floatingState != null) {
@@ -627,6 +671,10 @@ public final class BattleAmbiance {
 		}
 		if (hudTextLeft > 0 && hudText != null) {
 			drawHudText(graphics);
+		}
+		if (flickerLeft > 0 && active() && active.flicker != null) {
+			int dark = Math.round(255 * Mth.clamp(active.flicker.alpha, 0f, 1f) * (flickerLeft % 2 == 0 ? 1f : 0.7f));
+			graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), dark << 24);
 		}
 		if (flashLeft <= 0) {
 			return;
@@ -1293,6 +1341,286 @@ public final class BattleAmbiance {
 		return r << 16 | g << 8 | bl;
 	}
 
+	/** Mist: translucent layers just over the ground, their thickness changing in slow drifting patches. */
+	private static void drawMist(PoseStack pose, MultiBufferSource buffers, Ambiance.Mist mist, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		float radius = mist.radius > 0 ? mist.radius : fieldRadius * 1.5f;
+		int color = Ambiance.color(mist.color, 0xB0C0C8);
+		double cell = 2.0;
+		int n = (int) Math.ceil(radius / cell);
+		double t = time / 20.0 * mist.speed;
+		for (int layer = 0; layer < Math.max(1, mist.layers); layer++) {
+			double lift = 0.15 + mist.height * layer / Math.max(1, mist.layers);
+			for (int ix = -n; ix < n; ix++) {
+				for (int iz = -n; iz < n; iz++) {
+					double x0 = ix * cell;
+					double z0 = iz * cell;
+					double[][] corners = { {x0, z0}, {x0 + cell, z0}, {x0 + cell, z0 + cell}, {x0, z0 + cell} };
+					for (double[] c : corners) {
+						double d = Math.sqrt(c[0] * c[0] + c[1] * c[1]);
+						float edge = (float) Mth.clamp((radius - d) / 4.0, 0, 1);
+						double patch = 0.5 + 0.25 * Math.sin(c[0] / mist.scale + t + layer * 1.7)
+								+ 0.25 * Math.cos(c[1] / mist.scale * 0.8 - t * 0.7 + layer);
+						Vec3 at = onGround(c[0], c[1]).add(0, lift, 0);
+						int alpha = Math.round(mist.alpha * (float) patch * edge * nearFade(at, 0.5, 2.5));
+						vertex(out, m, at, color, alpha);
+					}
+				}
+			}
+		}
+	}
+
+	/** Corrupted's veins: from each rift's foot (or from round the field), a few branches crawling toward it. */
+	private static void buildVeins(Ambiance.Veins veins) {
+		List<Double> roots = new ArrayList<>();
+		if (!RIFT_ANGLES.isEmpty()) {
+			for (float angle : RIFT_ANGLES) {
+				roots.add((double) angle);
+			}
+		} else {
+			for (int i = 0; i < 5; i++) {
+				roots.add(Math.PI * 2 * i / 5);
+			}
+		}
+		for (double root : roots) {
+			for (int b = 0; b < veins.branches; b++) {
+				double radius = fieldRadius + 3f;
+				double x = Math.cos(root) * radius;
+				double z = Math.sin(root) * radius;
+				double heading = root + Math.PI + (RANDOM.nextDouble() - 0.5) * 1.2;
+				double walked = 0;
+				while (walked < veins.length) {
+					heading += (RANDOM.nextDouble() - 0.5) * 0.9;
+					double step = 0.8 + RANDOM.nextDouble() * 0.6;
+					double nx = x + Math.cos(heading) * step;
+					double nz = z + Math.sin(heading) * step;
+					VEINS.add(new double[] {x, z, nx, nz, walked});
+					x = nx;
+					z = nz;
+					walked += step;
+				}
+			}
+		}
+	}
+
+	private static void drawVeins(PoseStack pose, MultiBufferSource buffers, Ambiance.Veins veins, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(veins.color, 0xFF2A8A);
+		double t = time / 20.0 * veins.pulse;
+		for (double[] v : VEINS) {
+			float taper = (float) Mth.clamp(1 - v[4] / veins.length, 0.15, 1);
+			float pulse = (float) (0.45 + 0.55 * Math.max(0, Math.sin(v[4] * 0.9 - t * 3)));
+			int alpha = Math.round(veins.alpha * taper * pulse);
+			groundLine(out, m, v[0], v[1], v[2], v[3], 0.08 + 0.12 * taper, color, alpha, alpha);
+		}
+	}
+
+	/** Cracks in the sky: jagged lines on the sky's sphere, a thin hot core in a wide soft glow, pulsing. */
+	private static void drawSkyCracks(PoseStack pose, MultiBufferSource buffers, Ambiance.SkyCracks cracks, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(cracks.color, 0xFF3070);
+		float r = 48f;
+		for (int c = 0; c < cracks.count; c++) {
+			double yaw = hashFloat(c * 911 + 1) * Math.PI * 2;
+			double pitch = Math.toRadians(15 + 55 * hashFloat(c * 911 + 2));
+			Vec3 dir = new Vec3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw));
+			Vec3 u = dir.cross(new Vec3(0, 1, 0)).normalize();
+			Vec3 v = dir.cross(u).normalize();
+			float pulse = 0.6f + 0.4f * Mth.sin(time / 9f + c * 1.3f);
+			double heading = hashFloat(c * 911 + 3) * Math.PI * 2;
+			Vec3 at = dir.scale(r);
+			int steps = 9;
+			for (int s = 0; s < steps; s++) {
+				heading += (hashFloat(c * 911 + 10 + s) - 0.5) * 1.6;
+				double step = cracks.size / steps;
+				Vec3 next = at.add(u.scale(Math.cos(heading) * step)).add(v.scale(Math.sin(heading) * step));
+				float width = 0.25f * (1 - s / (float) steps) + 0.05f;
+				skyStroke(out, m, at, next, dir, width * 6, color, Math.round(cracks.alpha * 0.25f * pulse));
+				skyStroke(out, m, at, next, dir, width, 0xFFF0F4, Math.round(cracks.alpha * pulse));
+				at = next;
+			}
+		}
+	}
+
+	/** A stroke on the sky between two points, facing the field. */
+	private static void skyStroke(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, Vec3 facing, float width, int color, int alpha) {
+		Vec3 along = b.subtract(a).normalize();
+		Vec3 side = along.cross(facing).normalize().scale(width / 2);
+		vertex(out, m, a.add(side), color, alpha);
+		vertex(out, m, b.add(side), color, alpha);
+		vertex(out, m, b.subtract(side), color, 0);
+		vertex(out, m, a.subtract(side), color, 0);
+		vertex(out, m, a.subtract(side), color, 0);
+		vertex(out, m, b.subtract(side), color, 0);
+		vertex(out, m, b.add(side), color, alpha);
+		vertex(out, m, a.add(side), color, alpha);
+	}
+
+	/**
+	 * Corrupted's cubes: each stays a while somewhere, then jumps elsewhere, flickering just before. {@code glow}: the
+	 * coloured shell (light pass); otherwise the black body (solid pass).
+	 */
+	private static void drawGlitchCubes(PoseStack pose, MultiBufferSource buffers, Ambiance.GlitchCubes cubes, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(cubes.color, 0xFF2A8A);
+		int jump = Math.max(10, cubes.jump);
+		for (int i = 0; i < cubes.count; i++) {
+			int offset = (int) (hashFloat(i * 131 + 7) * jump);
+			int epoch = (int) ((ticks + offset) / jump);
+			int within = (int) ((ticks + offset) % jump);
+			if (within > jump - 6 && within % 2 == 0) {
+				continue; // flickering before the jump
+			}
+			int seed = i * 7919 + epoch * 104729;
+			double angle = hashFloat(seed) * Math.PI * 2;
+			double radius = Mth.lerp(hashFloat(seed + 1), cubes.radius.get(0), cubes.radius.get(1));
+			double height = Mth.lerp(hashFloat(seed + 2), cubes.height.get(0), cubes.height.get(1));
+			float size = Mth.lerp(hashFloat(seed + 3), cubes.size.get(0), cubes.size.get(1));
+			Vec3 centre = new Vec3(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
+			if (nearFade(centre, 1.5, 2) <= 0.05f) {
+				continue;
+			}
+			// A small twitch now and then: a glitch shifting it sideways for a tick.
+			int now = (int) ticks;
+			if (hashFloat(seed + now) > 0.93f) {
+				centre = centre.add(0.3 * (hashFloat(seed + now + 1) - 0.5), 0, 0.3 * (hashFloat(seed + now + 2) - 0.5));
+			}
+			float s = glow ? size * 0.5f + 0.06f : size * 0.5f;
+			cube(out, m, centre, s, glow ? color : 0x0A0410, glow ? 70 : 235);
+		}
+	}
+
+	private static void cube(VertexConsumer out, Matrix4f m, Vec3 c, float h, int color, int alpha) {
+		double x0 = c.x - h, x1 = c.x + h, y0 = c.y - h, y1 = c.y + h, z0 = c.z - h, z1 = c.z + h;
+		double[][][] faces = {
+				{{x0, y0, z0}, {x1, y0, z0}, {x1, y1, z0}, {x0, y1, z0}}, {{x0, y0, z1}, {x0, y1, z1}, {x1, y1, z1}, {x1, y0, z1}},
+				{{x0, y0, z0}, {x0, y1, z0}, {x0, y1, z1}, {x0, y0, z1}}, {{x1, y0, z0}, {x1, y0, z1}, {x1, y1, z1}, {x1, y1, z0}},
+				{{x0, y0, z0}, {x0, y0, z1}, {x1, y0, z1}, {x1, y0, z0}}, {{x0, y1, z0}, {x1, y1, z0}, {x1, y1, z1}, {x0, y1, z1}}};
+		for (double[][] face : faces) {
+			for (double[] p : face) {
+				vertex(out, m, new Vec3(p[0], p[1], p[2]), color, alpha);
+			}
+		}
+	}
+
+	/** Will-o'-wisps: a bright flickering core in a soft halo, wandering slowly round the field. */
+	private static void drawWisps(PoseStack pose, MultiBufferSource buffers, Ambiance.Wisps wisps, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Matrix4f m = pose.last().pose();
+		int a = Ambiance.color(wisps.color, 0x5CFFD0);
+		int b = Ambiance.color(wisps.accent, 0x3DB8FF);
+		for (int i = 0; i < wisps.count; i++) {
+			double t = time / 20.0;
+			double angle = hashFloat(i * 17 + 1) * Math.PI * 2 + t * 0.08 * (i % 2 == 0 ? 1 : -1) + Math.sin(t * 0.3 + i) * 0.3;
+			double radius = Mth.lerp(hashFloat(i * 17 + 2), wisps.radius.get(0), wisps.radius.get(1)) + Math.sin(t * 0.4 + i * 2) * 1.5;
+			double height = Mth.lerp(hashFloat(i * 17 + 3), wisps.height.get(0), wisps.height.get(1)) + Math.sin(t * 0.9 + i) * 0.4;
+			Vec3 at = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius).add(0, height, 0);
+			float fade = nearFade(at, 1.0, 2.0);
+			if (fade <= 0.03f) {
+				continue;
+			}
+			float flicker = 0.7f + 0.3f * Mth.sin(time * 0.7f + i * 3) * Mth.sin(time * 0.31f + i);
+			Vec3 toCamera = cameraRel.subtract(at).normalize();
+			int color = lerpColor(a, b, hashFloat(i * 17 + 4));
+			glowDisc(out, m, at, toCamera, 0.9f, color, Math.round(55 * flicker * fade));
+			glowDisc(out, m, at, toCamera, 0.28f, 0xF0FFFA, Math.round(230 * flicker * fade));
+		}
+	}
+
+	/** 9x9 ghost silhouette: '#' body, '.' empty, 'o' eyes (left empty). */
+	private static final String[] GHOST = {"..#####..", ".#######.", "##o###o##", "##o###o##", "#########",
+			"#########", "#########", "##.###.##", "#...#...#"};
+
+	/** Ghosts: pale silhouettes far beyond the field, drifting sideways, fading in and out at their own pace. */
+	private static void drawGhosts(PoseStack pose, MultiBufferSource buffers, Ambiance.Ghosts ghosts, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		int color = Ambiance.color(ghosts.color, 0xD8F4FF);
+		for (int i = 0; i < ghosts.count; i++) {
+			double cycle = 300 + 200 * hashFloat(i * 29 + 1);
+			double phase = ((time + hashFloat(i * 29 + 2) * cycle) % cycle) / cycle;
+			float visible = (float) Math.max(0, Math.sin(phase * Math.PI));
+			if (visible < 0.03f) {
+				continue;
+			}
+			double angle = hashFloat(i * 29 + 3) * Math.PI * 2 + phase * 0.5;
+			double radius = Mth.lerp(hashFloat(i * 29 + 4), ghosts.radius.get(0), ghosts.radius.get(1));
+			Vec3 base = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius)
+					.add(0, 1.0 + Math.sin(time / 25.0 + i) * 0.4 + phase * 1.5, 0);
+			Vec3 toCamera = cameraRel.subtract(base);
+			Vec3 right = new Vec3(toCamera.z, 0, -toCamera.x);
+			right = right.lengthSqr() < 1.0E-6 ? new Vec3(1, 0, 0) : right.normalize();
+			Vec3 up = new Vec3(0, 1, 0);
+			double px = ghosts.size / GHOST.length;
+			int alpha = Math.round(ghosts.alpha * visible);
+			for (int row = 0; row < GHOST.length; row++) {
+				// The tail sways: lower rows shift a little sideways.
+				double sway = Math.sin(time / 8.0 + row * 0.6 + i) * 0.04 * row;
+				for (int col = 0; col < GHOST[row].length(); col++) {
+					if (GHOST[row].charAt(col) != '#') {
+						continue;
+					}
+					Vec3 corner = base.add(right.scale((col - 4.5) * px + sway)).add(up.scale((GHOST.length - row) * px));
+					vertex(out, m, corner, color, alpha);
+					vertex(out, m, corner.add(right.scale(px)), color, alpha);
+					vertex(out, m, corner.add(right.scale(px)).add(up.scale(-px)), color, alpha);
+					vertex(out, m, corner.add(up.scale(-px)), color, alpha);
+				}
+			}
+		}
+	}
+
+	private static Vec3 moonPlace(Ambiance.Moon moon) {
+		double yaw = Math.toRadians(moon.yaw);
+		double pitch = Math.toRadians(moon.pitch);
+		return new Vec3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw)).scale(skyRadius());
+	}
+
+	private static void drawMoonHalo(PoseStack pose, MultiBufferSource buffers, Ambiance.Moon moon) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		Vec3 at = moonPlace(moon);
+		glowDisc(out, pose.last().pose(), at, at.normalize().scale(-1), moon.size * 3.5f, Ambiance.color(moon.color, 0xF4F0E0), 60);
+	}
+
+	/** The moon's disc: solid, slightly darker toward one side, with a few soft grey seas. */
+	private static void drawMoonDisc(PoseStack pose, MultiBufferSource buffers, Ambiance.Moon moon) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		Vec3 at = moonPlace(moon);
+		Vec3 normal = at.normalize().scale(-1);
+		Vec3 u = normal.cross(new Vec3(0, 1, 0)).normalize();
+		Vec3 v = normal.cross(u).normalize();
+		int color = Ambiance.color(moon.color, 0xF4F0E0);
+		int segments = 32;
+		for (int i = 0; i < segments; i++) {
+			double a0 = Math.PI * 2 * i / segments;
+			double a1 = Math.PI * 2 * (i + 1) / segments;
+			int rim = lerpColor(color, 0x707070, (float) (0.25 + 0.25 * Math.cos(a0 - 0.8)));
+			vertex(out, m, at, color, 255);
+			vertex(out, m, at, color, 255);
+			vertex(out, m, at.add(u.scale(Math.cos(a1) * moon.size)).add(v.scale(Math.sin(a1) * moon.size)), rim, 255);
+			vertex(out, m, at.add(u.scale(Math.cos(a0) * moon.size)).add(v.scale(Math.sin(a0) * moon.size)), rim, 255);
+		}
+		// Seas: a few soft grey patches, a hair in front of the disc.
+		for (int sea = 0; sea < 4; sea++) {
+			Vec3 c = at.add(normal.scale(0.05)).add(u.scale((hashFloat(sea * 3 + 1) - 0.5) * moon.size))
+					.add(v.scale((hashFloat(sea * 3 + 2) - 0.5) * moon.size));
+			float r = moon.size * (0.15f + 0.12f * hashFloat(sea * 3 + 3));
+			for (int i = 0; i < 16; i++) {
+				double a0 = Math.PI * 2 * i / 16;
+				double a1 = Math.PI * 2 * (i + 1) / 16;
+				vertex(out, m, c, 0x9A9A90, 70);
+				vertex(out, m, c, 0x9A9A90, 70);
+				vertex(out, m, c.add(u.scale(Math.cos(a1) * r)).add(v.scale(Math.sin(a1) * r)), 0x9A9A90, 0);
+				vertex(out, m, c.add(u.scale(Math.cos(a0) * r)).add(v.scale(Math.sin(a0) * r)), 0x9A9A90, 0);
+			}
+		}
+	}
+
 	/** A round glow facing the camera: bright in the middle, fading to nothing at its rim. */
 	private static void glowDisc(VertexConsumer out, Matrix4f m, Vec3 centre, Vec3 normal, float radius, int color, int alpha) {
 		Vec3 u = normal.cross(new Vec3(0, 1, 0));
@@ -1544,6 +1872,12 @@ public final class BattleAmbiance {
 	private static int strikeDelay(Ambiance.Lightning lightning) {
 		int min = lightning.every.size() > 0 ? lightning.every.get(0) : 100;
 		int max = lightning.every.size() > 1 ? lightning.every.get(1) : min;
+		return min + RANDOM.nextInt(Math.max(1, max - min + 1));
+	}
+
+	private static int betweenTicks(List<Integer> range) {
+		int min = range.isEmpty() ? 0 : range.get(0);
+		int max = range.size() > 1 ? range.get(1) : min;
 		return min + RANDOM.nextInt(Math.max(1, max - min + 1));
 	}
 

@@ -13,6 +13,13 @@ shapes; Meadow, Disco and Arcade remade. Validated in game the same day.
 Done 2026-11-10 (built, not yet seen): E3 sky layers (`nebulae`, `galaxy`, finer coloured stars), detailed
 planets (`bands`, `atmosphere`, ring `tilt`, a soft terminator, a sun glow); Cosmos remade with them, its white specks
 removed. Note: the yellow rings seen in the first Cosmos recording were Electric Terrain, not the ambiance.
+Validated in game the same day.
+
+Done 2026-11-10 (built, not yet seen): E4 ground `mist`; new layers `veins`, `sky_cracks`, `glitch_cubes`, `wisps`,
+`ghosts`, `moon` and a darkness `flicker`. Corrupted remade (violet and readable, cracks, veins, cubes, mist) and
+Spectral remade (pale green moon, thick mist, wisps, distant ghosts, light dying now and then). Still to do from their
+plans: the crit screen tear and the cube shattering on a knock-out (Corrupted), a ghost rising on a knock-out and
+whispers (Spectral).
 
 ## What the recording shows
 

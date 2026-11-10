@@ -111,16 +111,21 @@ AMBIANCES = {
         },
     },
 
-    # Haunted: green-black fog closing in, lit candles floating and bobbing around, souls rising; a faint drains the colour.
+    # Haunted: a cold night under a pale green moon, thick mist on the ground, will-o'-wisps wandering round the field,
+    # ghosts passing far away, candles floating; now and then the light dies for a moment.
     "spectral": {
         "time": {"at": 18000, "speed": 0},
-        "sky": {"sky_color": "#08140f", "fog_color": "#0d2a1f", "strength": 0.95, "fog_start": 2, "fog_end": 42,
+        "sky": {"sky_color": "#18282a", "fog_color": "#203236", "strength": 0.9, "fog_start": 4, "fog_end": 46,
                 "stars": 0, "hide_clouds": True},
-        "floating_blocks": {"block": "minecraft:candle[lit=true,candles=1]", "count": 18, "radius": [6, 16],
-                            "height": [1.5, 6], "bob": 0.4, "orbit": 0.6, "flame": True},
+        "moon": {"color": "#d6ffe2", "yaw": 210, "pitch": 32, "size": 5},
+        "mist": {"color": "#a6c8c0", "alpha": 70, "height": 1.4, "layers": 3, "scale": 5, "speed": 0.35},
+        "wisps": {"color": "#5cffd0", "accent": "#3db8ff", "count": 10, "radius": [5, 14], "height": [0.8, 3]},
+        "ghosts": {"color": "#d8f4ff", "count": 5, "radius": [22, 32], "alpha": 45, "size": 3},
+        "flicker": {"every": [160, 360], "alpha": 0.5, "ticks": 5},
+        "floating_blocks": {"block": "minecraft:candle[lit=true,candles=1]", "count": 10, "radius": [7, 16],
+                            "height": [1.5, 5], "bob": 0.4, "orbit": 0.6, "flame": True},
         "particles": [
-            {"type": "minecraft:soul", "rate": 0.6, "area": "field", "motion": [0, 0.03, 0]},
-            {"type": "minecraft:sculk_soul", "rate": 0.2, "area": "ring", "motion": [0, 0.04, 0]},
+            {"type": "minecraft:soul", "rate": 0.3, "area": "field", "motion": [0, 0.03, 0]},
         ],
         "sound": {"id": "minecraft:ambient.soul_sand_valley.loop", "volume": 0.6},
         "moments": {
@@ -246,22 +251,28 @@ AMBIANCES = {
         },
     },
 
-    # Corrupted: a black-red void, colours split for good, the world warping on every big hit.
+    # Corrupted: a world breaking apart, readable: a desaturated violet night, glowing cracks across the sky, veins
+    # crawling on the ground from the rifts, black cubes glitching round the field, a violet mist.
     "corrupted": {
         "filter": GLITCH_SOFT,
-        "rifts": {"count": 5, "color": "#ff1040", "height": 8, "width": 1.8, "cycle": 200,
+        "rifts": {"count": 5, "color": "#ff2a8a", "height": 8, "width": 1.8, "cycle": 200,
                   "particle": "minecraft:reverse_portal"},
         "time": {"at": 18000, "speed": 0},
-        "sky": {"sky_color": "#1a0000", "fog_color": "#120000", "strength": 1.0, "fog_start": 4, "fog_end": 50,
+        "sky": {"sky_color": "#2b0a35", "fog_color": "#3a1040", "strength": 0.85, "fog_start": 6, "fog_end": 56,
                 "stars": 0, "hide_clouds": True},
+        "sky_cracks": {"color": "#ff3070", "count": 6, "alpha": 200, "size": 16},
+        "veins": {"color": "#ff2a8a", "alpha": 170, "branches": 3, "length": 11, "pulse": 1},
+        "glitch_cubes": {"color": "#ff2a8a", "count": 8, "size": [0.6, 1.5], "radius": [6, 15], "height": [2, 7],
+                         "jump": 50},
+        "mist": {"color": "#6a2a8a", "alpha": 55, "height": 0.8, "layers": 2, "scale": 6, "speed": 0.5},
         "particles": [
-            {"type": "minecraft:portal", "rate": 3, "area": "field"},
-            {"type": "minecraft:crimson_spore", "rate": 3, "area": "air"},
+            {"type": "minecraft:portal", "rate": 1.5, "area": "field"},
+            {"type": "minecraft:crimson_spore", "rate": 1, "area": "air"},
         ],
         "sound": {"id": "minecraft:ambient.crimson_forest.loop", "volume": 0.6},
         "moments": {
             "attack": {"filter": PIXELS, "filter_ticks": 5},
-            "crit": {"filter": WOBBLE, "filter_ticks": 16, "flash": "#ff0033",
+            "crit": {"filter": WOBBLE, "filter_ticks": 16, "flash": "#ff2a8a",
                      "sound": "minecraft:entity.warden.sonic_boom", "volume": 0.4},
             "faint": {"filter": INVERT, "filter_ticks": 10, "particle": "minecraft:sculk_soul", "count": 40},
             "victory": {"filter": OLD_TV, "filter_ticks": 60, "sound": "minecraft:block.end_portal.spawn",

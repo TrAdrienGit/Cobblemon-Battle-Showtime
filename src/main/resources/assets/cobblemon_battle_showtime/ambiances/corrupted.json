@@ -2,7 +2,7 @@
 	"filter": "cobblemon_battle_showtime:shaders/post/glitch_soft.json",
 	"rifts": {
 		"count": 5,
-		"color": "#ff1040",
+		"color": "#ff2a8a",
 		"height": 8,
 		"width": 1.8,
 		"cycle": 200,
@@ -13,23 +13,61 @@
 		"speed": 0
 	},
 	"sky": {
-		"sky_color": "#1a0000",
-		"fog_color": "#120000",
-		"strength": 1.0,
-		"fog_start": 4,
-		"fog_end": 50,
+		"sky_color": "#2b0a35",
+		"fog_color": "#3a1040",
+		"strength": 0.85,
+		"fog_start": 6,
+		"fog_end": 56,
 		"stars": 0,
 		"hide_clouds": true
+	},
+	"sky_cracks": {
+		"color": "#ff3070",
+		"count": 6,
+		"alpha": 200,
+		"size": 16
+	},
+	"veins": {
+		"color": "#ff2a8a",
+		"alpha": 170,
+		"branches": 3,
+		"length": 11,
+		"pulse": 1
+	},
+	"glitch_cubes": {
+		"color": "#ff2a8a",
+		"count": 8,
+		"size": [
+			0.6,
+			1.5
+		],
+		"radius": [
+			6,
+			15
+		],
+		"height": [
+			2,
+			7
+		],
+		"jump": 50
+	},
+	"mist": {
+		"color": "#6a2a8a",
+		"alpha": 55,
+		"height": 0.8,
+		"layers": 2,
+		"scale": 6,
+		"speed": 0.5
 	},
 	"particles": [
 		{
 			"type": "minecraft:portal",
-			"rate": 3,
+			"rate": 1.5,
 			"area": "field"
 		},
 		{
 			"type": "minecraft:crimson_spore",
-			"rate": 3,
+			"rate": 1,
 			"area": "air"
 		}
 	],
@@ -45,7 +83,7 @@
 		"crit": {
 			"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
 			"filter_ticks": 16,
-			"flash": "#ff0033",
+			"flash": "#ff2a8a",
 			"sound": "minecraft:entity.warden.sonic_boom",
 			"volume": 0.4
 		},

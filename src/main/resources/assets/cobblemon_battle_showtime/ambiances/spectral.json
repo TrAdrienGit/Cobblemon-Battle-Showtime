@@ -4,24 +4,69 @@
 		"speed": 0
 	},
 	"sky": {
-		"sky_color": "#08140f",
-		"fog_color": "#0d2a1f",
-		"strength": 0.95,
-		"fog_start": 2,
-		"fog_end": 42,
+		"sky_color": "#18282a",
+		"fog_color": "#203236",
+		"strength": 0.9,
+		"fog_start": 4,
+		"fog_end": 46,
 		"stars": 0,
 		"hide_clouds": true
 	},
+	"moon": {
+		"color": "#d6ffe2",
+		"yaw": 210,
+		"pitch": 32,
+		"size": 5
+	},
+	"mist": {
+		"color": "#a6c8c0",
+		"alpha": 70,
+		"height": 1.4,
+		"layers": 3,
+		"scale": 5,
+		"speed": 0.35
+	},
+	"wisps": {
+		"color": "#5cffd0",
+		"accent": "#3db8ff",
+		"count": 10,
+		"radius": [
+			5,
+			14
+		],
+		"height": [
+			0.8,
+			3
+		]
+	},
+	"ghosts": {
+		"color": "#d8f4ff",
+		"count": 5,
+		"radius": [
+			22,
+			32
+		],
+		"alpha": 45,
+		"size": 3
+	},
+	"flicker": {
+		"every": [
+			160,
+			360
+		],
+		"alpha": 0.5,
+		"ticks": 5
+	},
 	"floating_blocks": {
 		"block": "minecraft:candle[lit=true,candles=1]",
-		"count": 18,
+		"count": 10,
 		"radius": [
-			6,
+			7,
 			16
 		],
 		"height": [
 			1.5,
-			6
+			5
 		],
 		"bob": 0.4,
 		"orbit": 0.6,
@@ -30,21 +75,11 @@
 	"particles": [
 		{
 			"type": "minecraft:soul",
-			"rate": 0.6,
+			"rate": 0.3,
 			"area": "field",
 			"motion": [
 				0,
 				0.03,
-				0
-			]
-		},
-		{
-			"type": "minecraft:sculk_soul",
-			"rate": 0.2,
-			"area": "ring",
-			"motion": [
-				0,
-				0.04,
 				0
 			]
 		}

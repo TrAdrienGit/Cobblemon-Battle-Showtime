@@ -148,6 +148,83 @@ public final class Ambiance {
 		public int stars = 700;
 	}
 
+	/** Low mist drifting over the ground, following it, thicker in patches (2026-11-10). */
+	public static final class Mist {
+		public String color = "#b0c0c8";
+		public int alpha = 60;
+		/** How high it rises over the ground, in blocks, and in how many layers. */
+		public float height = 1.2f;
+		public int layers = 2;
+		/** 0: the field's size and a half. */
+		public float radius;
+		/** Size of its patches, in blocks, and how fast they drift. */
+		public float scale = 6f;
+		public float speed = 0.4f;
+	}
+
+	/** Glowing veins on the ground, spreading from the rifts (or from round the field), a pulse running along (Corrupted). */
+	public static final class Veins {
+		public String color = "#ff2a8a";
+		public int alpha = 170;
+		public int branches = 3;
+		public float length = 11f;
+		public float pulse = 1f;
+	}
+
+	/** Jagged glowing cracks across the sky (Corrupted). */
+	public static final class SkyCracks {
+		public String color = "#ff3070";
+		public int count = 6;
+		public int alpha = 200;
+		/** Length of each crack on the sky, in blocks. */
+		public float size = 16f;
+	}
+
+	/** Black cubes floating round the field that glitch: jump elsewhere, flicker (Corrupted). */
+	public static final class GlitchCubes {
+		public String color = "#ff2a8a";
+		public int count = 8;
+		public List<Float> size = List.of(0.6f, 1.5f);
+		public List<Float> radius = List.of(6f, 15f);
+		public List<Float> height = List.of(2f, 7f);
+		/** Ticks between two jumps. */
+		public int jump = 50;
+	}
+
+	/** Will-o'-wisps: small flames of light drifting round the field, flickering (Spectral). */
+	public static final class Wisps {
+		public String color = "#5cffd0";
+		public String accent = "#3db8ff";
+		public int count = 10;
+		public List<Float> radius = List.of(5f, 14f);
+		public List<Float> height = List.of(0.8f, 3f);
+	}
+
+	/** Pale ghost silhouettes drifting far beyond the field, fading in and out (Spectral). */
+	public static final class Ghosts {
+		public String color = "#d8f4ff";
+		public int count = 5;
+		public List<Float> radius = List.of(22f, 32f);
+		public int alpha = 45;
+		/** Height of a ghost, in blocks. */
+		public float size = 3f;
+	}
+
+	/** A moon on the sky, with a halo. */
+	public static final class Moon {
+		public String color = "#f4f0e0";
+		public float yaw = 200f;
+		public float pitch = 35f;
+		public float size = 5f;
+	}
+
+	/** Brief dips into darkness now and then, as if the light died for a moment (Spectral). */
+	public static final class Flicker {
+		public List<Integer> every = List.of(140, 320);
+		public float alpha = 0.45f;
+		public int ticks = 4;
+	}
+
 	public static final class Aurora {
 		public List<String> colors = List.of("#3dff9a", "#38e0ff", "#a24bff");
 		public float height = 38f;
@@ -317,6 +394,14 @@ public final class Ambiance {
 	public boolean hideWorld;
 	public FloorLights floorLights;
 	public MirrorBall mirrorBall;
+	public Mist mist;
+	public Veins veins;
+	public SkyCracks skyCracks;
+	public GlitchCubes glitchCubes;
+	public Wisps wisps;
+	public Ghosts ghosts;
+	public Moon moon;
+	public Flicker flicker;
 	public List<Nebula> nebulae = List.of();
 	public Galaxy galaxy;
 	public DanceFloor danceFloor;
