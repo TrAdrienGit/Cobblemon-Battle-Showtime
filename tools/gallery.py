@@ -28,6 +28,9 @@ SETS = {
 SRC, HAS_SHOT, CLIPS = SETS[KIND]
 OUT = os.path.join(ROOT, KIND)
 LEN, FADE = 3.0, 0.6
+# The intro recording shows the window's title bar along the top: cut those rows off.
+TOP = {"intros": 30}.get(KIND, 0)
+CROP = ["-vf", f"crop=iw:ih-{TOP}:0:{TOP}"] if TOP else []
 
 shots = os.path.join(OUT, "screenshots")
 clips = os.path.join(OUT, "clips")
@@ -44,9 +47,9 @@ for i, entry in enumerate(CLIPS, 1):
     name, t = entry[0], entry[1]
     shot = entry[2] if HAS_SHOT else t + 1.5
     stem = f"{i:02d}_{name}"
-    run(["-ss", str(shot), "-i", SRC, "-frames:v", "1", os.path.join(shots, stem + ".png")])
+    run(["-ss", str(shot), "-i", SRC] + CROP + ["-frames:v", "1", os.path.join(shots, stem + ".png")])
     p = os.path.join(clips, stem + ".mp4")
-    run(["-ss", str(t), "-i", SRC, "-t", str(LEN), "-an", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
+    run(["-ss", str(t), "-i", SRC] + CROP + ["-t", str(LEN), "-an", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
          "-r", "30", p])
     paths.append(p)
 
