@@ -30,6 +30,8 @@ remove it from roadmap.md.
   knock-outs (3 s).
 - First throw of a classic battle filmed (not visible in player vs player with an intro, which hides it).
 - Free camera ⇄ cinematic with one click on the battle screen; per-battle-kind default in the settings.
+- Hiding the battle screen with Cobblemon's R key frees the camera too; showing it again brings the cinematic camera
+  back, unless the player had switched it off themselves (2026-11-11).
 - No first-person hand during cinematic shots.
 
 ## Intros (`battle/BattleIntroScreen`)

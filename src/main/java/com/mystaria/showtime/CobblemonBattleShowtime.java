@@ -34,6 +34,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 				client.setScreen(new com.mystaria.showtime.gui.ShowtimeMenuScreen(null));
 			}
 			BattleCinematic.tick();
+			com.mystaria.showtime.battle.BattleCameraDirector.tick();
 			BattleShowtime.tick();
 			BattleMusic.tick();
 			ClassicBattles.tick();

@@ -53,6 +53,13 @@ public final class BattleCameraDirector {
 	private static boolean battleActive;
 	private static BattleStage stage;
 	private static boolean enabled = true;
+	/**
+	 * The staged camera was switched off because the player hid Cobblemon's battle screen (its R key) to walk about;
+	 * showing the screen again switches it back on. A camera the player had switched off themselves stays off.
+	 */
+	private static boolean offWhileHidden;
+	/** Cobblemon's battle screen hidden (R) at the last tick. */
+	private static boolean wasHidden;
 	private static com.mystaria.showtime.config.ShowtimeConfig.Kind battleKind;
 	/** The match's first throw hasn't been filmed yet. */
 	private static boolean openingPending;
@@ -83,6 +90,8 @@ public final class BattleCameraDirector {
 	/** Same, for this kind of battle: the camera starts staged or free as the player set it (settings screen). */
 	public static void start(BattleStage battleStage, com.mystaria.showtime.config.ShowtimeConfig.Kind kind) {
 		enabled = com.mystaria.showtime.config.ShowtimeConfig.battle(kind).stagedCamera;
+		offWhileHidden = false;
+		wasHidden = hidden();
 		battleKind = kind;
 		openingPending = true;
 		stage = battleStage;
@@ -113,9 +122,42 @@ public final class BattleCameraDirector {
 		previous = null;
 	}
 
+	/**
+	 * Every client tick: follows Cobblemon's R key (hide / show the battle screen). Hiding it to take the player back
+	 * switches the staged camera off, so one key frees both the mouse and the view; showing it again brings the
+	 * camera back, unless the player had switched it off before.
+	 */
+	public static void tick() {
+		if (!battleActive) {
+			wasHidden = false;
+			offWhileHidden = false;
+			return;
+		}
+		boolean hidden = hidden();
+		if (hidden && !wasHidden && enabled) {
+			offWhileHidden = true;
+			setEnabled(false);
+		} else if (!hidden && wasHidden && offWhileHidden) {
+			offWhileHidden = false;
+			setEnabled(true);
+		}
+		wasHidden = hidden;
+	}
+
+	private static boolean hidden() {
+		var battle = com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle();
+		return battle != null && battle.getMinimised();
+	}
+
 	/** The battle camera key: player's own camera ⇄ staged camera. */
 	public static void toggle() {
-		enabled = !enabled;
+		// A choice of the player's: R no longer brings the camera back on its own.
+		offWhileHidden = false;
+		setEnabled(!enabled);
+	}
+
+	private static void setEnabled(boolean on) {
+		enabled = on;
 		if (enabled) {
 			shot = null; // a fresh shot, cut in
 			BattleCameraV2.reset();

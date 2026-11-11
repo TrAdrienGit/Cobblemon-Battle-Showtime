@@ -9,7 +9,7 @@ ambiances and your own music.
 **Client-side only.** Install it on your game: it works on any Cobblemon server, with nothing to add on the server and
 nothing for the other players to install.
 
-<!-- GIF: a move filmed by the cinematic camera -->
+![Camera](https://raw.githubusercontent.com/TrAdrienGit/Cobblemon-Battle-Showtime/main/art/camera/camera_400px.gif)
 
 ## A cinematic camera
 
@@ -27,7 +27,7 @@ lightning surge, a twisting world, a showdown with no cut at all…
 Pick the ones you like in the menu: filters by generation, favourites, "only play my favourites", and a preview of
 each one.
 
-<!-- GIF: two or three intros -->
+![Intros](https://raw.githubusercontent.com/TrAdrienGit/Cobblemon-Battle-Showtime/main/art/intros/intros_400px.gif)
 
 ## A lot of redrawn moves !
 
@@ -53,12 +53,10 @@ Mega Evolution, Primal Reversion, Z-Power and Terastallization each get their ow
 
 ## Battle ambiances
 
-Eighteen of them: disco, cosmos, storm, spectral, meadow, starry night, arcade, fairy tale, silver screen, corrupted,
-inferno, abyss, sakura festival, blizzard, mirage, synthwave, ultra space and champion's stage. Pick one in the menu.
-They settle on the floor of the battle, even in a hollow or on uneven ground, and react to its big moments. A "calm
-effects" setting turns off strobes, flickers and flashes. Resource packs can add more.
+Disco, cosmos, storm, spectral, nature, night, arcade, fairy, silver screen, corrupted. Pick one in the menu. They
+settle on the floor of the battle, even in a hollow or on uneven ground. Resource packs can add more.
 
-<!-- Screenshot: the disco and cosmos ambiances -->
+![Ambiances](https://raw.githubusercontent.com/TrAdrienGit/Cobblemon-Battle-Showtime/main/art/ambiances/ambiances_400px.gif)
 
 ## Animated trainers
 
@@ -135,6 +133,6 @@ music.
 - Source code, music pack template and issues: https://github.com/TrAdrienGit/Cobblemon-Battle-Showtime
 - License: Apache 2.0
 
-If you include Cobblemon Battle Showtime in your modpack, please credit the original project and provide a link to its official Modrinth or CurseForge page. Attribution is appreciated!
+If you include this mod in your modpack, please credit the original project and provide a link to its official Modrinth or CurseForge page. Attribution is appreciated!
 
 *A fan project, not affiliated with Nintendo, The Pokémon Company, Game Freak or the Cobblemon team.*
