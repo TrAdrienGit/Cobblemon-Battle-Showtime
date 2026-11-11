@@ -57,6 +57,11 @@ remove it from roadmap.md.
   picks among the player's enabled intros; all off = no intro. Choices in `config/cobblemon_battle_showtime-intros.json`.
 - Battles staged through the API (Phantasmon) keep the intro their mod picks: the ordinal is shared, new intros always
   go at the end of `BattleCinematic.Intro`.
+- **Other mods' intros** (1.2.0): a mod registers its own (`ShowtimeHooks.registerIntro`), drawn on the same screen
+  with Showtime's helpers; they come after Showtime's, under a "Special" filter in the menu, and play by name.
+- **Reserved content** (1.2.0): an intro or an ambiance may be reserved; it then shows in the menus and is picked only
+  for the players another mod unlocks it for (`ShowtimeHooks.setUnlocks`). Imposed on a battle, it plays for both. An
+  intro can name its star, whose intro it is, so that it features them on both screens.
 - The trainers are drawn at any distance during the intro; the stand-ins keep their own angle.
 - The battle runs underneath; Cobblemon's battle screen comes back when the intro ends.
 

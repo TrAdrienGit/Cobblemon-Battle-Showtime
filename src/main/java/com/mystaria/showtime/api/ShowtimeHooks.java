@@ -150,6 +150,44 @@ public final class ShowtimeHooks {
 		return lobbyMusic;
 	}
 
+	// ---- Intros of other mods, reserved content (1.2.0) ----
+
+	/** Kinds of content {@link #setUnlocks} is asked about. */
+	public static final String INTRO = "intro";
+	public static final String AMBIANCE = "ambiance";
+
+	private static final java.util.Map<String, CustomIntro> intros = new java.util.LinkedHashMap<>();
+	private static java.util.function.BiPredicate<String, String> unlocks = (kind, id) -> false;
+
+	/** Adds an intro of another mod, after Showtime's own; one registered again under the same id replaces it. */
+	public static void registerIntro(CustomIntro intro) {
+		intros.put(intro.id(), intro);
+	}
+
+	/** The intros other mods registered, in order. */
+	public static java.util.Collection<CustomIntro> customIntros() {
+		return java.util.Collections.unmodifiableCollection(intros.values());
+	}
+
+	/** A registered intro by id, or null. */
+	public static CustomIntro customIntro(String id) {
+		return id == null ? null : intros.get(id);
+	}
+
+	/**
+	 * Which reserved content the local player may use: asked with {@link #INTRO} and an intro id, or {@link #AMBIANCE}
+	 * and an ambiance id. Reserved content (a {@link CustomIntro#reserved()} intro, an ambiance whose file says
+	 * {@code "reserved": true}) is otherwise hidden from the menus and never picked. Phantasmon answers from the
+	 * player's rewards. Content imposed on a battle by the driving mod plays whatever this says.
+	 */
+	public static void setUnlocks(java.util.function.BiPredicate<String, String> unlocked) {
+		unlocks = unlocked;
+	}
+
+	public static boolean unlocked(String kind, String id) {
+		return unlocks.test(kind, id);
+	}
+
 	public static void addButton(BattleButton button) {
 		buttons.add(button);
 		buttons.sort(Comparator.comparingInt(BattleButton::order));

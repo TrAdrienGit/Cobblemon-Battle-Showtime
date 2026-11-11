@@ -50,7 +50,7 @@ import com.mystaria.showtime.battle.BattleCinematic.Intro;
  * </ul>
  * Driven by the cinematic's clock only; it closes itself when the intro is over. No input.
  */
-public final class BattleIntroScreen extends Screen {
+public final class BattleIntroScreen extends Screen implements com.mystaria.showtime.api.IntroContext {
 
 	// ---- X/Y ----
 	private static final long PANEL_RUN_MS = 650;
@@ -154,6 +154,8 @@ public final class BattleIntroScreen extends Screen {
 	}
 
 	private final Intro intro;
+	/** Another mod's intro (1.2.0), drawn instead of {@link #intro}; null for Showtime's own. */
+	private final com.mystaria.showtime.api.CustomIntro custom;
 	private final List<Cue> cues;
 	private final boolean[] cuePlayed;
 	private IntroTrainer trainer;
@@ -163,7 +165,8 @@ public final class BattleIntroScreen extends Screen {
 	public BattleIntroScreen() {
 		super(Component.translatable("cobblemon_battle_showtime.intro.title"));
 		this.intro = BattleCinematic.intro();
-		this.cues = cues(intro);
+		this.custom = BattleCinematic.customIntro();
+		this.cues = custom != null ? List.of() : cues(intro);
 		this.cuePlayed = new boolean[cues.size()];
 	}
 
@@ -311,9 +314,12 @@ public final class BattleIntroScreen extends Screen {
 			}
 			model.tickSwing();
 		}
-		IntroTrainer me = self();
+		IntroTrainer me = selfModel();
 		if (me != null) {
 			animate(me, false);
+		}
+		if (custom != null && elapsed >= BattleCinematic.EYES_MEET_END) {
+			custom.tick(this, elapsed - BattleCinematic.EYES_MEET_END);
 		}
 	}
 
@@ -329,6 +335,10 @@ public final class BattleIntroScreen extends Screen {
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
 		long elapsed = BattleCinematic.introElapsed();
+		if (custom != null) {
+			renderCustom(g, elapsed, partialTick);
+			return;
+		}
 		switch (intro) {
 			case XY -> renderXy(g, elapsed, partialTick);
 			case SWORD_SHIELD -> renderSwordShield(g, elapsed, partialTick);
@@ -353,6 +363,91 @@ public final class BattleIntroScreen extends Screen {
 			g.fill(0, 0, width, height, (Math.round(255 * k) << 24) | 0xFFFFFF);
 			g.pose().popPose();
 		}
+	}
+
+	/** Another mod's intro on its own clock, then Showtime's white flash over its last 300 ms. */
+	private void renderCustom(GuiGraphics g, long elapsed, float partialTick) {
+		long t = Math.max(0, elapsed - BattleCinematic.EYES_MEET_END);
+		custom.render(g, this, t, partialTick);
+		long flashStart = custom.length() - (BattleCinematic.INTRO_END - BattleCinematic.FLASH_START);
+		if (custom.flashes() && t >= flashStart) {
+			float k = Math.min(1f, (t - flashStart) / 150f);
+			front(g, 900);
+			g.fill(0, 0, width, height, (Math.round(255 * k) << 24) | 0xFFFFFF);
+			g.pose().popPose();
+		}
+	}
+
+	// ---- IntroContext (other mods' intros) ------------------------------
+
+	@Override
+	public int width() {
+		return width;
+	}
+
+	@Override
+	public int height() {
+		return height;
+	}
+
+	@Override
+	public String opponentName() {
+		return BattleCinematic.opponentName();
+	}
+
+	@Override
+	public String selfName() {
+		Player player = Minecraft.getInstance().player;
+		return player == null ? "?" : player.getGameProfile().getName();
+	}
+
+	@Override
+	public int opponentTeamSize() {
+		return BattleCinematic.opponentTeamSize();
+	}
+
+	@Override
+	public int ownTeamSize() {
+		return BattleCinematic.ownTeamSize();
+	}
+
+	@Override
+	public Player opponent() {
+		return trainer();
+	}
+
+	@Override
+	public Player self() {
+		return selfModel();
+	}
+
+	@Override
+	public boolean starIsSelf() {
+		return BattleCinematic.introStarIsSelf();
+	}
+
+	@Override
+	public Player opponentInWorld() {
+		Minecraft mc = Minecraft.getInstance();
+		return com.mystaria.showtime.api.ShowtimeHooks.player(mc.level, BattleCinematic.opponentUuid());
+	}
+
+	@Override
+	public void drawTrainer(GuiGraphics graphics, boolean opponent, float x, float feetY, float scale, float bodyYaw, float brightness) {
+		IntroTrainer model = opponent ? trainer() : selfModel();
+		if (model != null) {
+			drawModel(graphics, model, x, feetY, scale, bodyYaw, brightness);
+		}
+	}
+
+	@Override
+	public void drawBall(GuiGraphics graphics, float cx, float cy, float size, float degrees) {
+		item(graphics, ball(), cx, cy, size, degrees);
+	}
+
+	@Override
+	public void sound(net.minecraft.sounds.SoundEvent sound, float pitch, float volume) {
+		BattleCinematic.play(sound, pitch, volume);
 	}
 
 	// ---- X/Y ------------------------------------------------------------
@@ -588,7 +683,7 @@ public final class BattleIntroScreen extends Screen {
 		float in = Math.min(1f, t / 450f);
 		float slide = 1f - (1f - in) * (1f - in);
 		float scale = height * 0.58f / 1.8f;
-		IntroTrainer me = self();
+		IntroTrainer me = selfModel();
 		if (me != null) {
 			me.setXRot(-4f);
 			drawModel(g, me, Mth.lerp(slide, -width * 0.25f, width * 0.24f), height * 0.97f, scale, 150f, 1f);
@@ -703,7 +798,7 @@ public final class BattleIntroScreen extends Screen {
 			opponent.setXRot(-4f);
 			drawModel(g, opponent, farX, farY - height * 0.01f, height * 0.30f / 1.8f, 205f, 1f);
 		}
-		IntroTrainer me = self();
+		IntroTrainer me = selfModel();
 		if (me != null) {
 			me.setXRot(0f);
 			drawModel(g, me, nearX - width * 0.03f, height * 1.12f, height * 0.62f / 1.8f, 30f, 1f);
@@ -771,7 +866,7 @@ public final class BattleIntroScreen extends Screen {
 			opponent.setXRot(-4f);
 			drawModel(g, opponent, farX, farY - height * 0.01f, height * 0.28f / 1.8f, 200f, 1f);
 		}
-		IntroTrainer me = self();
+		IntroTrainer me = selfModel();
 		if (me != null) {
 			me.setXRot(0f);
 			drawModel(g, me, nearX, nearY + height * 0.02f, height * 0.40f / 1.8f, 30f, 1f);
@@ -1185,7 +1280,7 @@ public final class BattleIntroScreen extends Screen {
 			opponent.setXRot(-4f);
 			drawModel(g, opponent, farX, farY - height * 0.01f, height * 0.30f / 1.8f, 205f, colour);
 		}
-		IntroTrainer me = self();
+		IntroTrainer me = selfModel();
 		if (me != null) {
 			me.setXRot(0f);
 			drawModel(g, me, nearX - width * 0.03f, height * 1.12f, height * 0.62f / 1.8f, 30f, colour);
@@ -1648,7 +1743,7 @@ public final class BattleIntroScreen extends Screen {
 			float ease = 1f - (1f - in) * (1f - in);
 			float scale = height * 0.70f / 1.8f;
 			float drift = (elapsed - PBR_TRAINERS) / 1000f * height * 0.004f;
-			IntroTrainer me = self();
+			IntroTrainer me = selfModel();
 			if (me != null) {
 				drawModel(g, me, Mth.lerp(ease, -width * 0.2f, width * 0.27f) + drift, foot - 2, scale, 145f, 1f);
 			}
@@ -1700,7 +1795,7 @@ public final class BattleIntroScreen extends Screen {
 		int bottom = mine ? 0x123068 : 0x0E4A30;
 		g.fill(x - 2, y - 2, x + w + 2, y + h + 2, (alpha << 24) | 0xE6F6FF);
 		g.fillGradient(x, y, x + w, y + h, (alpha << 24) | top, (alpha << 24) | bottom);
-		IntroTrainer who = mine ? self() : trainer();
+		IntroTrainer who = mine ? selfModel() : trainer();
 		if (who != null && out >= 1f) {
 			drawModel(g, who, x + w * 0.24f, y + h * 1.25f, h * 1.05f / 1.8f, mine ? 160f : 200f, 1f);
 		}
@@ -2130,17 +2225,12 @@ public final class BattleIntroScreen extends Screen {
 	}
 
 	/** Ours, for the scenes showing both trainers. */
-	private IntroTrainer self() {
+	private IntroTrainer selfModel() {
 		if (self == null) {
 			Player player = Minecraft.getInstance().player;
 			self = player == null ? null : standIn(player.getUUID(), player.getGameProfile().getName());
 		}
 		return self;
-	}
-
-	private static String selfName() {
-		Player player = Minecraft.getInstance().player;
-		return player == null ? "?" : player.getGameProfile().getName();
 	}
 
 	private static IntroTrainer standIn(UUID uuid, String name) {

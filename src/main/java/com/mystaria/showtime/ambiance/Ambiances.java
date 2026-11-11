@@ -86,4 +86,21 @@ public final class Ambiances {
 	public static List<String> ids() {
 		return new ArrayList<>(loaded.keySet());
 	}
+
+	/** Whether the local player may choose {@code id}: not reserved, or unlocked for them. Unknown ids: no. */
+	public static boolean usable(String id) {
+		Ambiance ambiance = get(id);
+		return ambiance != null && (!ambiance.reserved
+				|| com.mystaria.showtime.api.ShowtimeHooks.unlocked(com.mystaria.showtime.api.ShowtimeHooks.AMBIANCE, id));
+	}
+
+	/** The ids the local player may choose, sorted (the menu's list). */
+	public static List<String> usableIds() {
+		return loaded.keySet().stream().filter(Ambiances::usable).toList();
+	}
+
+	/** The reserved ids, sorted: what a mod may unlock (Phantasmon's rewards page). */
+	public static List<String> reservedIds() {
+		return loaded.entrySet().stream().filter(entry -> entry.getValue().reserved).map(Map.Entry::getKey).toList();
+	}
 }

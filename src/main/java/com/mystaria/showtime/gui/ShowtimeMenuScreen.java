@@ -73,6 +73,8 @@ private static final int BLACK = 0xFF1A1A1A;
 
 	/** Music page filter: the favourite tracks. */
 	private static final int FAVORITES = -1;
+	/** The intros filter of other mods' intros (after the generations). */
+	private static final int SPECIAL_INTROS = 99;
 
 	/** A line of the list. {@code on}: selected or switched on; {@code value}: the slider's position. */
 	private record Row(Style style, Component text, boolean on, float value, Runnable click, Runnable side, Component sideText,
@@ -315,7 +317,7 @@ private static final int BLACK = 0xFF1A1A1A;
 	private void ambiances() {
 		List<String> ids = new ArrayList<>();
 		ids.add(BattleAmbiance.NONE);
-		ids.addAll(Ambiances.ids());
+		ids.addAll(Ambiances.usableIds());
 		String chosen = ids.contains(ShowtimeConfig.ambiance()) ? ShowtimeConfig.ambiance() : BattleAmbiance.NONE;
 		for (String id : ids) {
 			rows.add(new Row(Style.SELECT, Ambiances.displayName(id), id.equals(chosen), 0, () -> {
@@ -327,14 +329,17 @@ private static final int BLACK = 0xFF1A1A1A;
 		}
 	}
 
-	/** The battle intros (2026-11-09), as the music: generations, favourites, on / off, a preview. */
+	/**
+	 * The battle intros (2026-11-09), as the music: generations, favourites, on / off, a preview. Other mods' intros
+	 * (1.2.0) come after Showtime's, under their own filter, reserved ones only once unlocked.
+	 */
 	private void intros() {
-		List<BattleCinematic.Intro> all = List.of(BattleCinematic.Intro.values());
+		List<String> all = BattleCinematic.introNames();
 		java.util.Set<Integer> present = new java.util.TreeSet<>();
-		for (BattleCinematic.Intro each : all) {
-			present.add(each.generation);
+		for (String each : all) {
+			present.add(introGeneration(each));
 		}
-		boolean anyFavorite = all.stream().anyMatch(each -> IntroSettings.favorite(each.name()));
+		boolean anyFavorite = all.stream().anyMatch(IntroSettings::favorite);
 		if (generation == FAVORITES ? !anyFavorite : generation != 0 && !present.contains(generation)) {
 			generation = 0;
 		}
@@ -351,15 +356,16 @@ private static final int BLACK = 0xFF1A1A1A;
 			}));
 		}
 		for (int each : present) {
-			filters.add(new Section(Component.translatable(KEY + "music.filter.generation", ROMAN[each]), generation == each, () -> {
+			Component label = each == SPECIAL_INTROS ? Component.translatable(KEY + "intro.filter.special")
+					: Component.translatable(KEY + "music.filter.generation", ROMAN[each]);
+			filters.add(new Section(label, generation == each, () -> {
 				generation = each;
 				scroll = 0;
 				rebuild();
 			}));
 		}
-		List<BattleCinematic.Intro> shown = all.stream().filter(each -> generation == 0
-				|| generation == FAVORITES && IntroSettings.favorite(each.name()) || each.generation == generation).toList();
-		List<String> names = shown.stream().map(BattleCinematic.Intro::name).toList();
+		List<String> names = all.stream().filter(each -> generation == 0
+				|| generation == FAVORITES && IntroSettings.favorite(each) || introGeneration(each) == generation).toList();
 		rows.add(new Row(Style.SWITCH, Component.translatable(KEY + "music.only_favorites"), IntroSettings.onlyFavorites(), 0, () -> {
 			IntroSettings.setOnlyFavorites(!IntroSettings.onlyFavorites());
 			rebuild();
@@ -371,15 +377,14 @@ private static final int BLACK = 0xFF1A1A1A;
 			IntroSettings.setEnabled(names, false);
 			rebuild();
 		}, Component.translatable(KEY + "music.disable_all")));
-		for (BattleCinematic.Intro each : shown) {
-			String name = each.name();
+		for (String name : names) {
 			Runnable preview = canPreview() ? () -> {
 				Screen back = parent;
 				int filter = generation;
 				int scrolled = scroll;
-				BattleCinematic.preview(each, () -> minecraft.setScreen(new ShowtimeMenuScreen(back, Category.INTROS, filter, scrolled)));
+				BattleCinematic.preview(name, () -> minecraft.setScreen(new ShowtimeMenuScreen(back, Category.INTROS, filter, scrolled)));
 			} : null;
-			rows.add(new Row(Style.SWITCH, Component.translatable(KEY + "intro.name." + name.toLowerCase(Locale.ROOT)),
+			rows.add(new Row(Style.SWITCH, BattleCinematic.introDisplayName(name),
 					IntroSettings.enabled(name), 0, () -> {
 						IntroSettings.setEnabled(List.of(name), !IntroSettings.enabled(name));
 						rebuild();
@@ -391,6 +396,16 @@ private static final int BLACK = 0xFF1A1A1A;
 		if (!canPreview()) {
 			note(Component.translatable(KEY + "intro.preview_in_world"));
 		}
+	}
+
+	/** An intro's filter: its game's generation for Showtime's, {@link #SPECIAL_INTROS} for another mod's. */
+	private static int introGeneration(String name) {
+		for (BattleCinematic.Intro each : BattleCinematic.Intro.values()) {
+			if (each.name().equals(name)) {
+				return each.generation;
+			}
+		}
+		return SPECIAL_INTROS;
 	}
 
 	private void music() {

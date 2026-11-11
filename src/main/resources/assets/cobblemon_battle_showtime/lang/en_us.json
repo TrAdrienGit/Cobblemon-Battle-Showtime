@@ -102,6 +102,7 @@
   "cobblemon_battle_showtime.settings.camera_latest": "latest (v%s)",
   "cobblemon_battle_showtime.settings.camera_numbered": "v%s",
   "cobblemon_battle_showtime.menu.category.intros": "Intros",
+  "cobblemon_battle_showtime.intro.filter.special": "Special",
   "cobblemon_battle_showtime.intro.preview_in_world": "Previews play in a world, outside a battle.",
   "cobblemon_battle_showtime.intro.pbr.title": "Trainer Battle",
   "cobblemon_battle_showtime.intro.pbr.rule": "Level rule: Open",

@@ -102,6 +102,7 @@
   "cobblemon_battle_showtime.settings.camera_latest": "la plus récente (v%s)",
   "cobblemon_battle_showtime.settings.camera_numbered": "v%s",
   "cobblemon_battle_showtime.menu.category.intros": "Intros",
+  "cobblemon_battle_showtime.intro.filter.special": "Spéciales",
   "cobblemon_battle_showtime.intro.preview_in_world": "Les aperçus se jouent dans un monde, hors combat.",
   "cobblemon_battle_showtime.intro.pbr.title": "Combat de Dresseurs",
   "cobblemon_battle_showtime.intro.pbr.rule": "Règle de niveau : libre",

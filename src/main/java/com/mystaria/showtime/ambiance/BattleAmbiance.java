@@ -178,7 +178,7 @@ public final class BattleAmbiance {
 	public static void start(Collection<UUID> battleTrainers) {
 		String id = ShowtimeHooks.ambianceOverride();
 		if (id == null) {
-			id = ShowtimeConfig.ambiance();
+			id = ownChoice();
 		}
 		begin(Ambiances.get(id), battleTrainers, 0);
 	}
@@ -191,7 +191,7 @@ public final class BattleAmbiance {
 		if (active() && !distant) {
 			return;
 		}
-		begin(Ambiances.get(id == null || id.isEmpty() ? ShowtimeConfig.ambiance() : id), List.of(), 0);
+		begin(Ambiances.get(id == null || id.isEmpty() ? ownChoice() : id), List.of(), 0);
 		if (active == null) {
 			return;
 		}
@@ -199,6 +199,12 @@ public final class BattleAmbiance {
 		distantSpots = spots;
 		inside = true; // corrected at the first tick: off if the player stands outside
 		updateField(Minecraft.getInstance().level);
+	}
+
+	/** The player's own ambiance, or none once it is reserved and no longer unlocked for them. */
+	private static String ownChoice() {
+		String id = ShowtimeConfig.ambiance();
+		return Ambiances.usable(id) ? id : NONE;
 	}
 
 	/** The battle seen from afar is over (or no longer seen). */

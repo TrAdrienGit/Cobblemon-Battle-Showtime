@@ -21,6 +21,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
+import com.mystaria.showtime.api.CustomIntro;
+import com.mystaria.showtime.api.ShowtimeHooks;
 import com.mystaria.showtime.audio.BattleMusic;
 
 
@@ -181,6 +183,10 @@ public final class BattleCinematic {
 	/** End of the Black/White zoom into the opponent (world camera, before the white). */
 	public static final long ZOOM_END = 2700;
 	private static Intro intro = Intro.XY;
+	/** Another mod's intro playing ({@link ShowtimeHooks#registerIntro}), or null: then {@link #intro} plays. */
+	private static CustomIntro custom;
+	/** Whose intro it is (see the String {@code startIntro}), or null. */
+	private static UUID introStar;
 
 	// =====================================================================
 	// Lifecycle
@@ -191,6 +197,48 @@ public final class BattleCinematic {
 	 * when its file does). {@code onIntroEnd} runs on the client thread when the intro is over; may be null.
 	 */
 	public static void startIntro(UUID opponent, String name, int teamSize, int ownSize, Intro which, Runnable onIntroEnd) {
+		introStar = null;
+		start(opponent, name, teamSize, ownSize, which, null, onIntroEnd);
+	}
+
+	/**
+	 * {@link #startIntro(UUID, String, int, int, Intro, Runnable)} by intro name (1.2.0): one of Showtime's
+	 * ({@code PBR_ENTRANCE}) or one another mod registered ({@code phantasmon_events:gym_leader}), whatever the
+	 * player's unlocks (the caller imposes it). Returns false, playing nothing, for a name this client doesn't know.
+	 */
+	public static boolean startIntro(UUID opponent, String name, int teamSize, int ownSize, String intro, Runnable onIntroEnd) {
+		return startIntro(opponent, name, teamSize, ownSize, intro, null, onIntroEnd);
+	}
+
+	/**
+	 * The same, naming the intro's star (1.2.0): the player whose intro it is (a reserved intro picked by its owner for
+	 * both players), so that it features them on both screens ({@link com.mystaria.showtime.api.IntroContext#starIsSelf}).
+	 * Null: the local player when the intro is reserved and unlocked for them, else the opponent.
+	 */
+	public static boolean startIntro(UUID opponent, String name, int teamSize, int ownSize, String intro, UUID star,
+			Runnable onIntroEnd) {
+		introStar = star;
+		CustomIntro other = ShowtimeHooks.customIntro(intro);
+		Intro own = other == null ? builtIn(intro) : null;
+		if (other == null && own == null) {
+			return false;
+		}
+		start(opponent, name, teamSize, ownSize, own == null ? Intro.XY : own, other, onIntroEnd);
+		return true;
+	}
+
+	private static Intro builtIn(String name) {
+		for (Intro each : Intro.values()) {
+			if (each.name().equals(name)) {
+				return each;
+			}
+		}
+		return null;
+	}
+
+	private static void start(UUID opponent, String name, int teamSize, int ownSize, Intro which, CustomIntro other,
+			Runnable onIntroEnd) {
+		custom = other;
 		introEndAction = onIntroEnd;
 		ownTeamSize = Mth.clamp(ownSize, 0, 6);
 		// The "eyes meet" shot is gone (2026-11-01): the intro starts at its wipe, from the player's own view.
@@ -246,6 +294,102 @@ public final class BattleCinematic {
 		return on.isEmpty() ? null : on.get(new java.util.Random().nextInt(on.size()));
 	}
 
+	/** The menu's preview of an intro by name (1.2.0, see {@link #startIntro(UUID, String, int, int, String, Runnable)}). */
+	public static void preview(String name, Runnable after) {
+		Intro own = builtIn(name);
+		if (own != null) {
+			preview(own, after);
+			return;
+		}
+		CustomIntro other = ShowtimeHooks.customIntro(name);
+		Minecraft mc = Minecraft.getInstance();
+		if (other == null || mc.player == null || mc.level == null) {
+			return;
+		}
+		Player opponent = mc.level.players().stream().filter(p -> p != mc.player)
+				.min(java.util.Comparator.comparingDouble(p -> p.distanceToSqr(mc.player))).orElse(mc.player);
+		int team = (int) com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getStorage().getParty().getSlots().stream()
+				.filter(pokemon -> pokemon != null && !pokemon.isFainted()).count();
+		introStar = null;
+		start(opponent.getUUID(), opponent.getGameProfile().getName(), team, team, Intro.XY, other, after);
+		sendOutPending = false;
+		previewing = true;
+	}
+
+	/**
+	 * Every intro this player may pick, by name (1.2.0): Showtime's, then other mods' that are not reserved or are
+	 * unlocked for them ({@link ShowtimeHooks#setUnlocks}).
+	 */
+	public static java.util.List<String> introNames() {
+		java.util.List<String> names = new java.util.ArrayList<>();
+		for (Intro each : Intro.values()) {
+			names.add(each.name());
+		}
+		for (CustomIntro each : ShowtimeHooks.customIntros()) {
+			if (!each.reserved() || ShowtimeHooks.unlocked(ShowtimeHooks.INTRO, each.id())) {
+				names.add(each.id());
+			}
+		}
+		return names;
+	}
+
+	/** The reserved intros' ids (1.2.0): what a mod may unlock. */
+	public static java.util.List<String> reservedIntroNames() {
+		return ShowtimeHooks.customIntros().stream().filter(CustomIntro::reserved).map(CustomIntro::id).toList();
+	}
+
+	/** An intro's name for the player (1.2.0), Showtime's or another mod's; the name itself when unknown. */
+	public static net.minecraft.network.chat.Component introDisplayName(String name) {
+		CustomIntro other = ShowtimeHooks.customIntro(name);
+		if (other != null) {
+			return other.name();
+		}
+		return builtIn(name) != null
+				? net.minecraft.network.chat.Component.translatable("cobblemon_battle_showtime.intro.name." + name.toLowerCase(java.util.Locale.ROOT))
+				: net.minecraft.network.chat.Component.literal(name == null ? "?" : name);
+	}
+
+	/**
+	 * {@link #pickIntro()} by name (1.2.0), other mods' intros included: one of {@link #introNames()} switched on, a
+	 * favourite when "only my favourites" is on and there is one; null when every one is off.
+	 */
+	public static String pickIntroName() {
+		java.util.List<String> on = new java.util.ArrayList<>(introNames());
+		on.removeIf(each -> !com.mystaria.showtime.config.IntroSettings.enabled(each));
+		if (com.mystaria.showtime.config.IntroSettings.onlyFavorites()
+				&& on.stream().anyMatch(com.mystaria.showtime.config.IntroSettings::favorite)) {
+			on.removeIf(each -> !com.mystaria.showtime.config.IntroSettings.favorite(each));
+		}
+		return on.isEmpty() ? null : on.get(new java.util.Random().nextInt(on.size()));
+	}
+
+	/** The intro playing, by name (1.2.0): Showtime's enum name or another mod's id. */
+	public static String introName() {
+		return custom != null ? custom.id() : intro.name();
+	}
+
+	/** Whether the local player is the playing intro's star (see the String {@code startIntro}). */
+	public static boolean introStarIsSelf() {
+		Minecraft mc = Minecraft.getInstance();
+		UUID self = mc.player == null ? null : mc.player.getUUID();
+		if (introStar != null) {
+			// Against the opponent rather than this client's own id: the driving mod's ids are the battle's, which a
+			// stand-in or an offline-mode account may not share with Minecraft's player.
+			return opponentUuid != null ? !introStar.equals(opponentUuid) : introStar.equals(self);
+		}
+		return custom != null && custom.reserved() && ShowtimeHooks.unlocked(ShowtimeHooks.INTRO, custom.id());
+	}
+
+	/** Another mod's intro playing, or null (Showtime's own: {@link #intro()}). */
+	public static CustomIntro customIntro() {
+		return custom;
+	}
+
+	/** The playing intro's length on the session clock (the skipped "eyes meet" part included). */
+	private static long introLength() {
+		return custom != null ? EYES_MEET_END + custom.length() : intro.length;
+	}
+
 	/** The menu's preview of one intro; {@code after} runs when it is over (back to the menu). */
 	public static void preview(Intro which, Runnable after) {
 		preview(which);
@@ -254,11 +398,11 @@ public final class BattleCinematic {
 
 	/** Local clock time at which the intro is over (engine start / end of the guest's packet hold). */
 	public static long introEndsAt() {
-		return introStart < 0 ? 0 : introStart + intro.length;
+		return introStart < 0 ? 0 : introStart + introLength();
 	}
 
 	public static boolean introPlaying() {
-		return introStart >= 0 && introElapsed() < intro.length;
+		return introStart >= 0 && introElapsed() < introLength();
 	}
 
 	public static long introElapsed() {
@@ -340,13 +484,13 @@ public final class BattleCinematic {
 	/** Every client tick: HUD visibility and the end of each part. */
 	public static void tick() {
 		long now = System.currentTimeMillis();
-		if (introStart >= 0 && now - introStart >= intro.length + HUD_FLASH_MS && !sendOutPending) {
+		if (introStart >= 0 && now - introStart >= introLength() + HUD_FLASH_MS && !sendOutPending) {
 			introStart = -1;
 		}
 		if (sendOutStart >= 0 && now - sendOutStart >= BLEND_END) {
 			sendOutStart = -1;
 		}
-		if (introStart >= 0 && !introEndDone && now - introStart >= intro.length) {
+		if (introStart >= 0 && !introEndDone && now - introStart >= introLength()) {
 			introEndDone = true;
 			if (previewing) {
 				previewing = false;
@@ -396,6 +540,10 @@ public final class BattleCinematic {
 		}
 		if (introPlaying()) {
 			long elapsed = introElapsed();
+			if (custom != null) {
+				return elapsed >= EYES_MEET_END && mc.screen instanceof BattleIntroScreen screen
+						? custom.camera(screen, elapsed - EYES_MEET_END, partialTick) : null;
+			}
 			if (intro == Intro.COLOSSEUM_SWIRL && elapsed >= EYES_MEET_END) {
 				return colosseumShot(level, self, partialTick, elapsed);
 			}
@@ -850,7 +998,7 @@ public final class BattleCinematic {
 		if (introStart < 0) {
 			return;
 		}
-		long t = introElapsed() - intro.length;
+		long t = introElapsed() - introLength();
 		if (t < 0 || t >= HUD_FLASH_MS) {
 			return;
 		}

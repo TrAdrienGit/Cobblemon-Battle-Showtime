@@ -29,7 +29,22 @@ Everything else is internal and may change at any time. All calls on the client 
 | `setTrainersListener(Consumer<Collection<UUID>>)` | Told which trainers a battle starts with (to fetch their profiles). |
 | `setAmbianceOverride(Supplier<String>)` | An ambiance id forced for the current battle, over the player's choice; null = the player's. |
 | `addButton(BattleButton)` | Add a button to the battle-screen panel. |
+| `registerIntro(CustomIntro)` | (1.2.0) Add an intro of your own after Showtime's: it is listed in the menu, picked like the others, and played by name. |
+| `setUnlocks(BiPredicate<String, String>)` | (1.2.0) Which reserved content the local player may use, asked with `INTRO` or `AMBIANCE` and an id. Reserved content is otherwise hidden from the menus and never picked; content you impose on a battle plays anyway. Default: nothing unlocked. |
 | `enableLobbyMusic()` | Turn on the `lobby` music track for your battle lobby: its tab shows in the music menus, and `BattleMusic.play(BattleMusic.Track.LOBBY)` plays it (with fades, volume, favourites). Showtime alone never plays it. |
+
+## `CustomIntro` and `IntroContext` (1.2.0)
+
+An intro from another mod: `id()` (`<namespace>:<name>`, stable: the players' choices use it), `name()`, `length()`
+(ms, the closing flash included), `reserved()`, `flashes()` (Showtime's white flash over the last 300 ms), `tick`,
+`render` and an optional `camera`. Its clock starts at 0 on its first frame. It draws on Showtime's intro screen over
+the world, with the `IntroContext` it is given: the screen size, both names and team sizes, the trainers' on-screen
+copies (`drawTrainer`, lit like Showtime's), a Poké Ball (`drawBall`), sounds, and `starIsSelf()`: whether the local
+player is the intro's star (see `startIntro` below), so that an intro made for one player shows that player on both
+screens.
+
+Reserved ambiances: an ambiance file with `"reserved": true` (see data-formats.md). `Ambiances.usableIds()` lists what
+the local player may choose, `Ambiances.reservedIds()` and `BattleCinematic.reservedIntroNames()` what a mod may unlock.
 
 ## `BattleStage`
 
@@ -49,7 +64,11 @@ A set piece request: `pnx`, Pokémon `uuid`, `species`, `aspect`. Aspects: `Z_PO
 ## Driving a battle
 
 1. Intro (optional): `BattleCinematic.startIntro(opponentUuid, opponentName, opponentTeamSize, ownTeamSize,
-   Intro.of(index), onIntroEnd)`. `introEndsAt()` tells when to let your battle start.
+   Intro.of(index), onIntroEnd)`. `introEndsAt()` tells when to let your battle start. By name (1.2.0):
+   `startIntro(..., String intro, UUID star, onIntroEnd)` plays Showtime's or a registered intro whatever the unlocks
+   and returns false for a name this client doesn't know; `star` is whose intro it is (null: the local player if it
+   is reserved and unlocked for them, else the opponent). `pickIntroName()` picks among the player's choices, other
+   mods' intros included; `introNames()` and `introDisplayName(name)` list and name them.
 2. Camera: `BattleCameraDirector.start(stage)` (or with a `ShowtimeConfig.Kind`), then feed it:
    `onChoosing()`, `onAction(users, targets)` with pnx lists, `onFocus(pnx)`, `onKnockOut(entity)`, `onThrow(entity)`.
 3. Send-outs: `BattleCinematic.beginSendOuts(localSpot, opponentSpot)` or `skipSendOuts()`.

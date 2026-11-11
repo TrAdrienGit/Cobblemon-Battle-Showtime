@@ -10,6 +10,12 @@ import java.util.List;
  */
 public final class Ambiance {
 
+	/**
+	 * Reserved (1.2.0): shown in the menu and played as the player's choice only when another mod unlocks it for them
+	 * ({@code ShowtimeHooks.setUnlocks}); imposed on a battle, it plays anyway.
+	 */
+	public boolean reserved;
+
 	/** The day: {@code at} the time of day it starts from (0 morning, 6000 noon, 13000 dusk, 18000 midnight), {@code speed} how fast it then runs (0 stopped, 1 normal, 40 a day in half a minute). */
 	public static final class Time {
 		public Long at;

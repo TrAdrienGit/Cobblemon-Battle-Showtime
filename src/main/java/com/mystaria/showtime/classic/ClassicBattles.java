@@ -83,7 +83,7 @@ public final class ClassicBattles {
 			BattleCameraDirector.start(stage, kind);
 			BattleMusic.setKind(kind);
 			ClientBattle battle = CobblemonClient.INSTANCE.getBattle();
-			BattleCinematic.Intro chosen = BattleCinematic.pickIntro();
+			String chosen = BattleCinematic.pickIntroName();
 			if (pvp && chosen != null && ShowtimeConfig.battle(kind).intro && battle != null && !battle.getSpectating()
 					&& !battle.getSide2().getActors().isEmpty()) {
 				ClientBattleActor opponent = battle.getSide2().getActors().get(0);
@@ -91,7 +91,7 @@ public final class ClassicBattles {
 				int own = (int) CobblemonClient.INSTANCE.getStorage().getParty().getSlots().stream()
 						.filter(pokemon -> pokemon != null && !pokemon.isFainted()).count();
 				BattleCinematic.startIntro(opponent.getUuid(), opponent.getDisplayName().getString(), -1, own,
-						chosen, null);
+						chosen, (Runnable) null);
 				BattleCinematic.skipSendOuts();
 				reopenBattleScreen = true;
 			} else {
