@@ -655,6 +655,18 @@ public final class Ambiance {
 		public boolean flat;
 		public Machines machines;
 		public Pieces pieces;
+		/**
+		 * Built of blocks (2026-11-19): the floor ({@code floor_blocks}, its patches; {@code checker_blocks} for a
+		 * checkerboard's dark squares), the walls, the ceiling, a tent's {@code stripe_blocks} taken in turn round it,
+		 * the pilasters' and beams' {@code trim}, the hanging {@code lamp_block}. With {@code mirrors}, only the floor.
+		 */
+		public List<String> floorBlocks = List.of("minecraft:smooth_stone", "minecraft:polished_andesite");
+		public List<String> checkerBlocks = List.of("minecraft:polished_blackstone");
+		public List<String> wallBlocks = List.of("minecraft:stone_bricks", "minecraft:cracked_stone_bricks");
+		public List<String> ceilingBlocks = List.of("minecraft:dark_oak_planks");
+		public List<String> stripeBlocks = List.of("minecraft:red_wool", "minecraft:white_wool");
+		public String trim = "minecraft:polished_deepslate";
+		public String lampBlock = "minecraft:lantern[hanging=true]";
 	}
 
 	/** A plant's machines: conveyor belts carrying crates, gears turning on the walls, presses stamping. */

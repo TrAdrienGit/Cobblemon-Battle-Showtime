@@ -115,6 +115,12 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   sized to the `tile`), `flat` (a level floor everywhere, even under the field). `mirrors` really reflect: the room
   and the entities in it are drawn again mirrored behind each wall, while the camera is inside the room and no shader
   pack is on (else a painted sheen). A wall the camera is outside of is not drawn.
+- A `hall` built of blocks (2026-11-19, same setting): `floor_blocks` (the floor, the second block in patches),
+  `checker_blocks` (the checkerboard's dark tiles, laid on the world's grid), `wall_blocks`, `ceiling_blocks`,
+  `stripe_blocks` (a tent's wall and cone, by angle), `trim` (pilasters and beams), `lamp_block` (hanging on chains
+  where the lamps glow; chains alone in a power cut). The room is lit by hidden light blocks, dark in a power cut. A
+  hall with `mirrors` keeps its smooth walls (the reflections are drawn behind them): only its floor is blocks.
+  Machines, chess pieces, cables and the glows stay drawn as before.
 - Grounds in blocks (2026-11-19): every stadium's floor (land, islet, seabed, cave, hall without a checkerboard,
   Ultra Space's island) is drawn block by block on the world's grid by default, each top at a whole block, sides
   down to lower neighbours, still coloured per vertex; a seabed goes smooth past 48. A land is built of real blocks

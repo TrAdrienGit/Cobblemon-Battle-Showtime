@@ -1,6 +1,9 @@
 {
 	"hide_world": true,
 	"hall": {
+		"floor_blocks": ["minecraft:smooth_sandstone", "minecraft:sandstone"],
+		"stripe_blocks": ["minecraft:red_wool", "minecraft:white_wool"],
+		"lamp_block": "minecraft:lantern[hanging=true]",
 		"shape": "tent",
 		"floor": "#c8a070",
 		"stripes": [

@@ -163,6 +163,10 @@ remove it from roadmap.md.
   gravel, seagrass, kelp, sea pickles, coral, the water overhead), Cave and Volcanic Den (the vault's inner skin of
   rock in strata, pillars, pointed dripstone, a lava lake over magma; lit by hidden light blocks and the lava, so dark
   where no light reaches; a camera outside the vault sees through it).
+- Halls built of blocks (2026-11-19): Factory Hall (concrete walls, iron pilasters and beams, lanterns on chains),
+  Big Top (a tent of red and white wool, a stepped cone, a sandstone ring), Chessboard (quartz and blackstone tiles,
+  obsidian walls, froglights), Mirror Hall (a deepslate checkerboard floor, its mirrors unchanged). A camera outside
+  the room sees in; a power cut puts the lamps and the room's light out.
 - Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
   stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
   size changes by steps of 4, so the place is no longer rebuilt at every step.

@@ -77,6 +77,17 @@ public final class BlockScenery {
 				camera, frustum);
 	}
 
+	/**
+	 * Draws a hall stadium in blocks (a room or a tent; with mirrors, only its floor); {@code powerCut}: lamps out, the
+	 * room dark. As {@link #drawLand}.
+	 */
+	public static boolean drawHall(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
+			Ambiance.Hall hall, boolean powerCut, float fieldRadius, DoubleBinaryOperator ground) {
+		Key wanted = new Key(hall, powerCut, center, fieldRadius);
+		return draw(wanted, () -> HallScene.recipe(hall, powerCut, center, fieldRadius, ground), pose, buffers, center, camera,
+				frustum);
+	}
+
 	private static boolean draw(Key wanted, Supplier<Supplier<SceneMesh>> recipe, PoseStack pose, MultiBufferSource buffers,
 			Vec3 center, Vec3 camera, Frustum frustum) {
 		collect();

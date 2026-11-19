@@ -123,6 +123,7 @@ public final class BattleAmbiance {
 	/** This frame's sea or cave is drawn in blocks: what it holds is not drawn again (its glitter, its floor). */
 	private static boolean seaInBlocks;
 	private static boolean caveInBlocks;
+	private static boolean hallInBlocks;
 /** Drawing a mirror's reflection: the hall's own mirrors fall back to their painted sheen. */
 private static boolean reflecting;
 /** The wall left out while its reflection is drawn (it lies in the mirror's very plane); -1 for none. */
@@ -1291,6 +1292,7 @@ private static boolean irisChecked;
 			landInBlocks = false;
 			seaInBlocks = false;
 			caveInBlocks = false;
+			hallInBlocks = false;
 			if (active.cavern != null) {
 				drawCavern(pose, buffers, active.cavern, time, false);
 			}
@@ -5514,6 +5516,12 @@ private static boolean irisChecked;
 	 * left out. Light pass: the lamps' glow and beams, warning lights, emergency lights and sparks in a power cut.
 	 */
 	private static void drawHall(PoseStack pose, MultiBufferSource buffers, Ambiance.Hall hall, float time, boolean glow) {
+		if (!glow && blocky()) {
+			// Built of blocks (2026-11-19): the floor, and the walls and ceiling unless the hall has mirrors (its
+			// reflections are drawn behind smooth walls). Asked before any buffer.
+			hallInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawHall(pose, buffers, center, cameraWorld, frustum,
+					hall, active.powerCut != null, fieldRadius, BattleAmbiance::groundAt);
+		}
 		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		double s = hallHalf(hall);
@@ -5601,7 +5609,9 @@ private static boolean irisChecked;
 		double step = checker >= 0 ? hall.tile : 1;
 		int cells = (int) Math.ceil(s / step);
 		double extent = tent ? s + 0.5 : s;
-		if (blocky() && checker < 0 && !hall.flat) {
+		if (hallInBlocks) {
+			cells = 0;
+		} else if (blocky() && checker < 0 && !hall.flat) {
 			drawBlockFloor(out, m, "hall", extent * 1.42, BattleAmbiance::hallY,
 					(x, z) -> floorColor(hall, floor, new Vec3(x, hallY(x, z) - 0.03, z), 0.14f), null,
 					(x, z, r) -> tent ? r <= extent : Math.abs(x) < extent && Math.abs(z) < extent);
@@ -5626,10 +5636,12 @@ private static boolean irisChecked;
 						floorColor(hall, tile, p11, grain), floorColor(hall, tile, p01, grain));
 			}
 		}
-		if (tent) {
-			drawTent(out, m, hall, s, base);
-		} else {
-			drawRoom(out, m, hall, s, base, top);
+		if (!hallInBlocks || hall.mirrors) {
+			if (tent) {
+				drawTent(out, m, hall, s, base);
+			} else {
+				drawRoom(out, m, hall, s, base, top);
+			}
 		}
 		if (hall.machines != null) {
 			drawMachines(out, m, hall, hall.machines, s, base, cut != null ? 0 : time);

@@ -1,6 +1,8 @@
 {
 	"hide_world": true,
 	"hall": {
+		"floor_blocks": ["minecraft:polished_deepslate"],
+		"checker_blocks": ["minecraft:deepslate_tiles"],
 		"floor": "#2a2a34",
 		"checker": "#3a3a48",
 		"tile": 3,
