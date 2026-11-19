@@ -1,0 +1,17 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#e8e2d6",
+		"checker": "#2a2630",
+		"tile": 4,
+		"flat": true,
+		"wall": "#2a2440",
+		"ceiling": "#1a1628",
+		"lamp": "#f0e8ff",
+		"margin": 14,
+		"height": 18,
+		"pieces": {
+			"count": 16
+		}
+	}
+}

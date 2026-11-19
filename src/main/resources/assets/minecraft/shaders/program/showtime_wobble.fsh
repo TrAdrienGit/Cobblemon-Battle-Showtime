@@ -11,7 +11,7 @@ out vec4 fragColor;
 
 void main() {
     vec2 uv = texCoord;
-    uv.x += sin(uv.y * 18.0 + Time * 6.2831 * 2.0) * Amount;
-    uv.y += cos(uv.x * 14.0 + Time * 6.2831 * 1.5) * Amount;
+    uv.x += sin(uv.y * 18.0 + Time * 6.2831853 * 2.0) * Amount;
+    uv.y += cos(uv.x * 14.0 + Time * 6.2831853) * Amount;
     fragColor = vec4(texture(DiffuseSampler, uv).rgb, 1.0);
 }

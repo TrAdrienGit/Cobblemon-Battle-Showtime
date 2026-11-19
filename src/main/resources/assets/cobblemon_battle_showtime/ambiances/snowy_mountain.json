@@ -11,6 +11,7 @@
 		"fog_end": 80,
 		"cloud_color": "#e8ecf0"
 	},
+	"snow_cover": 0.9,
 	"glints": {
 		"color": "#f4fbff",
 		"count": 20,

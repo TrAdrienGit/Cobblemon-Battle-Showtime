@@ -1,4 +1,8 @@
 {
+	"power_cut": {
+		"color": "#ff2a1a",
+		"cables": 8
+	},
 	"filter": "cobblemon_battle_showtime:shaders/post/glitch_soft.json",
 	"calm_filter": "none",
 	"time": {

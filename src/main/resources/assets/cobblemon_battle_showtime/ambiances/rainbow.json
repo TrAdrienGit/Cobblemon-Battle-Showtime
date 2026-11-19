@@ -1,0 +1,138 @@
+{
+	"time": {
+		"at": 2500,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#9ad8ff",
+		"fog_color": "#e8f4ff",
+		"strength": 0.6,
+		"cloud_color": "#ffffff"
+	},
+	"rainbow": {
+		"radius": 40,
+		"alpha": 0.55,
+		"doubled": true
+	},
+	"grass": {
+		"colors": [
+			"#4a9a32",
+			"#5aaa3a",
+			"#6aba42"
+		],
+		"tip": "#c8f080",
+		"count": 1800,
+		"ring": [
+			0,
+			26
+		],
+		"height": [
+			0.3,
+			0.7
+		],
+		"wind": 0.7
+	},
+	"flowers": {
+		"colors": [
+			"#ff6a8a",
+			"#ffd23d",
+			"#7ad8ff",
+			"#a8ff60",
+			"#c88aff",
+			"#ffa040"
+		],
+		"count": 220,
+		"ring": [
+			2,
+			26
+		],
+		"height": [
+			0.25,
+			0.55
+		]
+	},
+	"glints": {
+		"color": "#fff0ff",
+		"count": 24,
+		"radius": [
+			2,
+			14
+		],
+		"height": [
+			0.3,
+			4
+		],
+		"size": 0.3
+	},
+	"critters": {
+		"kind": "butterfly",
+		"count": 12,
+		"colors": [
+			"#ff6a8a",
+			"#ffd23d",
+			"#7ad8ff",
+			"#a8ff60",
+			"#c88aff"
+		],
+		"radius": 13
+	},
+	"particles": [
+		{
+			"type": "minecraft:wax_off",
+			"rate": 0.8,
+			"area": "air"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.parrot.ambient",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.3,
+			"pitch": [
+				1.1,
+				1.4
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:wax_off",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:firework",
+			"count": 40,
+			"flash": "#ffffff",
+			"sound": "minecraft:block.amethyst_block.chime"
+		},
+		"faint": {
+			"particle": "minecraft:poof",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:firework",
+			"count": 100,
+			"sound": "minecraft:entity.player.levelup"
+		},
+		"named": {
+			"rainbow_formed": {
+				"particle": "minecraft:wax_off",
+				"count": 60,
+				"flash": "#fff0ff",
+				"sound": "minecraft:block.amethyst_block.resonate",
+				"pitch": 1.4
+			},
+			"rainbow_dream": {
+				"particle": "minecraft:enchant",
+				"count": 50,
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 30,
+				"sound": "minecraft:block.amethyst_block.chime",
+				"pitch": 0.8
+			}
+		}
+	}
+}

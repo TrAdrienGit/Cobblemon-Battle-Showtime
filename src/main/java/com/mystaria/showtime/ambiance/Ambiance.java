@@ -419,6 +419,211 @@ public final class Ambiance {
 		public Hoard hoard;
 	}
 
+	/**
+	 * A sea stadium (2026-11-19, League Reborn's waters): the world hidden, the field on a small islet of sand and rock,
+	 * water rolling out to the horizon. With {@code under}, the field lies on a sand seabed instead, the surface
+	 * rippling {@code depth} blocks overhead. The water's colour, waves and state come from the ambiance's {@link Water}.
+	 */
+	public static final class Sea {
+		public String sand = "#d9c48f";
+		public String rock = "#6e675c";
+		public String water = "#2f8fc0";
+		public String deep = "#0e3f66";
+		public String foam = "#f2fbff";
+		/** The islet's reach beyond the field's edge, and how far the water goes, in blocks. */
+		public float margin = 3f;
+		public float radius = 96f;
+		/** The waves' height (blocks) and pace. */
+		public float wave = 0.32f;
+		public float speed = 1f;
+		public int rocks = 7;
+		public boolean under;
+		public float depth = 14f;
+	}
+
+	/**
+	 * How an ambiance sees the sea it is laid on (2026-11-19). Every field optional: unset, the stadium's own. {@code waves}
+	 * multiplies the stadium's; {@code frozen} stills the water into cracked ice with floes; {@code oil} lays rainbow
+	 * slicks on it; {@code clarity} (0..1) is how much sun glitters on it; {@code light} is the surface seen from below.
+	 */
+	public static final class Water {
+		public String color;
+		public String deep;
+		public String foam;
+		public Float waves;
+		public boolean frozen;
+		public boolean oil;
+		public float clarity = 1f;
+		public String light;
+	}
+
+	/**
+	 * An outdoor stadium (2026-11-19, League Reborn's lands): the world hidden, the field on ground of its own out to the
+	 * horizon, coloured per vertex from {@code ground} (patches blended by noise). {@code style}: {@code plain} (rolling
+	 * hills), {@code dunes} (long sand ridges), {@code summit} (the ground falling away into cliffs beyond the flat, a sea
+	 * of clouds below), {@code marsh} (nearly flat, dark). The rest are optional dressings round the field.
+	 */
+	public static final class Land {
+		public List<String> ground = List.of("#6a9a3a", "#5a8a32", "#7aa848");
+		public float grain = 0.12f;
+		/** Blocks beyond the field's edge kept level, the hills' height further out, the ground's reach. */
+		public float flat = 4f;
+		public float hills = 4f;
+		public float radius = 110f;
+		public String style = "plain";
+		public Ranges ranges;
+		public CloudSea clouds;
+		public Trees trees;
+		public Rocks rocks;
+		public Pools pools;
+		public Cracks cracks;
+		public Columns columns;
+		public Junk junk;
+	}
+
+	/** Mountain ranges far off, in layers paler with distance; {@code snow} caps their peaks. */
+	public static final class Ranges {
+		public String color = "#5a6a7a";
+		public String snow;
+		public float height = 30f;
+		public float distance = 100f;
+		public int layers = 3;
+	}
+
+	/** A sea of clouds {@code depth} blocks below the summit, drifting. */
+	public static final class CloudSea {
+		public String color = "#f4f8ff";
+		public String shade = "#b8c8dc";
+		public float depth = 22f;
+	}
+
+	/** Trees round the field. Kinds: {@code broadleaf}, {@code pine}, {@code dead}. {@code canopy}: big ones leaning in. */
+	public static final class Trees {
+		public String kind = "broadleaf";
+		public int count = 40;
+		public List<Float> ring = List.of(4f, 30f);
+		public List<Float> height = List.of(6f, 11f);
+		public String trunk = "#5a3e26";
+		public List<String> leaves = List.of("#3f7a2a", "#4e8a30", "#2f6a24");
+		public boolean canopy;
+	}
+
+	/** Boulders and, with {@code spires}, tall needles of rock. */
+	public static final class Rocks {
+		public String color = "#7a7268";
+		public int count = 20;
+		public List<Float> ring = List.of(3f, 30f);
+		public List<Float> size = List.of(0.5f, 1.8f);
+		public int spires;
+	}
+
+	/** Pools sunk in the ground (sludge, bog water), bubbling; the ambiance's {@code water} recolours them. */
+	public static final class Pools {
+		public String color = "#3a4a2a";
+		public String rim = "#2a2a1a";
+		public String glow;
+		public int count = 8;
+		public List<Float> ring = List.of(3f, 22f);
+		public List<Float> size = List.of(1.5f, 4f);
+	}
+
+	/** Fissures in the ground, glowing from below. */
+	public static final class Cracks {
+		public String color = "#ff7a20";
+		public String core = "#ffe080";
+		public int count = 24;
+		public List<Float> ring = List.of(1f, 26f);
+	}
+
+	/** A ring of columns round the field (a temple), lintels joining them; {@code ruined}: some broken. */
+	public static final class Columns {
+		public String color = "#ece6d8";
+		public int count = 12;
+		public float distance = 6f;
+		public float height = 9f;
+		public boolean ruined;
+	}
+
+	/** Scrap round the field: rusted barrels, lying and standing. */
+	public static final class Junk {
+		public List<String> colors = List.of("#7a4a2a", "#5a5a50", "#8a6a2a");
+		public int count = 24;
+		public List<Float> ring = List.of(3f, 24f);
+	}
+
+	/**
+	 * An indoor stadium (2026-11-19, League Reborn's halls): the world hidden, the field in a room {@code margin} blocks
+	 * past its edge. {@code shape}: {@code box} (four walls, a ceiling with beams and lamps) or {@code tent} (a round
+	 * striped wall under a cone). Optional: a {@code checker} floor, {@code mirrors} on the walls, {@code machines},
+	 * chess {@code pieces}, a {@code flat} floor.
+	 */
+	public static final class Hall {
+		public String shape = "box";
+		public String floor = "#4a4c50";
+		public String checker;
+		public float tile = 2f;
+		public String wall = "#3a3e46";
+		public String ceiling = "#2a2c32";
+		public String lamp = "#fff0c8";
+		public List<String> stripes;
+		public float margin = 12f;
+		public float height = 14f;
+		public boolean mirrors;
+		/** A level floor everywhere, even under the field (a board must be flat, whatever the blocks under it). */
+		public boolean flat;
+		public Machines machines;
+		public Pieces pieces;
+	}
+
+	/** A plant's machines: conveyor belts carrying crates, gears turning on the walls, presses stamping. */
+	public static final class Machines {
+		public String metal = "#6a7078";
+		public String belt = "#24262a";
+		public List<String> crates = List.of("#a07a4a", "#8a6a3a", "#b08a50");
+		public String warning = "#ffb020";
+		public int gears = 6;
+		public int presses = 4;
+		public float speed = 1f;
+	}
+
+	/** Giant chess pieces standing round the field on its board. */
+	public static final class Pieces {
+		public String white = "#ece6da";
+		public String black = "#2a2630";
+		public int count = 16;
+	}
+
+	/** Grass blades over the place's ground, waving in the wind (2026-11-19). */
+	public static final class Grass {
+		public List<String> colors = List.of("#4a8a2a", "#5a9a32", "#6aaa3a");
+		public String tip = "#b8e070";
+		public int count = 2200;
+		public List<Float> ring = List.of(0f, 26f);
+		public List<Float> height = List.of(0.4f, 0.9f);
+		public float wind = 1f;
+	}
+
+	/** Flowers over the place's ground (2026-11-19): a stem and a head of petals. */
+	public static final class Flowers {
+		public List<String> colors = List.of("#ff6a8a", "#ffd23d", "#ffffff", "#b07aff");
+		public int count = 120;
+		public List<Float> ring = List.of(1f, 24f);
+		public List<Float> height = List.of(0.3f, 0.7f);
+	}
+
+	/** The place on fire (2026-11-19): trees charred and burning, flames licking the ground round the field. */
+	public static final class Blaze {
+		public String color = "#ff6a10";
+		public String core = "#ffe060";
+		public int flames = 60;
+	}
+
+	/** The plant's power cut (2026-11-19): machines stopped, lamps out, red emergency lights, sparking cables. */
+	public static final class PowerCut {
+		public String color = "#ff2a1a";
+		public int cables = 8;
+	}
+
 	/** The light an ambiance casts (2026-11-19): a stadium's materials take it (cave rock tinted by crystals, lava). */
 	public static final class Light {
 		public String color = "#ffd9a0";
@@ -794,6 +999,16 @@ public final class Ambiance {
 	public Islands islands;
 	public Island island;
 	public Cavern cavern;
+	public Sea sea;
+	public Water water;
+	public Land land;
+	public Hall hall;
+	public Grass grass;
+	public Flowers flowers;
+	public Blaze blaze;
+	public PowerCut powerCut;
+	/** How much snow covers a land stadium (0..1): its ground, trees, rocks and ranges whiten. */
+	public float snowCover;
 	public Light light;
 	public List<Prop> props = List.of();
 	/** How high above the field a real ceiling still counts for props (default 14, at most 32). */

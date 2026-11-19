@@ -1,0 +1,95 @@
+{
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#0a1028",
+		"fog_color": "#141c38",
+		"strength": 0.85,
+		"stars": 1,
+		"hide_clouds": true
+	},
+	"shooting_stars": {
+		"rate": 0.08,
+		"color": "#e8f0ff"
+	},
+	"aurora": {
+		"colors": [
+			"#6a8aff",
+			"#a080ff",
+			"#40c0ff"
+		],
+		"height": 40,
+		"alpha": 50
+	},
+	"grass": {
+		"colors": [
+			"#1e3a2a",
+			"#24402e",
+			"#1a3424"
+		],
+		"tip": "#4a6a5a",
+		"count": 1800,
+		"ring": [
+			0,
+			26
+		],
+		"height": [
+			0.35,
+			0.8
+		],
+		"wind": 0.6
+	},
+	"wisps": {
+		"color": "#e8ff90",
+		"accent": "#fff0a0",
+		"count": 14,
+		"radius": [
+			3,
+			15
+		],
+		"height": [
+			0.4,
+			2.5
+		],
+		"size": 0.18,
+		"blink": true
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.note_block.chime",
+			"every": [
+				300,
+				600
+			],
+			"volume": 0.15,
+			"pitch": [
+				1.6,
+				2.0
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:end_rod",
+			"count": 10
+		},
+		"crit": {
+			"particle": "minecraft:firework",
+			"count": 40,
+			"flash": "#e8f0ff",
+			"sound": "minecraft:block.amethyst_block.chime"
+		},
+		"faint": {
+			"particle": "minecraft:end_rod",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:firework",
+			"count": 100,
+			"fireworks": 3,
+			"sound": "minecraft:entity.firework_rocket.twinkle"
+		}
+	}
+}

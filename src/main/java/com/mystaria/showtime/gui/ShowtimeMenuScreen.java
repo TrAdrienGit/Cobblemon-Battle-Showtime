@@ -339,6 +339,13 @@ private static final int BLACK = 0xFF1A1A1A;
 		String chosen = ShowtimeConfig.ambiance();
 		boolean presetWhole = ShowtimeConfig.stadium() == null && Ambiances.isPreset(chosen) || isPlaceAmbiance(chosen);
 		String stadium = BattleAmbiance.ownStadiumChoice();
+		if (sceneTab != SceneTab.AMBIANCES) {
+			// One look for every stadium's ground: blocks (the default) or smooth.
+			rows.add(setting("scene.blocky_ground", ShowtimeConfig.blockyGround(), () -> {
+				ShowtimeConfig.setBlockyGround(!ShowtimeConfig.blockyGround());
+				BattleAmbiance.groundStyleChanged();
+			}));
+		}
 		switch (sceneTab) {
 			case PRESETS -> {
 				for (String id : Ambiances.scenePresetIds()) {

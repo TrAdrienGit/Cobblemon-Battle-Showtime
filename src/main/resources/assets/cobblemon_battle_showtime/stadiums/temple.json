@@ -1,0 +1,29 @@
+{
+	"hide_world": true,
+	"land": {
+		"ground": [
+			"#e8e2d4",
+			"#d8d0c0",
+			"#f0eadc"
+		],
+		"grain": 0.06,
+		"style": "summit",
+		"flat": 9,
+		"hills": 2,
+		"radius": 60,
+		"rocks": {
+			"color": "#c8c0b0",
+			"count": 0
+		},
+		"columns": {
+			"count": 12,
+			"distance": 5,
+			"height": 9
+		},
+		"clouds": {
+			"color": "#ffffff",
+			"shade": "#e0d8f0",
+			"depth": 18
+		}
+	}
+}

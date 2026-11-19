@@ -19,6 +19,40 @@
 		"scale": 5,
 		"speed": 0.35
 	},
+	"grass": {
+		"colors": [
+			"#7aa87a",
+			"#8ab88a",
+			"#9ac89a"
+		],
+		"tip": "#f0e0f0",
+		"count": 1600,
+		"ring": [
+			0,
+			26
+		],
+		"height": [
+			0.3,
+			0.7
+		],
+		"wind": 0.4
+	},
+	"flowers": {
+		"colors": [
+			"#ffd0f0",
+			"#ffffff",
+			"#e0c8ff"
+		],
+		"count": 60,
+		"ring": [
+			2,
+			24
+		],
+		"height": [
+			0.25,
+			0.5
+		]
+	},
 	"glints": {
 		"color": "#fff0ff",
 		"count": 26,

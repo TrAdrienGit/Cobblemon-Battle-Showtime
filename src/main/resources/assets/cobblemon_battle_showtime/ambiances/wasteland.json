@@ -1,0 +1,115 @@
+{
+	"time": {
+		"at": 11000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#6a5a3a",
+		"fog_color": "#5a4a34",
+		"strength": 0.9,
+		"fog_start": 8,
+		"fog_end": 70,
+		"stars": 0,
+		"cloud_color": "#5a4a3a"
+	},
+	"water": {
+		"color": "#4a5a1a",
+		"light": "#7a9a20"
+	},
+	"mist": {
+		"color": "#5a5030",
+		"alpha": 40,
+		"height": 0.8,
+		"layers": 2,
+		"scale": 6,
+		"speed": 0.3
+	},
+	"particles": [
+		{
+			"type": "minecraft:campfire_cosy_smoke",
+			"rate": 0.25,
+			"area": "ring"
+		},
+		{
+			"type": "minecraft:mycelium",
+			"rate": 1.5,
+			"area": "air"
+		}
+	],
+	"sound": {
+		"id": "minecraft:item.elytra.flying",
+		"volume": 0.08,
+		"pitch": 0.5
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.chain.step",
+			"every": [
+				100,
+				240
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		},
+		{
+			"id": "minecraft:entity.slime.squish",
+			"every": [
+				160,
+				360
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:smoke",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:item_slime",
+			"count": 40,
+			"flash": "#9ab040",
+			"sound": "minecraft:block.anvil.land",
+			"volume": 0.4
+		},
+		"faint": {
+			"particle": "minecraft:large_smoke",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:smoke",
+			"count": 80,
+			"sound": "minecraft:block.anvil.use"
+		},
+		"named": {
+			"waste_rocks": {
+				"particle": "minecraft:poof",
+				"count": 40,
+				"sound": "minecraft:block.stone.fall"
+			},
+			"waste_spikes": {
+				"particle": "minecraft:crit",
+				"count": 40,
+				"sound": "minecraft:block.chain.break"
+			},
+			"waste_toxic_spikes": {
+				"particle": "minecraft:item_slime",
+				"count": 40,
+				"flash": "#9ab040",
+				"sound": "minecraft:block.chain.break"
+			},
+			"waste_web": {
+				"particle": "minecraft:white_ash",
+				"count": 50,
+				"sound": "minecraft:entity.spider.ambient"
+			}
+		}
+	}
+}

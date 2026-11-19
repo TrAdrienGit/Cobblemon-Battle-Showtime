@@ -1,0 +1,82 @@
+{
+	"time": {
+		"at": 9000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#a8b0b8",
+		"fog_color": "#b8b8b4",
+		"strength": 0.75,
+		"fog_start": 14,
+		"fog_end": 100,
+		"cloud_color": "#c8c8c4"
+	},
+	"water": {
+		"color": "#4a6a7a",
+		"deep": "#1e2a34",
+		"foam": "#d0d4d8",
+		"waves": 0.8,
+		"clarity": 0.4
+	},
+	"particles": [
+		{
+			"type": "minecraft:white_ash",
+			"rate": 3,
+			"area": "air",
+			"motion": [
+				0.02,
+				-0.02,
+				0.01
+			]
+		},
+		{
+			"type": "minecraft:ash",
+			"rate": 1.5,
+			"area": "air"
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.water.ambient",
+		"volume": 0.4,
+		"pitch": 0.7
+	},
+	"moments": {
+		"attack": {
+			"particle": "minecraft:white_ash",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:ash",
+			"count": 60,
+			"flash": "#e0e0dc",
+			"sound": "minecraft:block.sand.break"
+		},
+		"faint": {
+			"particle": "minecraft:white_ash",
+			"count": 40,
+			"sound": "minecraft:entity.generic.splash"
+		},
+		"victory": {
+			"particle": "minecraft:white_ash",
+			"count": 100,
+			"sound": "minecraft:block.amethyst_block.chime"
+		},
+		"named": {
+			"ash_stirred": {
+				"particle": "minecraft:ash",
+				"count": 80,
+				"flash": "#d8d8d4",
+				"filter": "cobblemon_battle_showtime:shaders/post/haze.json",
+				"filter_ticks": 30,
+				"sound": "minecraft:item.elytra.flying",
+				"volume": 0.4
+			},
+			"focus_lost": {
+				"particle": "minecraft:white_ash",
+				"count": 30,
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 20
+			}
+		}
+	}
+}

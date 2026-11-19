@@ -11,6 +11,13 @@
 		"fog_end": 110,
 		"cloud_color": "#ffffff"
 	},
+	"water": {
+		"color": "#2f8fc0",
+		"deep": "#0e3f66",
+		"foam": "#f2fbff",
+		"waves": 1,
+		"clarity": 1
+	},
 	"caustics": {
 		"color": "#e8fbff",
 		"alpha": 55,

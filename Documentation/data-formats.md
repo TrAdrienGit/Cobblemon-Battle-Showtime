@@ -60,13 +60,49 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
 ### Stadiums, presets and props (2026-11-19, `tools/stadiums.py`; the design: [stadiums.md](stadiums.md))
 
 - `stadiums/<id>.json`: the **place**, in the ambiance format: `hide_world`, `cavern` (`rock`, `floor`, `light`,
-  `light_strength`, `ambient`, `margin`, `height`, `pillars`, `lava`, `hoard`), `island`, `islands`, `court`,
+  `light_strength`, `ambient`, `margin`, `height`, `pillars`, `lava`, `hoard`), `sea` (`sand`, `rock`, `water`, `deep`,
+  `foam`, `margin`, `radius`, `wave`, `speed`, `rocks`, `under`, `depth`), `land`, `hall`, `island`, `islands`, `court`,
   `crowd`, `light_towers`, `backdrop`, `galaxy`, `planets`. Combined with an ambiance, these keys of the ambiance are
   dropped and the stadium's laid over it; with no stadium (`none`) the ambiance plays alone, as written (an older
   pack's ambiance that hides the world still does). Names: lang `<namespace>.stadium.<id>`.
 - `presets/<id>.json`: `{"stadium": "<id>", "ambiance": "<id>"}`, shown on top of the menu and usable as an ambiance
   id anywhere (an override naming a preset brings its stadium). Showtime's: `cosmos` (void), `ultra_space`
-  (ultra_island), `champion` (arena), `grotto`, `crystal_grotto`, `dark_grotto` (cave), `dragon_lair` (volcanic_den).
+  (ultra_island), `champion` (arena), `grotto`, `crystal_grotto`, `dark_grotto` (cave), `dragon_lair` (volcanic_den), `open_sea`, `polluted_sea`,
+  `frozen_sea` (sea), `deep_sea` (seabed), and one per League Reborn land or hall (`sunny_meadow`, `wildfire`,
+  `snowy_peak`, `blackout`, `circus`...: the full list is `PRESETS` in `tools/stadiums.py`).
+- `sea` (2026-11-19): the field on an islet (the real ground under the field, a sand beach, rocks on the shore), water
+  out to `radius` rolling in waves of height `wave`; with `under`, the field on a sand seabed instead, the surface
+  rippling `depth` blocks overhead, rocks and fish round it. Two stadiums use it: `sea` and `seabed` (a stadium of its
+  own rather than a mode, so either place goes with any ambiance). Its anchors: the beach (or the seabed round the
+  field) and the air.
+- `land` (2026-11-19): an outdoor place out to `radius`, the real ground under the field, level for `flat` blocks,
+  then `hills` high. `ground`: colours blended in noise patches; `grain`; `style`: `plain`, `dunes`, `summit` (the
+  ground falls away into cliffs beyond the flat), `marsh`. Dressings, each optional: `ranges` (`color`, `snow`,
+  `height`, `distance`, `layers`), `clouds` (a sea of clouds `depth` below: `color`, `shade`), `trees` (`kind`
+  broadleaf / pine / dead, `count`, `ring`, `height`, `trunk`, `leaves`, `canopy`), `rocks` (`color`, `count`,
+  `spires`, `ring`, `size`), `pools` (`color`, `rim`, `glow`, `count`, `ring`, `size`; the ambiance's `water.color`
+  and `water.light` recolour them), `cracks` (`color`, `core`, `count`, `ring`), `columns` (`color`, `count`,
+  `distance`, `height`, `ruined`), `junk` (`colors`, `count`, `ring`). Every `ring` is in blocks past the field's edge.
+- `hall` (2026-11-19): a room `margin` blocks past the field, `height` high. `shape` `box` (walls, pilasters, beams,
+  hanging lamps) or `tent` (round wall and cone in `stripes`). `floor`, `checker` + `tile` (a checkerboard), `wall`,
+  `ceiling`, `lamp`, `mirrors`, `machines` (`metal`, `belt`, `crates`, `warning`, `gears`, `presses`, `speed`: a
+  conveyor loop with crates, gears on the walls, presses), `pieces` (`white`, `black`, `count`: giant chess pieces,
+  sized to the `tile`), `flat` (a level floor everywhere, even under the field). `mirrors` really reflect: the room
+  and the entities in it are drawn again mirrored behind each wall, while the camera is inside the room and no shader
+  pack is on (else a painted sheen). A wall the camera is outside of is not drawn.
+- Grounds in blocks (2026-11-19): every stadium's floor (land, islet, seabed, cave, hall without a checkerboard,
+  Ultra Space's island) is drawn block by block on the world's grid by default, each top at a whole block, sides
+  down to lower neighbours, still coloured per vertex; a land goes smooth past 56 blocks, a seabed past 48. The
+  player's setting (N menu, Stadiums and Presets tabs) turns every one smooth. Not a data option.
+- Stands (`crowd`) stand level all round, at the field centre's height, whatever the blocks round the arena.
+- An ambiance's `grass` (`colors`, `tip`, `count`, `ring` from the centre, `height`, `wind`) and `flowers` (`colors`,
+  `count`, `ring`, `height`) grow on whatever floor the stadium gives (else the real ground). `blaze` (`color`,
+  `core`, `flames`) sets a land on fire (trees and ground charred, flames in the crowns and round the field);
+  `snow_cover` (0..1) snows a land in (ground, trees, rocks, ranges); `power_cut` (`color`, `cables`) stops a hall's
+  machines, puts its lamps out, lights red emergency lamps and hangs sparking cables.
+- An ambiance's `water`: `{color, deep, foam, waves, frozen, oil, clarity, light}`, every key optional: how it sees a
+  `sea` stadium. `waves` multiplies the stadium's, `frozen` stills it into cracked ice with floes, `oil` lays rainbow
+  slicks, `clarity` (0..1) sets the sun's glitter, `light` is the surface seen from below. Ignored without a sea.
 - An ambiance's `light`: `{color, strength, rock, floor}`: the stadium's stone lit (and, with `rock`/`floor`,
   recoloured) by the ambiance.
 - An ambiance's `props`: things it adds on surfaces round the field, never replacing a block. Each: `kind`

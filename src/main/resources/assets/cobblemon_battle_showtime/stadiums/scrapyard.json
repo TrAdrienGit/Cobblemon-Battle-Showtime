@@ -1,0 +1,58 @@
+{
+	"hide_world": true,
+	"land": {
+		"ground": [
+			"#4a4232",
+			"#3a3a30",
+			"#5a4a34"
+		],
+		"flat": 3,
+		"hills": 3,
+		"radius": 90,
+		"junk": {
+			"count": 34,
+			"ring": [
+				2,
+				26
+			]
+		},
+		"pools": {
+			"color": "#4a5a1a",
+			"rim": "#2a2a1a",
+			"count": 6,
+			"ring": [
+				3,
+				20
+			],
+			"size": [
+				1,
+				2.5
+			]
+		},
+		"rocks": {
+			"color": "#5a5048",
+			"count": 14,
+			"ring": [
+				3,
+				30
+			],
+			"size": [
+				0.5,
+				1.6
+			]
+		},
+		"trees": {
+			"kind": "dead",
+			"count": 6,
+			"ring": [
+				8,
+				30
+			],
+			"height": [
+				4,
+				7
+			],
+			"trunk": "#3a3430"
+		}
+	}
+}

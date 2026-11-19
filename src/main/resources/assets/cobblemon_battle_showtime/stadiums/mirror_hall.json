@@ -1,0 +1,15 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#2a2a34",
+		"checker": "#3a3a48",
+		"tile": 3,
+		"flat": true,
+		"wall": "#9aa8c0",
+		"ceiling": "#1a1a24",
+		"lamp": "#e8f0ff",
+		"mirrors": true,
+		"margin": 11,
+		"height": 12
+	}
+}

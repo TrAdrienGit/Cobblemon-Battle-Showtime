@@ -1,0 +1,45 @@
+{
+	"hide_world": true,
+	"land": {
+		"ground": [
+			"#3e5a26",
+			"#4a3a24",
+			"#55702e"
+		],
+		"flat": 3,
+		"hills": 2,
+		"radius": 70,
+		"trees": {
+			"kind": "broadleaf",
+			"count": 70,
+			"ring": [
+				2.5,
+				28
+			],
+			"height": [
+				10,
+				16
+			],
+			"canopy": true,
+			"leaves": [
+				"#2f6a24",
+				"#3a7a2a",
+				"#24581e",
+				"#4a8030"
+			],
+			"trunk": "#4a3420"
+		},
+		"rocks": {
+			"color": "#6a6a5a",
+			"count": 8,
+			"ring": [
+				2,
+				20
+			],
+			"size": [
+				0.4,
+				1.2
+			]
+		}
+	}
+}

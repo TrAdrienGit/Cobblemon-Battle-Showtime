@@ -1,0 +1,103 @@
+{
+	"time": {
+		"at": 14000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#5a2a7a",
+		"fog_color": "#8a4aa0",
+		"strength": 0.75,
+		"fog_start": 10,
+		"fog_end": 70,
+		"stars": 0.3
+	},
+	"mist": {
+		"color": "#ff8ad8",
+		"alpha": 40,
+		"height": 0.6,
+		"layers": 2,
+		"scale": 5,
+		"speed": 0.5
+	},
+	"wisps": {
+		"color": "#ff9af0",
+		"accent": "#c8a0ff",
+		"count": 16,
+		"radius": [
+			3,
+			14
+		],
+		"height": [
+			0.5,
+			4
+		],
+		"size": 0.25,
+		"blink": false
+	},
+	"glints": {
+		"color": "#ffd0ff",
+		"count": 20,
+		"radius": [
+			2,
+			12
+		],
+		"height": [
+			0.3,
+			4
+		],
+		"size": 0.3
+	},
+	"particles": [
+		{
+			"type": "minecraft:enchant",
+			"rate": 2,
+			"area": "field"
+		},
+		{
+			"type": "minecraft:portal",
+			"rate": 0.6,
+			"area": "ring"
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.beacon.ambient",
+		"volume": 0.25,
+		"pitch": 0.8
+	},
+	"moments": {
+		"attack": {
+			"particle": "minecraft:enchant",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:enchant",
+			"count": 60,
+			"flash": "#ff9af0",
+			"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+			"filter_ticks": 15,
+			"sound": "minecraft:block.amethyst_block.resonate"
+		},
+		"faint": {
+			"particle": "minecraft:portal",
+			"count": 40
+		},
+		"victory": {
+			"particle": "minecraft:enchant",
+			"count": 100,
+			"sound": "minecraft:block.enchantment_table.use"
+		},
+		"named": {
+			"confusion_broken": {
+				"particle": "minecraft:enchant",
+				"count": 40,
+				"flash": "#ffd0ff"
+			},
+			"focus_lost": {
+				"particle": "minecraft:portal",
+				"count": 30,
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 20
+			}
+		}
+	}
+}

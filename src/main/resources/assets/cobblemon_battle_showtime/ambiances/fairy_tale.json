@@ -1,0 +1,125 @@
+{
+	"time": {
+		"at": 12600,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#8a7ad8",
+		"fog_color": "#ffc8e0",
+		"strength": 0.6,
+		"cloud_color": "#ffd8f0"
+	},
+	"lanterns": {
+		"colors": [
+			"#ffd080",
+			"#ffb0d8",
+			"#c8b0ff"
+		],
+		"count": 12,
+		"radius": [
+			6,
+			20
+		],
+		"height": 28,
+		"size": 0.4,
+		"rise": 0.3
+	},
+	"glints": {
+		"color": "#fff0ff",
+		"count": 26,
+		"radius": [
+			2,
+			14
+		],
+		"height": [
+			0.3,
+			4
+		],
+		"size": 0.3
+	},
+	"flowers": {
+		"colors": [
+			"#ffb0d8",
+			"#ffffff",
+			"#c8b0ff",
+			"#ffd080"
+		],
+		"count": 140,
+		"ring": [
+			3,
+			22
+		],
+		"height": [
+			0.25,
+			0.5
+		]
+	},
+	"particles": [
+		{
+			"type": "minecraft:wax_off",
+			"rate": 0.8,
+			"area": "air"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.note_block.chime",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.3,
+			"pitch": [
+				1.0,
+				1.6
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:wax_off",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:enchanted_hit",
+			"count": 40,
+			"flash": "#fff0ff",
+			"sound": "minecraft:item.armor.equip_gold"
+		},
+		"faint": {
+			"particle": "minecraft:poof",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:firework",
+			"count": 100,
+			"fireworks": 3,
+			"sound": "minecraft:ui.toast.challenge_complete",
+			"volume": 0.5
+		},
+		"named": {
+			"shining_armor": {
+				"particle": "minecraft:enchanted_hit",
+				"count": 50,
+				"flash": "#ffffff",
+				"sound": "minecraft:item.armor.equip_diamond"
+			},
+			"magic_spdef": {
+				"particle": "minecraft:enchant",
+				"count": 50,
+				"flash": "#c8b0ff"
+			},
+			"shield_boost": {
+				"particle": "minecraft:enchanted_hit",
+				"count": 30,
+				"sound": "minecraft:item.shield.block"
+			},
+			"treasure": {
+				"particle": "minecraft:totem_of_undying",
+				"count": 40,
+				"flash": "#ffd23d",
+				"sound": "minecraft:entity.player.levelup"
+			}
+		}
+	}
+}

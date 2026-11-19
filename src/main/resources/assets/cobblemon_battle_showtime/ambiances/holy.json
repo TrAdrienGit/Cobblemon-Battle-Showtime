@@ -1,0 +1,122 @@
+{
+	"time": {
+		"at": 5000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#c8e0ff",
+		"fog_color": "#fff4dc",
+		"strength": 0.7,
+		"fog_start": 20,
+		"fog_end": 140,
+		"cloud_color": "#ffffff"
+	},
+	"shafts": {
+		"color": "#fff4c0",
+		"count": 10,
+		"alpha": 30,
+		"width": 2,
+		"height": 34,
+		"tilt": 6,
+		"ring": [
+			2,
+			16
+		]
+	},
+	"embers": {
+		"color": "#fff8d0",
+		"accent": "#ffe080",
+		"count": 40,
+		"radius": [
+			2,
+			14
+		],
+		"height": 10,
+		"size": 0.05,
+		"rise": 0.3
+	},
+	"glints": {
+		"color": "#fff8e0",
+		"count": 20,
+		"radius": [
+			2,
+			12
+		],
+		"height": [
+			0.5,
+			5
+		],
+		"size": 0.3
+	},
+	"particles": [
+		{
+			"type": "minecraft:end_rod",
+			"rate": 0.5,
+			"area": "air",
+			"motion": [
+				0,
+				0.02,
+				0
+			]
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.beacon.ambient",
+		"volume": 0.3,
+		"pitch": 1.2
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.amethyst_block.resonate",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.4,
+			"pitch": [
+				1.2,
+				1.6
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:end_rod",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:end_rod",
+			"count": 50,
+			"flash": "#fff8e0",
+			"sound": "minecraft:block.beacon.activate",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:end_rod",
+			"count": 40,
+			"sound": "minecraft:block.beacon.deactivate"
+		},
+		"victory": {
+			"particle": "minecraft:totem_of_undying",
+			"count": 100,
+			"sound": "minecraft:block.beacon.power_select"
+		},
+		"named": {
+			"curse_lifted": {
+				"particle": "minecraft:end_rod",
+				"count": 60,
+				"flash": "#ffffff",
+				"sound": "minecraft:block.beacon.activate"
+			},
+			"false_god": {
+				"particle": "minecraft:smoke",
+				"count": 50,
+				"flash": "#3a2a4a",
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 30,
+				"sound": "minecraft:entity.wither.ambient",
+				"volume": 0.4
+			}
+		}
+	}
+}

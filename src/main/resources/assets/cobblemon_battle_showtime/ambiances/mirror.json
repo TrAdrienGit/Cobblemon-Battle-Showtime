@@ -1,0 +1,93 @@
+{
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#1a1a2a",
+		"fog_color": "#2a2a40",
+		"strength": 0.9,
+		"fog_start": 10,
+		"fog_end": 70,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"glints": {
+		"color": "#ffffff",
+		"count": 30,
+		"radius": [
+			2,
+			12
+		],
+		"height": [
+			0.2,
+			6
+		],
+		"size": 0.3
+	},
+	"spotlights": {
+		"count": 4,
+		"colors": [
+			"#e8f0ff",
+			"#c8d8ff"
+		],
+		"sweep": 20,
+		"height": 12,
+		"width": 0.8,
+		"alpha": 30,
+		"ring": 6
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.amethyst_block.chime",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.4,
+			"pitch": [
+				1.2,
+				1.8
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:wax_off",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:end_rod",
+			"count": 40,
+			"flash": "#ffffff",
+			"sound": "minecraft:block.glass.break",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:wax_off",
+			"count": 30,
+			"sound": "minecraft:block.glass.break",
+			"pitch": 0.7
+		},
+		"victory": {
+			"particle": "minecraft:end_rod",
+			"count": 80,
+			"sound": "minecraft:block.amethyst_block.resonate"
+		},
+		"named": {
+			"hit_mirror": {
+				"particle": "minecraft:end_rod",
+				"count": 40,
+				"flash": "#ffffff",
+				"sound": "minecraft:block.glass.break",
+				"volume": 0.8
+			},
+			"reflective_armor": {
+				"particle": "minecraft:wax_off",
+				"count": 40,
+				"flash": "#e8f0ff",
+				"sound": "minecraft:block.amethyst_block.chime"
+			}
+		}
+	}
+}

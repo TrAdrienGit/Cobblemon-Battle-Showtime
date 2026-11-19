@@ -16,6 +16,6 @@ void main() {
     float scan = 0.82 + 0.18 * sin(texCoord.y * OutSize.y * 1.5);
     vec2 centred = texCoord - 0.5;
     float rim = 1.0 - dot(centred, centred) * 1.6 * Amount;
-    float flicker = 0.96 + 0.04 * sin(Time * 6.2831 * 9.0);
+    float flicker = 0.96 + 0.04 * sin(Time * 6.2831853 * 9.0);
     fragColor = vec4(color * scan * rim * flicker, 1.0);
 }

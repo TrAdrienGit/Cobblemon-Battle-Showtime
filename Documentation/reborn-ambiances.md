@@ -1,5 +1,8 @@
 # Field ambiances: rework plan (2026-11-19)
 
+> **Status (2026-11-19):** done for every field. Caves (`cavern`), waters (`sea`), lands (`land`) and halls (`hall`)
+> are stadiums; each field's ambiance adds on top (see data-formats.md and Events `RebornAmbiance`).
+
 > **Superseded in part by [stadiums.md](stadiums.md)**: what replaces blocks becomes a stadium, field ambiances only
 > add on top and attach their props to the surfaces they find. Read that first; the per-field ideas below still hold.
 

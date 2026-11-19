@@ -80,6 +80,145 @@ STADIUMS = {
                             "falls": 6},
                    "hoard": {"gold": "#ffcf4a", "piles": 10, "bones": True}},
     },
+
+    # Sea: the world hidden, the field on a small islet of sand with rocks on its shore, water rolling out to the
+    # horizon. The ambiance gives the water its colour and state ("water": frozen for icy, oily for murk water).
+    "sea": {
+        "hide_world": True,
+        "sea": {"sand": "#d9c48f", "rock": "#6e675c", "water": "#2f8fc0", "deep": "#0e3f66", "foam": "#f2fbff",
+                "margin": 3, "radius": 96, "wave": 0.32, "speed": 1, "rocks": 7},
+    },
+
+    # Seabed: a second stadium rather than a mode of the sea, so a player can pick either place with any ambiance. The
+    # field on the sand at the bottom, dunes and rocks round it, the surface rippling bright overhead, fish circling.
+    "seabed": {
+        "hide_world": True,
+        "sea": {"sand": "#c9b98a", "rock": "#5a6460", "water": "#3fa9d8", "deep": "#0a2a44", "under": True,
+                "depth": 14, "radius": 72, "wave": 0.3, "speed": 0.7, "rocks": 7},
+    },
+
+    # --- League Reborn's lands and halls (2026-11-19): outdoor places (land) and rooms (hall). The ambiance on top
+    # sets them on fire (blaze), snows them in (snow_cover), cuts the power (power_cut), recolours pools (water).
+
+    # Meadow: rolling green hills, a few trees, blue ranges far off (grassy, flower gardens, misty, rainbow, stars).
+    "meadow": {
+        "hide_world": True,
+        "land": {"ground": ["#5a8a32", "#4e7e2c", "#6a9a3a"], "flat": 4, "hills": 5, "radius": 110,
+                 "ranges": {"color": "#6a8aa0", "height": 22, "distance": 95, "layers": 2},
+                 "trees": {"kind": "broadleaf", "count": 22, "ring": [12, 48], "height": [6, 10]},
+                 "rocks": {"color": "#8a8478", "count": 6, "ring": [5, 30], "size": [0.4, 1.0]}},
+    },
+
+    # Forest: tall trees crowding round the field, their crowns closing overhead (forest; ablaze for burning).
+    "forest": {
+        "hide_world": True,
+        "land": {"ground": ["#3e5a26", "#4a3a24", "#55702e"], "flat": 3, "hills": 2, "radius": 70,
+                 "trees": {"kind": "broadleaf", "count": 70, "ring": [2.5, 28], "height": [10, 16], "canopy": True,
+                           "leaves": ["#2f6a24", "#3a7a2a", "#24581e", "#4a8030"], "trunk": "#4a3420"},
+                 "rocks": {"color": "#6a6a5a", "count": 8, "ring": [2, 20], "size": [0.4, 1.2]}},
+    },
+
+    # Badlands: baked red earth split by cracks glowing with heat, rock needles, red ranges (super-heated).
+    "badlands": {
+        "hide_world": True,
+        "land": {"ground": ["#b07a4a", "#9a5a34", "#c89060"], "flat": 4, "hills": 6, "radius": 110,
+                 "cracks": {"color": "#ff5a10", "core": "#ffd060", "count": 30, "ring": [0.5, 22]},
+                 "rocks": {"color": "#8a5a3a", "count": 16, "spires": 6, "ring": [5, 40], "size": [0.6, 2]},
+                 "ranges": {"color": "#a0603a", "height": 26, "distance": 90, "layers": 2}},
+    },
+
+    # Swamp: a dark marsh, pools of bog water, dead trees (swamp; poisoned for corrosive and corrosive mist).
+    "swamp": {
+        "hide_world": True,
+        "land": {"ground": ["#3a3e22", "#2e3a1e", "#4a4a2a"], "style": "marsh", "flat": 3, "hills": 1.2, "radius": 80,
+                 "pools": {"color": "#2e3a24", "rim": "#24281a", "count": 12, "ring": [2, 26], "size": [1.5, 4.5]},
+                 "trees": {"kind": "dead", "count": 14, "ring": [5, 35], "height": [5, 9], "trunk": "#3a3024"}},
+    },
+
+    # Desert: sand dunes rolling away, a few rocks, sandy ranges far off (desert).
+    "desert": {
+        "hide_world": True,
+        "land": {"ground": ["#e2c48a", "#d4b070", "#ecd6a0"], "style": "dunes", "grain": 0.08, "flat": 4, "hills": 6,
+                 "radius": 120,
+                 "rocks": {"color": "#b08a5a", "count": 8, "spires": 3, "ring": [6, 40], "size": [0.6, 1.8]},
+                 "ranges": {"color": "#c89a6a", "height": 18, "distance": 100, "layers": 2}},
+    },
+
+    # Canyon: boulders and rock needles everywhere, cliffs close round (rocky).
+    "canyon": {
+        "hide_world": True,
+        "land": {"ground": ["#8a7a6a", "#7a6a5a", "#9a8a78"], "flat": 3, "hills": 7, "radius": 100,
+                 "rocks": {"color": "#7a6a5c", "count": 45, "spires": 14, "ring": [2, 36], "size": [0.5, 2.2]},
+                 "ranges": {"color": "#8a6a54", "height": 34, "distance": 75, "layers": 3}},
+    },
+
+    # Scrapyard: a dump: rusted barrels, scrap, sludge puddles, dead trees (wasteland).
+    "scrapyard": {
+        "hide_world": True,
+        "land": {"ground": ["#4a4232", "#3a3a30", "#5a4a34"], "flat": 3, "hills": 3, "radius": 90,
+                 "junk": {"count": 34, "ring": [2, 26]},
+                 "pools": {"color": "#4a5a1a", "rim": "#2a2a1a", "count": 6, "ring": [3, 20], "size": [1, 2.5]},
+                 "rocks": {"color": "#5a5048", "count": 14, "ring": [3, 30], "size": [0.5, 1.6]},
+                 "trees": {"kind": "dead", "count": 6, "ring": [8, 30], "height": [4, 7], "trunk": "#3a3430"}},
+    },
+
+    # Summit: the field on a mountain top, the ground falling away into cliffs, a sea of clouds below, ranges round
+    # the horizon (mountain; snowed in for snowy mountain).
+    "summit": {
+        "hide_world": True,
+        "land": {"ground": ["#7a7a70", "#6a6a62", "#5a7a4a"], "style": "summit", "flat": 5, "hills": 3, "radius": 60,
+                 "rocks": {"color": "#6e6a64", "count": 14, "spires": 5, "ring": [2, 12], "size": [0.5, 1.6]},
+                 "clouds": {"depth": 24},
+                 "ranges": {"color": "#5a6a80", "height": 40, "distance": 110, "layers": 3}},
+    },
+
+    # Temple: a ring of white columns on a marble summit above the clouds (holy, fairy tale).
+    "temple": {
+        "hide_world": True,
+        "land": {"ground": ["#e8e2d4", "#d8d0c0", "#f0eadc"], "grain": 0.06, "style": "summit", "flat": 9, "hills": 2,
+                 "radius": 60,
+                 "rocks": {"color": "#c8c0b0", "count": 0},
+                 "columns": {"count": 12, "distance": 5, "height": 9},
+                 "clouds": {"color": "#ffffff", "shade": "#e0d8f0", "depth": 18}},
+    },
+
+    # Ashen Shore: the sea stadium on grey ash sand, cold dark water (ashen beach).
+    "ashen_shore": {
+        "hide_world": True,
+        "sea": {"sand": "#8a8680", "rock": "#4a4644", "water": "#4a6a7a", "deep": "#1e2a34", "foam": "#d0d4d8",
+                "margin": 4, "radius": 96, "wave": 0.25, "speed": 0.8, "rocks": 9},
+    },
+
+    # Factory Hall: a plant: walls, beams, hanging lamps, a conveyor carrying crates round the field, gears, presses
+    # (factory; stopped and dark for short-circuit).
+    "factory_hall": {
+        "hide_world": True,
+        "hall": {"floor": "#4a4c50", "wall": "#3a3e46", "ceiling": "#24262c", "lamp": "#ffe8b0", "margin": 13,
+                 "height": 14, "machines": {"gears": 6, "presses": 4}},
+    },
+
+    # Chessboard: a hall floored with a giant, level checkerboard (big squares), giant pieces standing round the field (chess).
+    "chessboard": {
+        "hide_world": True,
+        "hall": {"floor": "#e8e2d6", "checker": "#2a2630", "tile": 4, "flat": True, "wall": "#2a2440",
+                 "ceiling": "#1a1628", "lamp": "#f0e8ff", "margin": 14, "height": 18, "pieces": {"count": 16}},
+    },
+
+    # Big Top: a circus tent, red and white, sawdust on the floor, the crowd in the stands round the ring (big top).
+    "big_top": {
+        "hide_world": True,
+        "hall": {"shape": "tent", "floor": "#c8a070", "stripes": ["#d02a2a", "#f4f0e0"], "lamp": "#fff0c0",
+                 "margin": 16, "height": 14},
+        "crowd": {"rows": 4, "row_depth": 1.2, "rise": 0.8, "spacing": 0.75, "sides": ["#d02a2a", "#f4f0e0"],
+                  "flashes": 0.3},
+    },
+
+    # Mirror Hall: walls of mirrors catching the room's light, a dark polished checkerboard (mirror arena).
+    "mirror_hall": {
+        "hide_world": True,
+        "hall": {"floor": "#2a2a34", "checker": "#3a3a48", "tile": 3, "flat": True, "wall": "#9aa8c0",
+                 "ceiling": "#1a1a24", "lamp": "#e8f0ff", "mirrors": True, "margin": 11, "height": 12},
+    },
 }
 
 PRESETS = {
@@ -90,6 +229,34 @@ PRESETS = {
     "crystal_grotto": {"stadium": "cave", "ambiance": "crystal_cavern"},
     "dark_grotto": {"stadium": "cave", "ambiance": "dark_crystal_cavern"},
     "dragon_lair": {"stadium": "volcanic_den", "ambiance": "dragons_den"},
+    "open_sea": {"stadium": "sea", "ambiance": "water_surface"},
+    "polluted_sea": {"stadium": "sea", "ambiance": "murkwater"},
+    "frozen_sea": {"stadium": "sea", "ambiance": "icy"},
+    "deep_sea": {"stadium": "seabed", "ambiance": "underwater"},
+    "sunny_meadow": {"stadium": "meadow", "ambiance": "grassy"},
+    "blooming_garden": {"stadium": "meadow", "ambiance": "flower_garden_5"},
+    "misty_meadow": {"stadium": "meadow", "ambiance": "misty"},
+    "rainbow_meadow": {"stadium": "meadow", "ambiance": "rainbow"},
+    "starry_meadow": {"stadium": "meadow", "ambiance": "starlight"},
+    "deep_forest": {"stadium": "forest", "ambiance": "forest"},
+    "wildfire": {"stadium": "forest", "ambiance": "burning"},
+    "scorched_badlands": {"stadium": "badlands", "ambiance": "superheated"},
+    "bog": {"stadium": "swamp", "ambiance": "swamp"},
+    "poison_marsh": {"stadium": "swamp", "ambiance": "corrosive"},
+    "toxic_fog": {"stadium": "swamp", "ambiance": "corrosive_mist"},
+    "sand_dunes": {"stadium": "desert", "ambiance": "desert"},
+    "rocky_canyon": {"stadium": "canyon", "ambiance": "rocky"},
+    "junkyard": {"stadium": "scrapyard", "ambiance": "wasteland"},
+    "grey_shore": {"stadium": "ashen_shore", "ambiance": "ashen_beach"},
+    "peak": {"stadium": "summit", "ambiance": "mountain"},
+    "snowy_peak": {"stadium": "summit", "ambiance": "snowy_mountain"},
+    "sky_temple": {"stadium": "temple", "ambiance": "holy"},
+    "storybook_court": {"stadium": "temple", "ambiance": "fairy_tale"},
+    "plant": {"stadium": "factory_hall", "ambiance": "factory"},
+    "blackout": {"stadium": "factory_hall", "ambiance": "short_circuit"},
+    "grand_chessboard": {"stadium": "chessboard", "ambiance": "chess_board"},
+    "circus": {"stadium": "big_top", "ambiance": "big_top"},
+    "hall_of_mirrors": {"stadium": "mirror_hall", "ambiance": "mirror"},
 }
 
 

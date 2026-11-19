@@ -59,6 +59,8 @@ public final class BattleAmbiance {
 	private static List<UUID> trainers = List.of();
 	private static Vec3 center;
 	private static float fieldRadius = 10f;
+	/** How far the trainers go before the field follows them, and the steps its size changes by. */
+	private static final float FIELD_STEP = 4f;
 	/**
 	 * A battle seen from afar, not watched (2026-11-02): its decorations stand around its field only, and what
 	 * changes the whole world (time, sky, fog, weather, filter, sound, the world hidden) applies only while this player
@@ -84,6 +86,13 @@ public final class BattleAmbiance {
 	private static final List<Floating> FLOATING = new ArrayList<>();
 	/** The camera this frame, from the field's centre: beams and sprites fade near it. */
 	private static Vec3 cameraRel = Vec3.ZERO;
+/** Drawing a mirror's reflection: the hall's own mirrors fall back to their painted sheen. */
+private static boolean reflecting;
+/** The wall left out while its reflection is drawn (it lies in the mirror's very plane); -1 for none. */
+private static int skipWall = -1;
+private static java.lang.reflect.Method irisInUse;
+private static Object iris;
+private static boolean irisChecked;
 	/** Sprites (Arcade) and critters (Meadow): where each turns round the field. */
 	private record Orbiter(float angle, float radius, float height, float phase, int kind) {
 	}
@@ -426,6 +435,7 @@ public final class BattleAmbiance {
 		}
 		hudTextLeft = 0;
 		setFilter(lastingFilter(ambiance));
+		clearFloors();
 		if (ambiance.sound != null && ambiance.sound.id != null) {
 			sound = new LoopSound(ResourceLocation.parse(ambiance.sound.id), ambiance.sound.volume, ambiance.sound.pitch);
 			mc.getSoundManager().play(sound);
@@ -434,7 +444,11 @@ public final class BattleAmbiance {
 
 	/** Every client tick: the field follows the trainers, particles, floating blocks' flames, lightning. */
 	public static void tick() {
-		GROUND.clear(); // ground heights are relative to the field's centre, which moves
+		// Ground heights are relative to the field's centre: cleared when it moves (updateField), and now and then
+		// for blocks changed under it.
+		if (ticks % 200 == 0) {
+			clearFloors();
+		}
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && !mc.isPaused()) {
 			followOverride();
@@ -780,13 +794,25 @@ public final class BattleAmbiance {
 		}
 		// Across the field, the centre; in height, the lowest of the trainers and Pokémon: the ambiance stands on the
 		// floor of the battle, not halfway up to trainers on a ledge.
+		// The field stays put (2026-11-19): it moved with every step the trainers took, and the whole place was built
+		// again under them. It follows them only once they are 4 blocks off (a jump does not lift it), and its size
+		// changes by steps of 4.
 		Vec3 middle = sum.scale(1.0 / spots.size());
-		center = new Vec3(middle.x, lowest, middle.z);
+		Vec3 target = new Vec3(middle.x, lowest, middle.z);
+		if (center == null || Math.hypot(target.x - center.x, target.z - center.z) >= FIELD_STEP || target.y < center.y - 0.5
+				|| target.y > center.y + 1.5) {
+			center = target;
+			clearFloors();
+		}
 		float apart = 0f;
 		for (Vec3 spot : spots) {
 			apart = Math.max(apart, (float) spot.distanceTo(center));
 		}
-		fieldRadius = Math.max(8f, apart + 5f);
+		float wanted = Math.max(8f, apart + 5f);
+		if (wanted > fieldRadius || wanted < fieldRadius - FIELD_STEP) {
+			fieldRadius = (float) (Math.ceil(wanted / FIELD_STEP) * FIELD_STEP);
+			clearFloors();
+		}
 		if (spots.size() >= 2) {
 			Vec3 across = spots.get(1).subtract(spots.get(0));
 			across = new Vec3(across.x, 0, across.z);
@@ -932,11 +958,27 @@ public final class BattleAmbiance {
 			com.mojang.blaze3d.systems.RenderSystem.setShaderFogStart(fogStart);
 		}
 		if (active.islands != null || active.island != null || active.crowd != null || active.lightTowers != null
-				|| active.cavern != null || !PLACED.isEmpty() || !ROCKS.isEmpty()) {
+				|| active.cavern != null || active.sea != null || active.land != null || active.hall != null
+				|| active.grass != null || active.flowers != null || !PLACED.isEmpty() || !ROCKS.isEmpty()) {
 			// Solid scenery first, writing depth: the glows drawn after are hidden behind it where they should be.
 			buffers.endBatch();
 			if (active.cavern != null) {
 				drawCavern(pose, buffers, active.cavern, time, false);
+			}
+			if (active.sea != null) {
+				drawSea(pose, buffers, active.sea, time, false);
+			}
+			if (active.land != null) {
+				drawLand(pose, buffers, active.land, time, false);
+			}
+			if (active.hall != null) {
+				drawHall(pose, buffers, active.hall, time, false);
+			}
+			if (active.grass != null) {
+				drawGrass(pose, buffers, active.grass, time);
+			}
+			if (active.flowers != null) {
+				drawFlowers(pose, buffers, active.flowers, time);
 			}
 			drawProps(pose, buffers, time, false);
 			if (active.islands != null) {
@@ -952,6 +994,9 @@ public final class BattleAmbiance {
 				drawLightTowers(pose, buffers, active.lightTowers, time, false);
 			}
 			buffers.endBatch();
+			if (active.hall != null && active.hall.mirrors && mirrorsLive(active.hall)) {
+				drawReflections(pose, buffers, active.hall, time, partialTick);
+			}
 		}
 		if (active.backdrop != null) {
 			drawBackdrop(pose, buffers, active.backdrop, time);
@@ -1009,6 +1054,15 @@ public final class BattleAmbiance {
 		}
 		if (active.cavern != null) {
 			drawCavern(pose, buffers, active.cavern, time, true);
+		}
+		if (active.sea != null) {
+			drawSea(pose, buffers, active.sea, time, true);
+		}
+		if (active.land != null) {
+			drawLand(pose, buffers, active.land, time, true);
+		}
+		if (active.hall != null) {
+			drawHall(pose, buffers, active.hall, time, true);
 		}
 		if (!PLACED.isEmpty()) {
 			drawProps(pose, buffers, time, true);
@@ -3037,22 +3091,28 @@ public final class BattleAmbiance {
 			}
 			Vec3 tip = c.add((hashFloat(i * 97 + 80) - 0.5) * size * 0.6, -size * (1.7 + 0.5 * hashFloat(i * 97 + 81)), (hashFloat(i * 97 + 82) - 0.5) * size * 0.6);
 			Vec3 crown = c.add(0, size * 0.08, 0);
+			// Per-vertex colour (2026-11-19, as the Reborn stadiums): each corner lit by its own normal, grain over
+			// the rock, so the island reads as one rounded stone, not as flat facets.
+			int lipRock = lerpColor(top, rock, 0.45f);
+			int deepRock = lerpColor(rock, 0x000000, 0.35f);
+			int crownColor = ultraTop(top, crown);
+			int tipColor = sunlit(stoneGrain(lerpColor(deepRock, 0x000000, 0.2f), tip, 0.15f), new Vec3(0, -1, 0), 0.4f);
+			int[][] colors = new int[3][sides];
+			for (int k = 0; k < sides; k++) {
+				Vec3 outward = rings[1][k].subtract(c);
+				outward = new Vec3(outward.x, 0, outward.z).normalize();
+				colors[0][k] = ultraTop(top, rings[0][k]);
+				colors[1][k] = sunlit(stoneGrain(lipRock, rings[1][k], 0.16f), outward.add(0, 0.1, 0).normalize(), 0.45f);
+				colors[2][k] = sunlit(stoneGrain(deepRock, rings[2][k], 0.16f), outward.add(0, -0.6, 0).normalize(), 0.42f);
+			}
 			for (int k = 0; k < sides; k++) {
 				int n = (k + 1) % sides;
-				// The top: a low dome, its sectors a little different from each other.
-				int topColor = lerpColor(top, 0xFFFFFF, 0.08f * hashFloat(i * 97 + 90 + k));
-				vertex(out, m, crown, topColor, 255);
-				vertex(out, m, crown, topColor, 255);
-				vertex(out, m, rings[0][n], topColor, 255);
-				vertex(out, m, rings[0][k], topColor, 255);
-				Vec3 outward = rings[1][k].add(rings[1][n]).scale(0.5).subtract(c);
-				outward = new Vec3(outward.x, 0, outward.z).normalize();
-				int lip = shade(lerpColor(top, rock, 0.45f), outward.add(0, 0.2, 0).normalize(), 0.5f);
-				quad(out, m, rings[0][k], rings[0][n], rings[1][n], rings[1][k], lip);
-				int side = shade(rock, outward.add(0, -0.3, 0).normalize(), 0.45f);
-				quad(out, m, rings[1][k], rings[1][n], rings[2][n], rings[2][k], side);
-				int deep = shade(lerpColor(rock, 0x000000, 0.35f), outward.add(0, -0.7, 0).normalize(), 0.45f);
-				quad(out, m, rings[2][k], rings[2][n], tip, tip, deep);
+				quadColors(out, m, crown, crown, rings[0][n], rings[0][k], crownColor, crownColor, colors[0][n], colors[0][k]);
+				int rimK = lerpColor(colors[0][k], colors[1][k], 0.5f);
+				int rimN = lerpColor(colors[0][n], colors[1][n], 0.5f);
+				quadColors(out, m, rings[0][k], rings[0][n], rings[1][n], rings[1][k], rimK, rimN, colors[1][n], colors[1][k]);
+				quadColors(out, m, rings[1][k], rings[1][n], rings[2][n], rings[2][k], colors[1][k], colors[1][n], colors[2][n], colors[2][k]);
+				quadColors(out, m, rings[2][k], rings[2][n], tip, tip, colors[2][k], colors[2][n], tipColor, tipColor);
 			}
 			for (int k = 0; k < crystals.size(); k++) {
 				Vec3 base = c.add(rotateY(crystals.get(k)[0], spin)).add(0, -0.1, 0);
@@ -3078,6 +3138,13 @@ public final class BattleAmbiance {
 		vertex(out, m, b, color, 255);
 		vertex(out, m, c, color, 255);
 		vertex(out, m, d, color, 255);
+	}
+
+	/** Ultra Space's island top at {@code p}: patches of a lighter violet stone, a fine grain over all of it. */
+	private static int ultraTop(int top, Vec3 p) {
+		double patch = valueNoise(p.x * 0.16 + 5, 0.5, p.z * 0.16 + 9);
+		int c = lerpColor(top, 0x4A3A9A, (float) (0.45 * smooth(Mth.clamp(patch * 1.4 - 0.2, 0, 1))));
+		return stoneGrain(c, p, 0.14f);
 	}
 
 	/** The field island's outline: a little irregular, so it reads as rock, not as a disc. */
@@ -3106,41 +3173,67 @@ public final class BattleAmbiance {
 		int rings = (int) Math.ceil(reach);
 		Vec3 sink = new Vec3(0, -0.03, 0);
 		if (!glow) {
-			for (int j = 0; j < rings; j++) {
+			// The top (2026-11-19, as the Reborn stadiums): a vertex every ring and sector, each coloured from where it
+			// is (patches of a lighter stone, fine grain), so neighbouring tiles blend instead of standing out.
+			if (blocky()) {
+				drawBlockFloor(out, m, "island", reach, (x, z) -> groundAt(x, z) + 0.09,
+						(x, z) -> ultraTop(top, new Vec3(x, groundAt(x, z) + 0.09, z)), null,
+						(x, z, r) -> r <= islandEdge(island, Math.atan2(z, x)));
+			}
+			int topRings = blocky() ? -1 : rings;
+			Vec3[][] grid = new Vec3[rings + 1][sectors];
+			int[][] tint = new int[rings + 1][sectors];
+			for (int j = 0; j <= topRings; j++) {
+				double f = j / (double) rings;
 				for (int k = 0; k < sectors; k++) {
-					double a0 = Math.PI * 2 * k / sectors;
-					double a1 = Math.PI * 2 * (k + 1) / sectors;
-					double f0 = j / (double) rings;
-					double f1 = (j + 1) / (double) rings;
-					double e0 = islandEdge(island, a0);
-					double e1 = islandEdge(island, a1);
-					Vec3 p00 = onGround(Math.cos(a0) * e0 * f0, Math.sin(a0) * e0 * f0).add(sink);
-					Vec3 p01 = onGround(Math.cos(a1) * e1 * f0, Math.sin(a1) * e1 * f0).add(sink);
-					Vec3 p11 = onGround(Math.cos(a1) * e1 * f1, Math.sin(a1) * e1 * f1).add(sink);
-					Vec3 p10 = onGround(Math.cos(a0) * e0 * f1, Math.sin(a0) * e0 * f1).add(sink);
-					int tile = lerpColor(top, 0x4A3A9A, 0.3f * hashFloat(j * 131 + k * 7 + 3));
-					quad(out, m, p00, p01, p11, p10, tile);
+					double a = Math.PI * 2 * k / sectors;
+					double e = islandEdge(island, a);
+					grid[j][k] = onGround(Math.cos(a) * e * f, Math.sin(a) * e * f).add(sink);
+					tint[j][k] = ultraTop(top, grid[j][k]);
 				}
 			}
-			// The rock below: the rim on the ground, a lip, then narrower and narrower rings to a point.
-			Vec3[][] ring = new Vec3[4][sectors];
+			for (int j = 0; j < topRings; j++) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], tint[j][k], tint[j][n], tint[j + 1][n],
+							tint[j + 1][k]);
+				}
+			}
+			// The rock below: the rim on the ground, a lip, then narrower and narrower rings to a point, every corner lit
+			// by its own normal and grained, darker the deeper it hangs.
+			double[] across = {1, 1.02, 0.88, 0.74, 0.56, 0.36, 0.17};
+			double[] down = {0, 0, 0.17, 0.34, 0.54, 0.74, 0.92};
+			double[] slope = {0.3, 0.1, -0.25, -0.4, -0.6, -0.85, -1.1};
+			int levels = across.length;
+			Vec3[][] ring = new Vec3[levels][sectors];
+			int[][] shadeAt = new int[levels][sectors];
 			for (int k = 0; k < sectors; k++) {
 				double a = Math.PI * 2 * k / sectors;
 				double e = islandEdge(island, a);
 				Vec3 dir = new Vec3(Math.cos(a), 0, Math.sin(a));
-				ring[0][k] = onGround(dir.x * e, dir.z * e).add(sink);
-				ring[1][k] = dir.scale(e * 1.02).add(0, ring[0][k].y - 0.7, 0);
-				ring[2][k] = dir.scale(e * (0.72 + 0.1 * hashFloat(k * 17 + 1))).add(0, -depth * (0.35 + 0.08 * hashFloat(k * 17 + 2)), 0);
-				ring[3][k] = dir.scale(e * (0.32 + 0.12 * hashFloat(k * 17 + 3))).add(0, -depth * (0.72 + 0.1 * hashFloat(k * 17 + 4)), 0);
+				for (int l = 0; l < levels; l++) {
+					if (l == 0) {
+						ring[l][k] = onGround(dir.x * e, dir.z * e).add(sink);
+					} else if (l == 1) {
+						ring[l][k] = dir.scale(e * across[l]).add(0, ring[0][k].y - 0.7, 0);
+					} else {
+						double jag = 0.1 * (hashFloat(k * 17 + l * 5 + 1) - 0.5);
+						ring[l][k] = dir.scale(e * (across[l] + jag)).add(0, -depth * (down[l] + 0.06 * hashFloat(k * 17 + l * 5 + 2)), 0);
+					}
+					int base = l <= 1 ? lerpColor(top, rock, 0.5f) : lerpColor(rock, 0x000000, 0.45f * (l - 1) / (levels - 1));
+					shadeAt[l][k] = sunlit(stoneGrain(base, ring[l][k], 0.18f), dir.add(0, slope[l], 0).normalize(), 0.42f);
+				}
 			}
 			Vec3 point = new Vec3(0, -depth * 1.05, 0);
+			int pointColor = sunlit(stoneGrain(lerpColor(rock, 0x000000, 0.5f), point, 0.15f), new Vec3(0, -1, 0), 0.42f);
 			for (int k = 0; k < sectors; k++) {
 				int n = (k + 1) % sectors;
-				Vec3 outward = new Vec3(Math.cos(Math.PI * 2 * (k + 0.5) / sectors), 0, Math.sin(Math.PI * 2 * (k + 0.5) / sectors));
-				quad(out, m, ring[0][k], ring[0][n], ring[1][n], ring[1][k], shade(lerpColor(top, rock, 0.5f), outward.add(0, 0.1, 0).normalize(), 0.5f));
-				quad(out, m, ring[1][k], ring[1][n], ring[2][n], ring[2][k], shade(rock, outward.add(0, -0.4, 0).normalize(), 0.42f));
-				quad(out, m, ring[2][k], ring[2][n], ring[3][n], ring[3][k], shade(lerpColor(rock, 0x000000, 0.2f), outward.add(0, -0.8, 0).normalize(), 0.42f));
-				quad(out, m, ring[3][k], ring[3][n], point, point, shade(lerpColor(rock, 0x000000, 0.4f), outward.add(0, -1.2, 0).normalize(), 0.42f));
+				for (int l = 0; l + 1 < levels; l++) {
+					quadColors(out, m, ring[l][k], ring[l][n], ring[l + 1][n], ring[l + 1][k], shadeAt[l][k], shadeAt[l][n],
+							shadeAt[l + 1][n], shadeAt[l + 1][k]);
+				}
+				quadColors(out, m, ring[levels - 1][k], ring[levels - 1][n], point, point, shadeAt[levels - 1][k],
+						shadeAt[levels - 1][n], pointColor, pointColor);
 			}
 		}
 		// Crystals round the rim, leaning outward, and hanging under the rock.
@@ -3466,11 +3559,19 @@ public final class BattleAmbiance {
 			// tile, no ring shows (2026-11-19: one colour per face read as a chequerboard and concentric bands).
 			int sectors = 96;
 			List<Double> radii = new ArrayList<>();
-			for (double r = 0; r < radius; r += 1.0) {
-				radii.add(r);
+			if (blocky()) {
+				// The real blocks' tops, block by block, the lava's ring left for the lava.
+				drawBlockFloor(out, m, "cave", radius, (x, z) -> groundAt(x, z) + 0.09, (x, z) -> {
+					Vec3 p = new Vec3(x, groundAt(x, z) + 0.09, z);
+					return caveLit(cavern, stoneGrain(floorColor, p, 0.16f), p, up);
+				}, null, (x, z, r) -> r < lavaIn || r > lavaOut);
+			} else {
+				for (double r = 0; r < radius; r += 1.0) {
+					radii.add(r);
+				}
+				radii.add(radius);
 			}
-			radii.add(radius);
-			if (lava != null) {
+			if (lava != null && !radii.isEmpty()) {
 				radii.removeIf(r -> r > lavaIn && r < lavaOut);
 				radii.add(Math.min(lavaIn, radius));
 				radii.add(Math.min(lavaOut, radius));
@@ -3563,6 +3664,2022 @@ public final class BattleAmbiance {
 		}
 	}
 
+	// ---------------------------------------------------------------- The sea (2026-11-19, League Reborn's waters)
+
+	private static final Vec3 SUN = new Vec3(0.45, 0.75, 0.35).normalize();
+	private static final int[] FISH_COLORS = {0xE8A040, 0xC8DCEA, 0xF06A60, 0xE6E070, 0x7AC8F0};
+
+	/** The water's look this battle: the stadium's colours, as the ambiance sees them (frozen, oily, calm...). */
+	private record WaterLook(int water, int deep, int foam, int light, double amp, boolean frozen, boolean oil, float clarity) {
+	}
+
+	private static WaterLook waterLook(Ambiance.Sea sea) {
+		Ambiance.Water w = active.water;
+		int water = Ambiance.color(w != null && w.color != null ? w.color : sea.water, 0x2F8FC0);
+		int deep = Ambiance.color(w != null && w.deep != null ? w.deep : sea.deep, 0x0E3F66);
+		int foam = Ambiance.color(w != null && w.foam != null ? w.foam : sea.foam, 0xF2FBFF);
+		int light = Ambiance.color(w != null ? w.light : null, 0xD8F6FF);
+		boolean frozen = w != null && w.frozen;
+		double amp = frozen ? 0 : sea.wave * (w != null && w.waves != null ? w.waves : 1);
+		return new WaterLook(water, deep, foam, light, amp, frozen, w != null && w.oil, w != null ? w.clarity : 1f);
+	}
+
+	/** The water's resting height: just under the field's ground, so the field stays dry. */
+	private static double seaLevel() {
+		return groundAt(0, 0) - 0.45;
+	}
+
+	/** The islet's shore at {@code angle}: the field's edge plus the margin, uneven so it reads as a shore. */
+	private static double isletEdge(Ambiance.Sea sea, double angle) {
+		double n = valueNoise(Math.cos(angle) * 1.6 + 5, 0.5, Math.sin(angle) * 1.6 + 5);
+		return fieldRadius + sea.margin * (0.6 + 0.9 * n);
+	}
+
+	/** The islet's top at (x, z): in whole blocks when the ground is blocky. */
+	private static double isletY(Ambiance.Sea sea, double x, double z) {
+		return blocky() ? snapToBlock((a, b) -> smoothIsletY(sea, a, b), x, z) : smoothIsletY(sea, x, z);
+	}
+
+	/** The islet's smooth top at (x, z): the real ground under the field (people stand on it), then a beach. */
+	private static double smoothIsletY(Ambiance.Sea sea, double x, double z) {
+		double r = Math.sqrt(x * x + z * z);
+		double from = fieldRadius + 0.5;
+		if (r <= from) {
+			return groundAt(x, z) + 0.09;
+		}
+		double rim = groundAt(x * from / r, z * from / r) + 0.09;
+		double edge = isletEdge(sea, Math.atan2(z, x));
+		double floor = seaLevel() - 0.8;
+		if (r > edge) {
+			return floor - (r - edge) * 0.6;
+		}
+		return Mth.lerp(smooth(Mth.clamp((r - from) / Math.max(0.5, edge - from), 0, 1)), rim, floor);
+	}
+
+	/** The seabed at (x, z): in whole blocks when the ground is blocky. */
+	private static double seabedY(double x, double z) {
+		return blocky() ? snapToBlock(BattleAmbiance::smoothSeabedY, x, z) : smoothSeabedY(x, z);
+	}
+
+	/** The smooth seabed at (x, z): the real ground under the field, then sand dunes and ripples going gently down. */
+	private static double smoothSeabedY(double x, double z) {
+		double r = Math.sqrt(x * x + z * z);
+		double from = fieldRadius + 0.5;
+		if (r <= from) {
+			return groundAt(x, z) + 0.09;
+		}
+		double rim = groundAt(x * from / r, z * from / r) + 0.09;
+		double dunes = groundAt(0, 0) + 0.09 + 1.8 * (valueNoise(x * 0.06, 3, z * 0.06) - 0.5)
+				+ 0.12 * Math.sin(x * 0.5 + z * 0.15 + 3 * valueNoise(x * 0.1, 7, z * 0.1)) - 0.035 * (r - from);
+		return Mth.lerp(smooth(Mth.clamp((r - from) / 5, 0, 1)), rim, dunes);
+	}
+
+	/** The water's height above its rest at (x, z): long swells, a cross swell, short chop, a little noise. */
+	private static double waveAt(Ambiance.Sea sea, double amp, double x, double z, float time) {
+		if (amp <= 0) {
+			return 0;
+		}
+		double t = time * 0.05 * sea.speed;
+		double h = 0.5 * Math.sin(x * 0.21 + z * 0.13 - t)
+				+ 0.3 * Math.sin(-x * 0.11 + z * 0.29 - t * 0.8 + 1.7)
+				+ 0.2 * Math.sin(x * 0.43 - z * 0.37 - t * 1.6 + 0.6)
+				+ 0.5 * (valueNoise(x * 0.12 + t * 0.3, t * 0.2, z * 0.12) - 0.5);
+		return amp * h;
+	}
+
+	/** The sea's radii: about a block apart near the field, wider and wider out to the horizon. */
+	private static List<Double> seaRadii(double from, double near, double to) {
+		List<Double> radii = new ArrayList<>();
+		double step = 1;
+		for (double r = from; r < to; r += step) {
+			radii.add(r);
+			if (r > near) {
+				step = Math.min(6, step * 1.12);
+			}
+		}
+		radii.add(to);
+		return radii;
+	}
+
+	/**
+	 * The sea. Above water: the islet (the real ground under the field, a sand beach round it, rocks on its shore), the
+	 * water out to the horizon rolling in waves, coloured per vertex (deeper further out, lighter on the crests, lit by
+	 * its slope, foam breaking on the shore, rainbow slicks when oily); frozen, a still cracked sheet of ice with floes.
+	 * Under water: a sand seabed with dunes and caustics, the surface rippling bright overhead, rocks, schools of fish.
+	 * Light pass: the sun glittering on the water or the ice; the light coming down from the surface.
+	 */
+	private static void drawSea(PoseStack pose, MultiBufferSource buffers, Ambiance.Sea sea, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		WaterLook look = waterLook(sea);
+		if (sea.under) {
+			drawSeabed(out, m, sea, look, time, glow);
+			return;
+		}
+		double level = seaLevel();
+		if (glow) {
+			// The sun glittering on the water (sparks coming and going on the waves), or glinting on the ice.
+			int count = (int) ((look.frozen ? 60 : 180) * Mth.clamp(look.clarity, 0, 1));
+			for (int i = 0; i < count; i++) {
+				double a = Math.PI * 2 * hashFloat(i * 13 + 1) + (look.frozen ? 0 : time * 0.0004);
+				double r = fieldRadius + sea.margin + 1 + 50 * Math.pow(hashFloat(i * 13 + 2), 1.6);
+				float f = Mth.sin(time * (look.frozen ? 0.06f : 0.22f) + i * 2.39f + hashFloat(i * 13 + 3) * 20);
+				if (f < 0.6f) {
+					continue;
+				}
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				Vec3 p = new Vec3(x, level + waveAt(sea, look.amp, x, z, time) + (look.frozen ? 0.12 : 0.06), z);
+				if (nearFade(p, 1, 2) < 0.5f) {
+					continue;
+				}
+				int alpha = (int) ((f - 0.6f) / 0.4f * 210);
+				float size = 0.07f + 0.12f * hashFloat(i * 13 + 4);
+				quadFacing(out, m, p, cameraRel.subtract(p).normalize(), size, look.frozen ? 0xDDF6FF : 0xFFFFFF, alpha);
+			}
+			return;
+		}
+		Vec3 up = new Vec3(0, 1, 0);
+		int sectors = 128;
+		double[] edges = new double[sectors];
+		double maxEdge = 0;
+		for (int k = 0; k < sectors; k++) {
+			edges[k] = isletEdge(sea, Math.PI * 2 * k / sectors);
+			maxEdge = Math.max(maxEdge, edges[k]);
+		}
+		// The islet: rings following its uneven shore, out a little under the water so no gap shows at the waterline.
+		int sand = Ambiance.color(sea.sand, 0xD9C48F);
+		int rings = (int) Math.ceil(maxEdge + 2.5);
+		Vec3[] inner = null;
+		int[] innerColor = null;
+		if (blocky()) {
+			drawBlockFloor(out, m, "islet", maxEdge + 2.5, (a, b) -> isletY(sea, a, b), (x, z) -> {
+				double y = smoothIsletY(sea, x, z);
+				int c = stoneGrain(sand, new Vec3(x, y, z), 0.12f);
+				float wet = (float) Mth.clamp(1 - (y - level) / 0.5, 0, 1);
+				c = lerpColor(c, lerpColor(sand, 0x000000, 0.45f), 0.6f * wet);
+				if (y < level) {
+					c = lerpColor(c, look.frozen ? look.water : look.deep, (float) Mth.clamp((level - y) / 1.2, 0, 0.8));
+				}
+				return lerpColor(0x000000, c, 0.93f);
+			}, null, (x, z, r) -> r <= isletEdge(sea, Math.atan2(z, x)) + 2.5);
+			rings = -1; // no smooth rings
+		}
+		for (int j = 0; j <= rings; j++) {
+			Vec3[] ring = new Vec3[sectors];
+			int[] ringColor = new int[sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double r = (edges[k] + 2.5) * j / rings;
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				double y = isletY(sea, x, z);
+				ring[k] = new Vec3(x, y - 0.03, z);
+				Vec3 normal = new Vec3(y - isletY(sea, x + 0.5, z), 0.5, y - isletY(sea, x, z + 0.5)).normalize();
+				int c = stoneGrain(sand, ring[k], 0.12f);
+				// Wet near the water, sunk under it.
+				float wet = (float) Mth.clamp(1 - (y - level) / 0.5, 0, 1);
+				c = lerpColor(c, lerpColor(sand, 0x000000, 0.45f), 0.6f * wet);
+				if (y < level) {
+					c = lerpColor(c, look.frozen ? look.water : look.deep, (float) Mth.clamp((level - y) / 1.2, 0, 0.8));
+				}
+				ringColor[k] = lerpColor(0x000000, c, (float) (0.72 + 0.28 * Math.max(0, normal.dot(SUN))));
+			}
+			if (inner != null) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			inner = ring;
+			innerColor = ringColor;
+		}
+		// Rocks on the shore, half in the water.
+		int rock = Ambiance.color(sea.rock, 0x6E675C);
+		for (int i = 0; i < sea.rocks; i++) {
+			double a = Math.PI * 2 * (i + 0.6 * hashFloat(i * 53 + 1)) / Math.max(1, sea.rocks);
+			double r = isletEdge(sea, a) + 0.4 * hashFloat(i * 53 + 2) - 0.6;
+			Vec3 c = new Vec3(Math.cos(a) * r, level + 0.05, Math.sin(a) * r);
+			if (nearFade(c, 1.5, 2) < 0.5f) {
+				continue;
+			}
+			boulder(out, m, c, 0.5f + 0.8f * hashFloat(i * 53 + 3), hashFloat(i * 53 + 4) * 6.28, stoneGrain(rock, c, 0.2f), i);
+		}
+		// The water: per vertex, its height (waves), its colour (depth, crests, slope, foam on the shore, slicks).
+		List<Double> radii = seaRadii(fieldRadius + 0.3, maxEdge + 14, sea.radius);
+		int fog = active.sky != null ? Ambiance.color(active.sky.fogColor, -1) : -1;
+		inner = null;
+		innerColor = null;
+		for (double r : radii) {
+			Vec3[] ring = new Vec3[sectors];
+			int[] ringColor = new int[sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				double calm = Mth.clamp((r - fieldRadius) / (sea.margin + 6), 0.15, 1);
+				double amp = look.amp * calm;
+				double h = waveAt(sea, amp, x, z, time);
+				ring[k] = new Vec3(x, level + h + (look.frozen ? 0.05 : 0), z);
+				float far = (float) Mth.clamp((r - edges[k]) / 45, 0, 1);
+				int c;
+				if (look.frozen) {
+					c = lerpColor(look.water, look.deep, 0.3f * far);
+					double snow = valueNoise(x * 0.15, 1, z * 0.15);
+					c = lerpColor(c, 0xFFFFFF, 0.55f * (float) smooth(Mth.clamp((snow - 0.55) / 0.25, 0, 1)));
+					c = stoneGrain(c, ring[k], 0.06f);
+				} else {
+					c = lerpColor(look.water, look.deep, (float) Math.sqrt(far));
+					float crest = amp > 0 ? (float) Mth.clamp(h / amp, 0, 1) : 0;
+					c = lerpColor(c, look.foam, 0.25f * crest * crest);
+					double hx = waveAt(sea, amp, x + 0.5, z, time);
+					double hz = waveAt(sea, amp, x, z + 0.5, time);
+					Vec3 normal = new Vec3((h - hx) * 3, 0.5, (h - hz) * 3).normalize();
+					c = lerpColor(0x000000, c, (float) (0.7 + 0.3 * Math.max(0, normal.dot(SUN))));
+					// Foam breaking on the shore, coming and going.
+					double shore = r - edges[k];
+					float foam = (float) (Mth.clamp(1 - Math.abs(shore - 0.4) / 1.8, 0, 1) * (0.55 + 0.45 * Math.sin(time * 0.07 - shore * 2.2)));
+					c = lerpColor(c, look.foam, 0.75f * foam);
+					if (look.oil) {
+						double slick = valueNoise(x * 0.06 + time * 0.002, 11, z * 0.06);
+						float mask = (float) smooth(Mth.clamp((slick - 0.5) / 0.25, 0, 1));
+						double hue = valueNoise(x * 0.25, 5 + time * 0.004, z * 0.25) * 1.5 + r * 0.02;
+						int rainbow = Mth.hsvToRgb((float) (hue - Math.floor(hue)), 0.7f, 0.55f) & 0xFFFFFF;
+						c = lerpColor(c, rainbow, 0.45f * mask);
+					}
+					c = stoneGrain(c, ring[k], 0.05f);
+				}
+				if (fog >= 0) {
+					float haze = (float) Mth.clamp((r - sea.radius * 0.6) / (sea.radius * 0.4), 0, 1);
+					c = lerpColor(c, fog, haze * haze);
+				}
+				ringColor[k] = c;
+			}
+			if (inner != null) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			inner = ring;
+			innerColor = ringColor;
+		}
+		if (look.frozen) {
+			drawIce(out, m, sea, look, level, maxEdge);
+		}
+	}
+
+	/** The frozen sea's cracks (thin dark lines wandering out from the islet) and its floes (raised slabs of ice). */
+	private static void drawIce(VertexConsumer out, Matrix4f m, Ambiance.Sea sea, WaterLook look, double level, double maxEdge) {
+		int crackColor = lerpColor(look.water, look.deep, 0.75f);
+		for (int i = 0; i < 26; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 61 + 1);
+			double r = maxEdge + 0.5 + 30 * hashFloat(i * 61 + 2);
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			double heading = a + (hashFloat(i * 61 + 3) - 0.5) * 2;
+			int segments = 6 + (int) (7 * hashFloat(i * 61 + 4));
+			for (int s = 0; s < segments; s++) {
+				double length = 1.5 + 1.5 * hashFloat(i * 61 + s * 5 + 7);
+				heading += (hashFloat(i * 61 + s * 5 + 8) - 0.5) * 1.1;
+				double nx = x + Math.cos(heading) * length;
+				double nz = z + Math.sin(heading) * length;
+				double w = 0.09 * (1 - 0.6 * s / (double) segments);
+				double px = -Math.sin(heading) * w;
+				double pz = Math.cos(heading) * w;
+				double y = level + 0.07;
+				quad(out, m, new Vec3(x + px, y, z + pz), new Vec3(nx + px, y, nz + pz), new Vec3(nx - px, y, nz - pz),
+						new Vec3(x - px, y, z - pz), crackColor);
+				x = nx;
+				z = nz;
+			}
+		}
+		// Floes: irregular slabs, whiter in the middle, their sides blue-grey.
+		int sides = 7;
+		for (int i = 0; i < 24; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 71 + 1);
+			double r = maxEdge + 1.5 + 22 * Math.pow(hashFloat(i * 71 + 2), 1.3);
+			Vec3 centre = new Vec3(Math.cos(a) * r, level + 0.05 + 0.2 + 0.3 * hashFloat(i * 71 + 3), Math.sin(a) * r);
+			if (nearFade(centre, 1.5, 2) < 0.5f) {
+				continue;
+			}
+			double size = 0.8 + 1.6 * hashFloat(i * 71 + 4);
+			Vec3[] rim = new Vec3[sides];
+			for (int k = 0; k < sides; k++) {
+				double ang = Math.PI * 2 * k / sides + hashFloat(i * 71 + 5) * 3;
+				double rr = size * (0.65 + 0.5 * hashFloat(i * 71 + k * 3 + 9));
+				rim[k] = centre.add(Math.cos(ang) * rr, 0, Math.sin(ang) * rr);
+			}
+			int top = lerpColor(look.water, 0xFFFFFF, 0.55f);
+			int edge = look.water;
+			int side = lerpColor(look.water, look.deep, 0.45f);
+			for (int k = 0; k < sides; k++) {
+				int n = (k + 1) % sides;
+				quadColors(out, m, centre, rim[k], rim[n], centre, top, edge, edge, top);
+				Vec3 lowK = new Vec3(rim[k].x, level - 0.1, rim[k].z);
+				Vec3 lowN = new Vec3(rim[n].x, level - 0.1, rim[n].z);
+				quadColors(out, m, rim[k], rim[n], lowN, lowK, side, side, look.deep, look.deep);
+			}
+		}
+	}
+
+	/** Under water: the seabed, the rippling surface overhead, rocks, schools of fish; the light from above. */
+	private static void drawSeabed(VertexConsumer out, Matrix4f m, Ambiance.Sea sea, WaterLook look, float time, boolean glow) {
+		double ground = groundAt(0, 0);
+		double surface = ground + sea.depth;
+		double reach = Math.min(sea.radius, 72);
+		if (glow) {
+			glowDisc(out, m, new Vec3(0, surface - 0.3, 0), new Vec3(0, -1, 0), (float) (sea.depth * 1.1), look.light, 46);
+			glowDisc(out, m, onGround(0, 0).add(0, 0.04, 0), new Vec3(0, 1, 0), (float) fieldRadius, look.light, 14);
+			return;
+		}
+		int sand = Ambiance.color(sea.sand, 0xD9C48F);
+		int sectors = 96;
+		// The seabed: sand with ripples and dunes, darker and bluer further out, caustics dancing on it.
+		Vec3[] inner = null;
+		int[] innerColor = null;
+		double smoothFrom = 0;
+		if (blocky()) {
+			smoothFrom = Math.min(reach, 48);
+			drawBlockFloor(out, m, "seabed", smoothFrom, BattleAmbiance::seabedY, (x, z) -> {
+				double y = smoothSeabedY(x, z);
+				int c = lerpColor(0x000000, stoneGrain(sand, new Vec3(x, y, z), 0.14f), 0.91f);
+				float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
+				return lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
+			}, (x, z, c) -> {
+				float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
+				double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
+				double band = 1 - Math.abs(2 * n - 1);
+				return lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
+			}, (x, z, r) -> true);
+		}
+		for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + 16), reach)) {
+			Vec3[] ring = new Vec3[sectors];
+			int[] ringColor = new int[sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				double y = smoothSeabedY(x, z);
+				ring[k] = new Vec3(x, y - 0.03, z);
+				Vec3 normal = new Vec3(y - smoothSeabedY(x + 0.5, z), 0.5, y - smoothSeabedY(x, z + 0.5)).normalize();
+				int c = stoneGrain(sand, ring[k], 0.14f);
+				c = lerpColor(0x000000, c, (float) (0.65 + 0.35 * Math.max(0, normal.dot(SUN))));
+				float far = (float) Mth.clamp((r - fieldRadius) / 50, 0, 1);
+				c = lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
+				double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
+				double band = 1 - Math.abs(2 * n - 1);
+				c = lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
+				ringColor[k] = c;
+			}
+			if (inner != null) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			inner = ring;
+			innerColor = ringColor;
+		}
+		// The surface overhead: bright straight above (the sky seen through it), darker towards the sides, rippling.
+		inner = null;
+		innerColor = null;
+		double amp = Math.max(0.15, look.amp * 0.8);
+		for (double r : seaRadii(0, 30, reach)) {
+			Vec3[] ring = new Vec3[sectors];
+			int[] ringColor = new int[sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				double h = waveAt(sea, amp, x, z, time);
+				ring[k] = new Vec3(x, surface + h, z);
+				float window = (float) Mth.clamp(r / (sea.depth * 1.6), 0, 1);
+				int c = lerpColor(look.light, look.water, window);
+				c = lerpColor(c, look.deep, (float) Mth.clamp((r - sea.depth * 1.6) / 40, 0, 0.9));
+				c = lerpColor(c, look.light, 0.35f * (float) Mth.clamp(h / amp, 0, 1) * (1 - window * 0.6f));
+				ringColor[k] = c;
+			}
+			if (inner != null) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			inner = ring;
+			innerColor = ringColor;
+		}
+		int rock = lerpColor(Ambiance.color(sea.rock, 0x6E675C), look.deep, 0.3f);
+		for (int i = 0; i < sea.rocks + 4; i++) {
+			double a = Math.PI * 2 * (i + 0.6 * hashFloat(i * 53 + 1)) / (sea.rocks + 4);
+			double r = fieldRadius + 3 + 15 * hashFloat(i * 53 + 2);
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			Vec3 c = new Vec3(x, seabedY(x, z), z);
+			if (nearFade(c, 1.5, 2) < 0.5f) {
+				continue;
+			}
+			boulder(out, m, c, 0.6f + 1.1f * hashFloat(i * 53 + 3), hashFloat(i * 53 + 4) * 6.28, stoneGrain(rock, c, 0.2f), i);
+		}
+		// Schools of fish circling the field, each fish a slim body and a tail, its back darker than its belly.
+		for (int s = 0; s < 5; s++) {
+			double dir = s % 2 == 0 ? 1 : -1;
+			double orbit = fieldRadius + 4 + 10 * hashFloat(s * 91 + 1);
+			double height = ground + 2.5 + 5 * hashFloat(s * 91 + 2);
+			double angle = hashFloat(s * 91 + 3) * 6.28 + dir * time * 0.004 * (1 + hashFloat(s * 91 + 4));
+			int color = FISH_COLORS[s % FISH_COLORS.length];
+			for (int f = 0; f < 8; f++) {
+				double fa = angle + (hashFloat(s * 91 + f * 7 + 10) - 0.5) * 0.25;
+				double fr = orbit + (hashFloat(s * 91 + f * 7 + 11) - 0.5) * 3;
+				double fy = height + (hashFloat(s * 91 + f * 7 + 12) - 0.5) * 2 + 0.3 * Math.sin(time * 0.05 + f + s);
+				Vec3 at = new Vec3(Math.cos(fa) * fr, fy, Math.sin(fa) * fr);
+				if (nearFade(at, 1, 1.5) < 0.5f) {
+					continue;
+				}
+				Vec3 heading = new Vec3(-Math.sin(fa) * dir, 0, Math.cos(fa) * dir);
+				double size = 0.3 + 0.25 * hashFloat(s * 91 + f * 7 + 13);
+				double wag = 0.35 * Math.sin(time * 0.6 + f * 1.3);
+				Vec3 side = heading.cross(new Vec3(0, 1, 0)).normalize();
+				Vec3 nose = at.add(heading.scale(size));
+				Vec3 tail = at.add(heading.scale(-size * 0.9));
+				Vec3 top = at.add(0, size * 0.32, 0);
+				Vec3 belly = at.add(0, -size * 0.28, 0);
+				int back = lerpColor(color, 0x000000, 0.35f);
+				int under = lerpColor(color, 0xFFFFFF, 0.3f);
+				quadColors(out, m, nose, top, tail, belly, color, back, color, under);
+				Vec3 fin = tail.add(heading.scale(-size * 0.45)).add(side.scale(wag * size));
+				quadColors(out, m, tail, fin.add(0, size * 0.3, 0), fin.add(0, -size * 0.3, 0), tail, color, back, under, color);
+			}
+		}
+	}
+
+	/** The sea's anchors: the islet's beach (or the seabed round the field) and the air above it. */
+	private static Anchors seaAnchors(Ambiance.Sea sea) {
+		Anchors result = new Anchors();
+		for (int i = 0; i < 160; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 19 + 1);
+			double x;
+			double z;
+			double y;
+			if (sea.under) {
+				double r = fieldRadius + 1 + 14 * hashFloat(i * 19 + 2);
+				x = Math.cos(a) * r;
+				z = Math.sin(a) * r;
+				y = seabedY(x, z);
+			} else {
+				double r = Mth.lerp(hashFloat(i * 19 + 2), fieldRadius + 0.8, Math.max(fieldRadius + 1, isletEdge(sea, a) - 0.4));
+				x = Math.cos(a) * r;
+				z = Math.sin(a) * r;
+				y = isletY(sea, x, z);
+			}
+			result.add(Anchors.Kind.FLOOR, new Anchors.Anchor(new Vec3(x, y - 0.12, z), new Vec3(0, 1, 0), 1f));
+		}
+		result.fillFloat(fieldRadius, groundAt(0, 0));
+		return result;
+	}
+
+	// ---------------------------------------------------------------- Lands and halls (2026-11-19, League Reborn)
+
+	/** The place's floor at (x, z): a land's, an islet's, a seabed's, a hall's; else the real ground's top. */
+	private static double floorY(double x, double z) {
+		if (active.land != null) {
+			return landY(active.land, x, z);
+		}
+		if (active.sea != null) {
+			return active.sea.under ? seabedY(x, z) : isletY(active.sea, x, z);
+		}
+		if (active.hall != null) {
+			return hallY(x, z);
+		}
+		return groundAt(x, z) + 0.12;
+	}
+
+	/** {@code ring}'s value at {@code t} (0..1): a [min, max] list. */
+	private static double within(List<Float> ring, double t) {
+		return Mth.lerp(t, ring.get(0), ring.get(ring.size() - 1));
+	}
+
+	/** A land's ground at (x, z): in whole blocks when the ground is blocky. */
+	private static double landY(Ambiance.Land land, double x, double z) {
+		return blocky() ? snapToBlock((a, b) -> smoothLandY(land, a, b), x, z) : smoothLandY(land, x, z);
+	}
+
+	/** A land's smooth ground at (x, z): the real ground under the field, level a little further, then its relief. */
+	private static double smoothLandY(Ambiance.Land land, double x, double z) {
+		double r = Math.sqrt(x * x + z * z);
+		double from = fieldRadius + 0.5;
+		if (r <= from) {
+			return groundAt(x, z) + 0.09;
+		}
+		double rim = groundAt(x * from / r, z * from / r) + 0.09;
+		double base = groundAt(0, 0) + 0.09;
+		double t = smooth(Mth.clamp((r - from) / Math.max(1, land.flat), 0, 1));
+		return Mth.lerp(t, rim, base + landRelief(land, x, z, r - from - land.flat));
+	}
+
+	/** The relief beyond the flat, {@code out} blocks past it: hills, dunes, a summit's fall, a marsh's dips. */
+	private static double landRelief(Ambiance.Land land, double x, double z, double out) {
+		double o = Math.max(0, out);
+		double grow = Mth.clamp(o / 12, 0, 1);
+		switch (land.style) {
+			case "dunes": {
+				double crest = 0.5 + 0.5 * Math.sin(x * 0.07 + z * 0.03 + 4 * valueNoise(x * 0.02, 2, z * 0.02));
+				return land.hills * crest * crest * grow + 0.06 * Math.sin(x * 0.9 + z * 0.3 + 2 * valueNoise(x * 0.2, 3, z * 0.2));
+			}
+			case "summit":
+				return -Math.pow(o, 1.35) * 0.55 - land.hills * valueNoise(x * 0.08, 4, z * 0.08) * grow;
+			case "marsh":
+				return land.hills * (valueNoise(x * 0.05, 5, z * 0.05) - 0.5) * grow;
+			default:
+				return land.hills * 2 * (0.75 * valueNoise(x * 0.035, 6, z * 0.035) + 0.25 * valueNoise(x * 0.09, 7, z * 0.09) - 0.3)
+						* grow;
+		}
+	}
+
+	// ---------------------------------------------------------------- Block floors (2026-11-19)
+
+	/**
+	 * The ground's look, the player's choice (N menu, stadiums): block by block like Minecraft's own ground (the
+	 * default), or a smooth sheet. All stadiums follow it, so they always look alike.
+	 */
+	private static boolean blocky() {
+		return ShowtimeConfig.blockyGround();
+	}
+
+	/** The setting changed: every floor is built again. */
+	public static void groundStyleChanged() {
+		clearFloors();
+	}
+
+	/** A block floor's tops and corner colours, by world block: noise is costly and the field stays put. */
+	private static final class FloorCache {
+		final java.util.Map<Long, Double> tops = new java.util.HashMap<>();
+		final java.util.Map<Long, Integer> colors = new java.util.HashMap<>();
+	}
+
+	private static final java.util.Map<String, FloorCache> FLOOR_CACHES = new java.util.HashMap<>();
+
+	private static FloorCache floorCache(String layer) {
+		FloorCache cache = FLOOR_CACHES.computeIfAbsent(layer, k -> new FloorCache());
+		if (cache.tops.size() > 200000 || cache.colors.size() > 200000) {
+			cache.tops.clear();
+			cache.colors.clear();
+		}
+		return cache;
+	}
+
+	/** Heights and colours are relative to the field: built again when it moves, or the ambiance changes. */
+	private static void clearFloors() {
+		GROUND.clear();
+		FLOOR_CACHES.clear();
+	}
+
+	private static long blockKey(int bx, int bz) {
+		return ((long) bx << 32) ^ (bz & 0xFFFFFFFFL);
+	}
+
+	/**
+	 * The ground at (x, z) in whole blocks: under the field, the real block's top (people stand on it); beyond, the
+	 * smooth ground's height at the block's middle, rounded to a whole block above the field's level.
+	 */
+	private static double snapToBlock(java.util.function.DoubleBinaryOperator smoothY, double x, double z) {
+		double cx = Math.floor(center.x + x) + 0.5 - center.x;
+		double cz = Math.floor(center.z + z) + 0.5 - center.z;
+		double from = fieldRadius + 0.5;
+		if (cx * cx + cz * cz <= from * from) {
+			return groundAt(x, z) + 0.09;
+		}
+		double base = groundAt(0, 0);
+		return base + Math.floor(smoothY.applyAsDouble(cx, cz) - 0.09 - base + 0.5) + 0.09;
+	}
+
+	/** A floor's colour at a block corner (x, z), lit as a top face. */
+	private interface FloorColor {
+		int at(double x, double z);
+	}
+
+	/** A floor's colour at a corner changed every frame (light moving over it), after the cached one. */
+	private interface FloorTint {
+		int tint(double x, double z, int color);
+	}
+
+	/** Whether the block whose middle is (cx, cz), {@code r} from the centre, is part of the floor. */
+	private interface FloorCell {
+		boolean in(double cx, double cz, double r);
+	}
+
+	/**
+	 * A floor block by block (2026-11-19): every block of the world's grid within {@code reach} a top at its height
+	 * ({@code top}, the floor's height function, already in whole blocks) and sides down to each lower neighbour.
+	 * Coloured per vertex: the colour is a function of the corner, shared by the faces meeting there, so the floor's
+	 * patches and grain run across the blocks like a texture laid on them. Faces lit like Minecraft's: tops brightest,
+	 * the sides by their direction, darker at the foot of a step.
+	 */
+	private static void drawBlockFloor(VertexConsumer out, Matrix4f m, String layer, double reach,
+			java.util.function.DoubleBinaryOperator top, FloorColor color, FloorTint tint, FloorCell cell) {
+		FloorCache cache = floorCache(layer);
+		int bx0 = Mth.floor(center.x - reach);
+		int bx1 = Mth.floor(center.x + reach);
+		int bz0 = Mth.floor(center.z - reach);
+		int bz1 = Mth.floor(center.z + reach);
+		int w = bx1 - bx0 + 2;
+		int h = bz1 - bz0 + 2;
+		// Each corner's colour once per frame (tints move), each from the cache.
+		int[] corner = new int[w * h];
+		boolean[] done = new boolean[w * h];
+		for (int bx = bx0; bx <= bx1; bx++) {
+			for (int bz = bz0; bz <= bz1; bz++) {
+				double ax = bx - center.x;
+				double az = bz - center.z;
+				double cx = ax + 0.5;
+				double cz = az + 0.5;
+				double r = Math.sqrt(cx * cx + cz * cz);
+				if (r > reach || !cell.in(cx, cz, r)) {
+					continue;
+				}
+				double y = floorTop(cache, top, bx, bz);
+				int[] k = new int[4];
+				for (int c = 0; c < 4; c++) {
+					int ix = bx + (c == 1 || c == 2 ? 1 : 0);
+					int iz = bz + (c >= 2 ? 1 : 0);
+					int slot = (ix - bx0) * h + (iz - bz0);
+					if (!done[slot]) {
+						long key = blockKey(ix, iz);
+						Integer cached = cache.colors.get(key);
+						if (cached == null) {
+							cached = color.at(ix - center.x, iz - center.z);
+							cache.colors.put(key, cached);
+						}
+						corner[slot] = tint != null ? tint.tint(ix - center.x, iz - center.z, cached) : cached;
+						done[slot] = true;
+					}
+					k[c] = corner[slot];
+				}
+				// Corners 0 (ax, az), 1 (ax+1, az), 2 (ax+1, az+1), 3 (ax, az+1).
+				Vec3 p0 = new Vec3(ax, y, az);
+				Vec3 p1 = new Vec3(ax + 1, y, az);
+				Vec3 p2 = new Vec3(ax + 1, y, az + 1);
+				Vec3 p3 = new Vec3(ax, y, az + 1);
+				quadColors(out, m, p0, p1, p2, p3, k[0], k[1], k[2], k[3]);
+				for (int d = 0; d < 4; d++) {
+					int dx = d == 0 ? 1 : d == 1 ? -1 : 0;
+					int dz = d == 2 ? 1 : d == 3 ? -1 : 0;
+					double below = floorTop(cache, top, bx + dx, bz + dz);
+					if (below > y - 0.01) {
+						continue;
+					}
+					Vec3 e0;
+					Vec3 e1;
+					int q0;
+					int q1;
+					if (dx == 1) {
+						e0 = p1;
+						e1 = p2;
+						q0 = k[1];
+						q1 = k[2];
+					} else if (dx == -1) {
+						e0 = p3;
+						e1 = p0;
+						q0 = k[3];
+						q1 = k[0];
+					} else if (dz == 1) {
+						e0 = p2;
+						e1 = p3;
+						q0 = k[2];
+						q1 = k[3];
+					} else {
+						e0 = p0;
+						e1 = p1;
+						q0 = k[0];
+						q1 = k[1];
+					}
+					// Minecraft's face light: east and west darker than north and south.
+					float face = dx != 0 ? 0.62f : 0.8f;
+					double drop = Math.min(y - below, 24);
+					float foot = (float) Math.min(0.4, 0.22 * drop);
+					int t0 = lerpColor(0x000000, q0, face);
+					int t1 = lerpColor(0x000000, q1, face);
+					quadColors(out, m, e0, e1, e1.add(0, -drop, 0), e0.add(0, -drop, 0), t0, t1, lerpColor(t1, 0x000000, foot),
+							lerpColor(t0, 0x000000, foot));
+				}
+			}
+		}
+	}
+
+	private static double floorTop(FloorCache cache, java.util.function.DoubleBinaryOperator top, int bx, int bz) {
+		long key = blockKey(bx, bz);
+		Double cached = cache.tops.get(key);
+		if (cached == null) {
+			cached = top.applyAsDouble(bx + 0.5 - center.x, bz + 0.5 - center.z) - 0.03;
+			cache.tops.put(key, cached);
+		}
+		return cached;
+	}
+
+	/** A land's ground colour at (x, z): its patches, cliffs on steep slopes, grain, snow, the sun, the haze. */
+	private static int landColor(Ambiance.Land land, double x, double z, int c0, int c1, int c2, int cliff, int fog, boolean flatTop) {
+		double y = smoothLandY(land, x, z);
+		Vec3 p = new Vec3(x, y - 0.03, z);
+		Vec3 normal = new Vec3(y - smoothLandY(land, x + 0.5, z), 0.5, y - smoothLandY(land, x, z + 0.5)).normalize();
+		double patch = valueNoise(x * 0.06, 9, z * 0.06);
+		double patch2 = valueNoise(x * 0.17 + 30, 9, z * 0.17);
+		int c = lerpColor(c0, c1, (float) smooth(Mth.clamp((patch - 0.35) / 0.3, 0, 1)));
+		c = lerpColor(c, c2, 0.7f * (float) smooth(Mth.clamp((patch2 - 0.55) / 0.25, 0, 1)));
+		c = lerpColor(c, cliff, (float) smooth(Mth.clamp((0.85 - normal.y) / 0.25, 0, 1)));
+		c = stoneGrain(c, p, land.grain);
+		c = snowed(c, p, flatTop ? new Vec3(0, 1, 0) : normal);
+		c = sunlit(c, flatTop ? new Vec3(0, 1, 0) : normal, 0.68f);
+		if (fog >= 0) {
+			double r = Math.sqrt(x * x + z * z);
+			float haze = (float) Mth.clamp((r - land.radius * 0.55) / (land.radius * 0.45), 0, 1);
+			c = lerpColor(c, fog, haze * haze);
+		}
+		return c;
+	}
+
+	/** The fog colour of the ambiance, or -1: far surfaces fade into it so the horizon has no hard edge. */
+	private static int fogColor() {
+		return active.sky != null ? Ambiance.color(active.sky.fogColor, -1) : -1;
+	}
+
+	/** Sunlit: the colour lit by a surface's normal (ambient {@code low}). */
+	private static int sunlit(int color, Vec3 normal, float low) {
+		return lerpColor(0x000000, color, (float) (low + (1 - low) * Math.max(0, normal.dot(SUN))));
+	}
+
+	/** Snow settling on a surface facing {@code normal} at {@code p}, with the ambiance's {@code snow_cover}. */
+	private static int snowed(int color, Vec3 p, Vec3 normal) {
+		float cover = active.snowCover;
+		if (cover <= 0) {
+			return color;
+		}
+		double n = valueNoise(p.x * 0.12, p.y * 0.12 + 8, p.z * 0.12);
+		float amount = (float) smooth(Mth.clamp(n * 0.6 + normal.y * 0.8 - 1.05 + cover * 0.9, 0, 1));
+		return lerpColor(color, 0xF4F8FF, amount);
+	}
+
+	/**
+	 * A land stadium. Solid pass: the ground (patches of its colours, its grain, lit by its slope, snowed, fading into
+	 * the fog), the ranges far off, the sea of clouds, trees, rocks, pools, cracks, columns, junk. Light pass: the
+	 * cracks' and the pools' glow, bubbles, and the fire when the ambiance sets the place ablaze.
+	 */
+	private static void drawLand(PoseStack pose, MultiBufferSource buffers, Ambiance.Land land, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		double base = groundAt(0, 0) + 0.09;
+		if (glow) {
+			if (land.cracks != null) {
+				drawCracks(out, m, land.cracks, time, true);
+			}
+			if (land.pools != null) {
+				drawPools(out, m, land.pools, time, true);
+			}
+			if (active.blaze != null) {
+				drawBlaze(out, m, land, active.blaze, time);
+			}
+			return;
+		}
+		int fog = fogColor();
+		int c0 = Ambiance.color(land.ground.get(0), 0x6A9A3A);
+		int c1 = Ambiance.color(land.ground.get(Math.min(1, land.ground.size() - 1)), c0);
+		int c2 = Ambiance.color(land.ground.get(land.ground.size() - 1), c1);
+		int cliff = Ambiance.color(land.rocks != null ? land.rocks.color : null, lerpColor(c0, 0x6A645C, 0.6f));
+		if (active.blaze != null) {
+			c0 = lerpColor(c0, 0x2A1E16, 0.65f);
+			c1 = lerpColor(c1, 0x3A2A1C, 0.6f);
+			c2 = lerpColor(c2, 0x1E1612, 0.7f);
+		}
+		int sectors = 128;
+		Vec3[] inner = null;
+		int[] innerColor = null;
+		double smoothFrom = 0;
+		if (blocky()) {
+			// Blocks out to 56 blocks, the smooth ground beyond (far off, in the haze, nobody tells).
+			smoothFrom = Math.min(land.radius, 56);
+			final int g0 = c0;
+			final int g1 = c1;
+			final int g2 = c2;
+			drawBlockFloor(out, m, "land", smoothFrom, (a, b) -> landY(land, a, b),
+					(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true);
+		}
+		for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + land.flat + 16), land.radius)) {
+			Vec3[] ring = new Vec3[sectors];
+			int[] ringColor = new int[sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				ring[k] = new Vec3(x, smoothLandY(land, x, z) - 0.03, z);
+				ringColor[k] = landColor(land, x, z, c0, c1, c2, cliff, fog, false);
+			}
+			if (inner != null) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			inner = ring;
+			innerColor = ringColor;
+		}
+		if (land.ranges != null) {
+			drawRanges(out, m, land.ranges, base, fog);
+		}
+		if (land.clouds != null) {
+			drawCloudSea(out, m, land.clouds, base, time);
+		}
+		if (land.pools != null) {
+			drawPools(out, m, land.pools, time, false);
+		}
+		if (land.cracks != null) {
+			drawCracks(out, m, land.cracks, time, false);
+		}
+		if (land.rocks != null) {
+			Ambiance.Rocks rocks = land.rocks;
+			int color = Ambiance.color(rocks.color, 0x7A7268);
+			for (int i = 0; i < rocks.count + rocks.spires; i++) {
+				double a = Math.PI * 2 * hashFloat(i * 67 + 1);
+				double r = fieldRadius + within(rocks.ring, Math.sqrt(hashFloat(i * 67 + 2)));
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				Vec3 at = new Vec3(x, landY(land, x, z), z);
+				if (nearFade(at, 1.5, 2) < 0.5f) {
+					continue;
+				}
+				float size = (float) within(rocks.size, hashFloat(i * 67 + 3));
+				int c = snowed(stoneGrain(color, at, 0.2f), at, new Vec3(0, 1, 0));
+				if (i < rocks.count) {
+					boulder(out, m, at.add(0, size * 0.25, 0), size, hashFloat(i * 67 + 4) * 6.28, c, i);
+				} else {
+					double h = size * (3 + 3 * hashFloat(i * 67 + 5));
+					Vec3 tip = at.add((hashFloat(i * 67 + 6) - 0.5) * h * 0.2, h, (hashFloat(i * 67 + 7) - 0.5) * h * 0.2);
+					cone(out, m, at.add(0, -0.5, 0), tip, size * 1.1f, lerpColor(c, 0x000000, 0.3f), snowed(c, tip, new Vec3(0, 1, 0)), i);
+				}
+			}
+		}
+		if (land.trees != null) {
+			drawTrees(out, m, land, land.trees, time);
+		}
+		if (land.columns != null) {
+			drawColumns(out, m, land.columns);
+		}
+		if (land.junk != null) {
+			Ambiance.Junk junk = land.junk;
+			for (int i = 0; i < junk.count; i++) {
+				double a = Math.PI * 2 * hashFloat(i * 73 + 1);
+				double r = fieldRadius + within(junk.ring, Math.sqrt(hashFloat(i * 73 + 2)));
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				Vec3 at = new Vec3(x, landY(land, x, z) - 0.05, z);
+				if (nearFade(at, 1.5, 2) < 0.5f) {
+					continue;
+				}
+				int c = Ambiance.color(junk.colors.get(i % junk.colors.size()), 0x7A4A2A);
+				Vec3 tip;
+				if (hashFloat(i * 73 + 3) < 0.35) {
+					double yaw = hashFloat(i * 73 + 4) * 6.28;
+					at = at.add(0, 0.38, 0);
+					tip = at.add(Math.cos(yaw) * 1.0, 0, Math.sin(yaw) * 1.0);
+				} else {
+					tip = at.add(0, 1.0, 0);
+				}
+				lathe(out, m, at, tip, new double[] {0, 0.36, 0.38, 0.36, 0.38, 0.36, 0}, new double[] {0, 0, 0.2, 0.5, 0.8, 1, 1}, 10, c, 0.25f, i);
+			}
+		}
+	}
+
+	/** Mountain ranges in layers round the horizon, each paler (further) than the one before; snow on the peaks. */
+	private static void drawRanges(VertexConsumer out, Matrix4f m, Ambiance.Ranges ranges, double base, int fog) {
+		int color = Ambiance.color(ranges.color, 0x5A6A7A);
+		int snow = ranges.snow != null ? Ambiance.color(ranges.snow, 0xF4F8FF) : (active.snowCover > 0.3f ? 0xF4F8FF : -1);
+		int columns = 160;
+		for (int l = ranges.layers - 1; l >= 0; l--) {
+			double distance = ranges.distance * (1 + 0.22 * l);
+			float far = fog >= 0 ? 0.25f + 0.5f * l / Math.max(1, ranges.layers) : 0;
+			Vec3 prevTop = null;
+			Vec3 prevFoot = null;
+			int prevTopColor = 0;
+			int prevFootColor = 0;
+			for (int k = 0; k <= columns; k++) {
+				double a = Math.PI * 2 * k / columns;
+				double cx = Math.cos(a) * 3 + l * 7;
+				double cz = Math.sin(a) * 3;
+				double ridge = 0.7 * valueNoise(cx, l, cz) + 0.3 * valueNoise(cx * 3.1, l + 5, cz * 3.1);
+				double h = ranges.height * (0.25 + Math.pow(ridge, 1.6) * 1.3) * (1 - 0.15 * l);
+				Vec3 top = new Vec3(Math.cos(a) * distance, base + h, Math.sin(a) * distance);
+				Vec3 foot = new Vec3(Math.cos(a) * distance, base - 30, Math.sin(a) * distance);
+				int topColor = lerpColor(color, 0xFFFFFF, 0.12f);
+				if (snow >= 0) {
+					topColor = lerpColor(topColor, snow, (float) smooth(Mth.clamp((h / ranges.height - 0.55) / 0.35, 0, 1)));
+				}
+				int footColor = lerpColor(color, 0x000000, 0.25f);
+				if (fog >= 0) {
+					topColor = lerpColor(topColor, fog, far);
+					footColor = lerpColor(footColor, fog, Math.min(1, far + 0.2f));
+				}
+				if (prevTop != null) {
+					quadColors(out, m, prevFoot, foot, top, prevTop, prevFootColor, footColor, topColor, prevTopColor);
+				}
+				prevTop = top;
+				prevFoot = foot;
+				prevTopColor = topColor;
+				prevFootColor = footColor;
+			}
+		}
+	}
+
+	/** A sea of clouds below a summit, billowing and drifting. */
+	private static void drawCloudSea(VertexConsumer out, Matrix4f m, Ambiance.CloudSea clouds, double base, float time) {
+		int color = Ambiance.color(clouds.color, 0xF4F8FF);
+		int shade = Ambiance.color(clouds.shade, 0xB8C8DC);
+		int sectors = 96;
+		Vec3[] inner = null;
+		int[] innerColor = null;
+		for (double r : seaRadii(fieldRadius, fieldRadius + 30, 150)) {
+			Vec3[] ring = new Vec3[sectors];
+			int[] ringColor = new int[sectors];
+			for (int k = 0; k < sectors; k++) {
+				double a = Math.PI * 2 * k / sectors;
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				double n = 0.65 * valueNoise(x * 0.04 + time * 0.002, 2, z * 0.04) + 0.35 * valueNoise(x * 0.11 + time * 0.003, 5, z * 0.11);
+				ring[k] = new Vec3(x, base - clouds.depth + 4 * n, z);
+				ringColor[k] = lerpColor(shade, color, (float) smooth(Mth.clamp(n * 1.4 - 0.2, 0, 1)));
+			}
+			if (inner != null) {
+				for (int k = 0; k < sectors; k++) {
+					int n = (k + 1) % sectors;
+					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			inner = ring;
+			innerColor = ringColor;
+		}
+	}
+
+	/**
+	 * A solid of revolution from {@code base} to {@code tip}: radii {@code r} at fractions {@code f} of the length,
+	 * {@code sides} round, coloured per vertex (lit by its normal, grained): trunks, barrels, columns, chess pieces.
+	 */
+	private static void lathe(VertexConsumer out, Matrix4f m, Vec3 base, Vec3 tip, double[] r, double[] f, int sides, int color,
+			float grain, double spin) {
+		Vec3[] frame = crystalFrame(base, tip);
+		Vec3 axis = tip.subtract(base);
+		double length = axis.length();
+		Vec3 ax = axis.scale(1 / Math.max(1.0E-6, length));
+		Vec3[] prev = null;
+		int[] prevColor = null;
+		for (int i = 0; i < r.length; i++) {
+			int i0 = Math.max(0, i - 1);
+			int i1 = Math.min(r.length - 1, i + 1);
+			double dr = r[i1] - r[i0];
+			double dy = (f[i1] - f[i0]) * length;
+			Vec3[] ring = new Vec3[sides];
+			int[] ringColor = new int[sides];
+			for (int k = 0; k < sides; k++) {
+				double a = Math.PI * 2 * k / sides + spin;
+				Vec3 dir = frame[0].scale(Math.cos(a)).add(frame[1].scale(Math.sin(a)));
+				ring[k] = base.add(ax.scale(f[i] * length)).add(dir.scale(r[i]));
+				Vec3 normal = dir.scale(dy).add(ax.scale(-dr));
+				normal = normal.lengthSqr() < 1.0E-8 ? ax : normal.normalize();
+				ringColor[k] = sunlit(stoneGrain(color, ring[k], grain), normal, 0.5f);
+			}
+			if (prev != null) {
+				for (int k = 0; k < sides; k++) {
+					int n = (k + 1) % sides;
+					quadColors(out, m, prev[k], prev[n], ring[n], ring[k], prevColor[k], prevColor[n], ringColor[n], ringColor[k]);
+				}
+			}
+			prev = ring;
+			prevColor = ringColor;
+		}
+	}
+
+	/** A lumpy ball of leaves, coloured per vertex: lit on top, dark beneath, grained, snowed, charred when ablaze. */
+	private static void crown(VertexConsumer out, Matrix4f m, Vec3 c, double radius, double squash, int color, int seed) {
+		int stacks = 6;
+		int slices = 10;
+		Vec3[][] grid = new Vec3[stacks + 1][slices];
+		int[][] colors = new int[stacks + 1][slices];
+		for (int j = 0; j <= stacks; j++) {
+			double v = Math.PI * j / stacks;
+			for (int k = 0; k < slices; k++) {
+				double u = Math.PI * 2 * k / slices + seed;
+				Vec3 dir = new Vec3(Math.sin(v) * Math.cos(u), Math.cos(v), Math.sin(v) * Math.sin(u));
+				double lump = 0.8 + 0.4 * valueNoise(dir.x * 2 + seed, dir.y * 2, dir.z * 2);
+				Vec3 p = c.add(dir.x * radius * lump, dir.y * radius * lump * squash, dir.z * radius * lump);
+				grid[j][k] = p;
+				int col = stoneGrain(color, p, 0.18f);
+				col = snowed(col, p, dir);
+				colors[j][k] = sunlit(col, dir, 0.4f);
+			}
+		}
+		for (int j = 0; j < stacks; j++) {
+			for (int k = 0; k < slices; k++) {
+				int n = (k + 1) % slices;
+				quadColors(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], colors[j][k], colors[j][n],
+						colors[j + 1][n], colors[j + 1][k]);
+			}
+		}
+	}
+
+	/** Where tree {@code i} stands and how tall it is: {x, y, z, height}. */
+	private static double[] treeSpot(Ambiance.Land land, Ambiance.Trees trees, int i) {
+		double a = Math.PI * 2 * (i + 0.7 * hashFloat(i * 83 + 1)) / Math.max(1, trees.count);
+		double r = fieldRadius + within(trees.ring, Math.pow(hashFloat(i * 83 + 2), 0.8));
+		double x = Math.cos(a) * r;
+		double z = Math.sin(a) * r;
+		return new double[] {x, landY(land, x, z), z, within(trees.height, hashFloat(i * 83 + 3))};
+	}
+
+	/** Trees: broadleaf (a trunk, two or three crowns), pine (stacked cones), dead (bare branches). */
+	private static void drawTrees(VertexConsumer out, Matrix4f m, Ambiance.Land land, Ambiance.Trees trees, float time) {
+		int trunk = Ambiance.color(trees.trunk, 0x5A3E26);
+		boolean ablaze = active.blaze != null;
+		if (ablaze) {
+			trunk = lerpColor(trunk, 0x1A1410, 0.7f);
+		}
+		for (int i = 0; i < trees.count; i++) {
+			double[] spot = treeSpot(land, trees, i);
+			Vec3 foot = new Vec3(spot[0], spot[1] - 0.3, spot[2]);
+			double h = spot[3];
+			if (nearFade(foot.add(0, h * 0.5, 0), 2, 3) < 0.5f) {
+				continue;
+			}
+			int leaf = Ambiance.color(trees.leaves.get(i % trees.leaves.size()), 0x3F7A2A);
+			if (ablaze) {
+				leaf = lerpColor(leaf, hashFloat(i * 83 + 9) < 0.5 ? 0x2A1A10 : 0x6A2A0A, 0.75f);
+			}
+			// Leaning in over the field when it is a canopy, so the crowns close overhead.
+			Vec3 lean = trees.canopy ? new Vec3(-spot[0], 0, -spot[2]).normalize().scale(h * 0.28) : Vec3.ZERO;
+			double sway = 0.06 * Math.sin(time * 0.03 + i);
+			Vec3 top = foot.add(lean.x * 0.6 + sway, h * (trees.kind.equals("pine") ? 0.9 : 0.62), lean.z * 0.6);
+			double width = 0.12 + h * 0.025;
+			switch (trees.kind) {
+				case "pine": {
+					lathe(out, m, foot, top, new double[] {width * 1.2, width, width * 0.5}, new double[] {0, 0.3, 1}, 6, trunk, 0.2f, i);
+					for (int s = 0; s < 4; s++) {
+						Vec3 b = foot.add(0, h * (0.22 + 0.19 * s), 0);
+						double rr = h * (0.3 - 0.06 * s);
+						lathe(out, m, b, b.add(0, h * 0.34, 0), new double[] {0, rr, rr * 0.75, 0}, new double[] {0, 0.05, 0.25, 1}, 9, leaf,
+								0.18f, i + s);
+					}
+					break;
+				}
+				case "dead": {
+					lathe(out, m, foot, top, new double[] {width * 1.3, width, width * 0.4}, new double[] {0, 0.25, 1}, 6, trunk, 0.25f, i);
+					for (int b = 0; b < 5; b++) {
+						double ba = hashFloat(i * 83 + b * 5 + 20) * 6.28;
+						Vec3 from = foot.add(0, h * (0.3 + 0.12 * b), 0).add(lean.scale(0.3 + 0.1 * b));
+						Vec3 to = from.add(Math.cos(ba) * h * 0.25, h * (0.12 + 0.1 * hashFloat(i * 83 + b * 5 + 21)), Math.sin(ba) * h * 0.25);
+						lathe(out, m, from, to, new double[] {width * 0.45, width * 0.1}, new double[] {0, 1}, 5, trunk, 0.2f, b);
+					}
+					break;
+				}
+				default: {
+					lathe(out, m, foot, top, new double[] {width * 1.5, width, width * 0.8}, new double[] {0, 0.2, 1}, 7, trunk, 0.22f, i);
+					double crownR = h * (trees.canopy ? 0.36 : 0.28);
+					crown(out, m, top.add(0, crownR * 0.4, 0), crownR, 0.75, leaf, i);
+					Vec3 side = new Vec3(Math.cos(i * 2.1), 0, Math.sin(i * 2.1)).scale(crownR * 0.55);
+					crown(out, m, top.add(side).add(0, crownR * 0.1, 0), crownR * 0.72, 0.8, lerpColor(leaf, 0x000000, 0.08f), i + 7);
+					crown(out, m, top.subtract(side).add(lean.scale(0.4)).add(0, crownR * 0.25, 0), crownR * 0.64, 0.8,
+							lerpColor(leaf, 0xFFFFFF, 0.06f), i + 13);
+					break;
+				}
+			}
+		}
+	}
+
+	/** A billboard flame: wide and hot at its root, narrowing to a fading tip, flickering. */
+	private static void flame(VertexConsumer out, Matrix4f m, Vec3 at, double width, double height, int color, int core, int alpha) {
+		Vec3 toCamera = cameraRel.subtract(at);
+		Vec3 right = new Vec3(toCamera.z, 0, -toCamera.x);
+		right = right.lengthSqr() < 1.0E-6 ? new Vec3(1, 0, 0) : right.normalize().scale(width * 0.5);
+		Vec3 tip = at.add(0, height, 0);
+		vertex(out, m, at.subtract(right), color, alpha / 2);
+		vertex(out, m, at.add(right), color, alpha / 2);
+		vertex(out, m, tip.add(right.scale(0.2)), core, 0);
+		vertex(out, m, tip.subtract(right.scale(0.2)), core, 0);
+		Vec3 mid = at.add(0, height * 0.35, 0);
+		vertex(out, m, at.subtract(right.scale(0.5)), core, alpha);
+		vertex(out, m, at.add(right.scale(0.5)), core, alpha);
+		vertex(out, m, mid.add(right.scale(0.15)), color, alpha / 3);
+		vertex(out, m, mid.subtract(right.scale(0.15)), color, alpha / 3);
+	}
+
+	/** The place ablaze: flames in the trees' crowns and up their trunks, and licking the ground round the field. */
+	private static void drawBlaze(VertexConsumer out, Matrix4f m, Ambiance.Land land, Ambiance.Blaze blaze, float time) {
+		int color = Ambiance.color(blaze.color, 0xFF6A10);
+		int core = Ambiance.color(blaze.core, 0xFFE060);
+		if (land.trees != null) {
+			for (int i = 0; i < land.trees.count; i++) {
+				double[] spot = treeSpot(land, land.trees, i);
+				double h = spot[3];
+				for (int f = 0; f < 4; f++) {
+					double flicker = 0.75 + 0.25 * Math.sin(time * 0.5 + i * 3 + f * 1.7) * Math.sin(time * 0.23 + f);
+					double fa = hashFloat(i * 97 + f) * 6.28;
+					double fr = h * 0.22 * hashFloat(i * 97 + f + 9);
+					Vec3 at = new Vec3(spot[0] + Math.cos(fa) * fr, spot[1] + h * (0.15 + 0.2 * f), spot[2] + Math.sin(fa) * fr);
+					if (nearFade(at, 2, 3) < 0.5f) {
+						continue;
+					}
+					flame(out, m, at, h * 0.3, h * 0.45 * flicker, color, core, (int) (170 * flicker));
+				}
+			}
+		}
+		for (int i = 0; i < blaze.flames; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 101 + 1);
+			double r = fieldRadius + 1.5 + 12 * hashFloat(i * 101 + 2);
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			Vec3 at = new Vec3(x, floorY(x, z) - 0.05, z);
+			if (nearFade(at, 1.5, 2) < 0.5f) {
+				continue;
+			}
+			double flicker = 0.7 + 0.3 * Math.sin(time * 0.6 + i * 2.3) * Math.sin(time * 0.37 + i);
+			flame(out, m, at, 0.6 + 0.6 * hashFloat(i * 101 + 3), (0.8 + 1.4 * hashFloat(i * 101 + 4)) * flicker, color, core,
+					(int) (190 * flicker));
+		}
+	}
+
+	/** Pools: sunk discs, darker in the middle, swirling; light pass: their glow and bubbles rising and bursting. */
+	private static void drawPools(VertexConsumer out, Matrix4f m, Ambiance.Pools pools, float time, boolean glow) {
+		Ambiance.Water look = active.water;
+		int color = Ambiance.color(look != null && look.color != null ? look.color : pools.color, 0x3A4A2A);
+		int rim = Ambiance.color(pools.rim, 0x2A2A1A);
+		int light = look != null && look.light != null ? Ambiance.color(look.light, -1) : (pools.glow != null ? Ambiance.color(pools.glow, -1) : -1);
+		int sectors = 24;
+		for (int i = 0; i < pools.count; i++) {
+			double a = Math.PI * 2 * (i + 0.5 * hashFloat(i * 107 + 1)) / Math.max(1, pools.count);
+			double r = fieldRadius + within(pools.ring, hashFloat(i * 107 + 2));
+			double cx = Math.cos(a) * r;
+			double cz = Math.sin(a) * r;
+			double size = within(pools.size, hashFloat(i * 107 + 3));
+			double y = floorY(cx, cz) + 0.02;
+			Vec3 centre = new Vec3(cx, y, cz);
+			if (glow) {
+				if (light >= 0) {
+					glowDisc(out, m, centre.add(0, 0.03, 0), new Vec3(0, 1, 0), (float) size, light, 40);
+				}
+				for (int b = 0; b < 4; b++) {
+					double phase = (time * 0.012 + hashFloat(i * 107 + b * 3 + 10)) % 1;
+					double ba = hashFloat(i * 107 + b * 3 + 11) * 6.28 + Math.floor(time * 0.012 + hashFloat(i * 107 + b * 3 + 10));
+					double br = size * 0.6 * hashFloat(i * 107 + b * 3 + 12);
+					Vec3 at = centre.add(Math.cos(ba) * br, 0.05 + phase * 0.25, Math.sin(ba) * br);
+					float s = (float) (0.06 + 0.16 * phase);
+					quadFacing(out, m, at, cameraRel.subtract(at).normalize(), s, light >= 0 ? light : lerpColor(color, 0xFFFFFF, 0.5f),
+							(int) (120 * (1 - phase)));
+				}
+				continue;
+			}
+			Vec3 prevRing[] = null;
+			int[] prevColor = null;
+			for (int j = 0; j <= 4; j++) {
+				double f = j / 4.0;
+				Vec3[] ring = new Vec3[sectors];
+				int[] ringColor = new int[sectors];
+				for (int k = 0; k < sectors; k++) {
+					double ang = Math.PI * 2 * k / sectors;
+					double edge = size * (0.75 + 0.5 * valueNoise(Math.cos(ang) * 1.5 + i * 3, 1, Math.sin(ang) * 1.5));
+					double px = cx + Math.cos(ang) * edge * f;
+					double pz = cz + Math.sin(ang) * edge * f;
+					Vec3 p = new Vec3(px, j == 4 ? floorY(px, pz) + 0.01 : y, pz);
+					ring[k] = p;
+					double swirl = valueNoise(px * 0.6 + time * 0.01, time * 0.008, pz * 0.6);
+					int c = lerpColor(lerpColor(color, 0x000000, 0.35f), color, (float) f);
+					c = lerpColor(c, lerpColor(color, 0xFFFFFF, 0.3f), 0.5f * (float) swirl);
+					ringColor[k] = j == 4 ? rim : c;
+				}
+				if (prevRing != null) {
+					for (int k = 0; k < sectors; k++) {
+						int n = (k + 1) % sectors;
+						quadColors(out, m, prevRing[k], prevRing[n], ring[n], ring[k], prevColor[k], prevColor[n], ringColor[n], ringColor[k]);
+					}
+				}
+				prevRing = ring;
+				prevColor = ringColor;
+			}
+		}
+	}
+
+	/** Fissures: dark lines wandering over the ground (solid), and the glow welling up from them (light, pulsing). */
+	private static void drawCracks(VertexConsumer out, Matrix4f m, Ambiance.Cracks cracks, float time, boolean glow) {
+		int color = Ambiance.color(cracks.color, 0xFF7A20);
+		int core = Ambiance.color(cracks.core, 0xFFE080);
+		for (int i = 0; i < cracks.count; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 113 + 1);
+			double r = fieldRadius + within(cracks.ring, hashFloat(i * 113 + 2));
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			double heading = a + (hashFloat(i * 113 + 3) - 0.5) * 2.5;
+			int segments = 5 + (int) (6 * hashFloat(i * 113 + 4));
+			float pulse = 0.65f + 0.35f * Mth.sin(time * 0.05f + i * 1.3f);
+			for (int s = 0; s < segments; s++) {
+				double length = 1 + 1.4 * hashFloat(i * 113 + s * 5 + 7);
+				heading += (hashFloat(i * 113 + s * 5 + 8) - 0.5) * 1.2;
+				double nx = x + Math.cos(heading) * length;
+				double nz = z + Math.sin(heading) * length;
+				double w = (glow ? 0.32 : 0.11) * (1 - 0.6 * s / (double) segments);
+				double px = -Math.sin(heading) * w;
+				double pz = Math.cos(heading) * w;
+				double y0 = floorY(x, z) + (glow ? 0.05 : 0.03);
+				double y1 = floorY(nx, nz) + (glow ? 0.05 : 0.03);
+				Vec3 a0 = new Vec3(x + px, y0, z + pz);
+				Vec3 b0 = new Vec3(nx + px, y1, nz + pz);
+				Vec3 b1 = new Vec3(nx - px, y1, nz - pz);
+				Vec3 a1 = new Vec3(x - px, y0, z - pz);
+				if (glow) {
+					int alpha = (int) (150 * pulse);
+					vertex(out, m, a0, color, 0);
+					vertex(out, m, b0, color, 0);
+					vertex(out, m, new Vec3(nx, y1, nz), core, alpha);
+					vertex(out, m, new Vec3(x, y0, z), core, alpha);
+					vertex(out, m, new Vec3(x, y0, z), core, alpha);
+					vertex(out, m, new Vec3(nx, y1, nz), core, alpha);
+					vertex(out, m, b1, color, 0);
+					vertex(out, m, a1, color, 0);
+				} else {
+					quad(out, m, a0, b0, b1, a1, lerpColor(color, 0x000000, 0.55f));
+				}
+				x = nx;
+				z = nz;
+			}
+		}
+	}
+
+	/** A temple's columns round the field, fluted shafts on plinths, lintels joining them; some broken if ruined. */
+	private static void drawColumns(VertexConsumer out, Matrix4f m, Ambiance.Columns columns) {
+		int color = Ambiance.color(columns.color, 0xECE6D8);
+		double r = fieldRadius + columns.distance;
+		double base = groundAt(0, 0) + 0.06;
+		Vec3[] tops = new Vec3[columns.count];
+		for (int i = 0; i < columns.count; i++) {
+			double a = Math.PI * 2 * i / columns.count;
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			boolean broken = columns.ruined && i % 3 == 1;
+			double h = columns.height * (broken ? 0.35 + 0.3 * hashFloat(i * 127 + 1) : 1);
+			Vec3 foot = new Vec3(x, floorY(x, z) - 0.1, z);
+			tops[i] = broken ? null : foot.add(0, h, 0);
+			if (nearFade(foot.add(0, h * 0.5, 0), 1.5, 2) < 0.5f) {
+				continue;
+			}
+			double w = 0.55;
+			lathe(out, m, foot, foot.add(0, h, 0),
+					broken ? new double[] {w * 1.5, w * 1.5, w * 1.15, w, w, w * 0.95}
+							: new double[] {w * 1.5, w * 1.5, w * 1.15, w, w * 0.92, w * 1.1, w * 1.45, w * 1.45},
+					broken ? new double[] {0, 0.05, 0.08, 0.14, 0.9, 1} : new double[] {0, 0.04, 0.07, 0.11, 0.9, 0.94, 0.97, 1},
+					16, color, 0.08f, 0);
+		}
+		for (int i = 0; i < columns.count; i++) {
+			Vec3 a = tops[i];
+			Vec3 b = tops[(i + 1) % columns.count];
+			if (a != null && b != null && nearFade(a.add(b).scale(0.5), 1.5, 2) >= 0.5f) {
+				beamBox(out, m, a.add(0, 0.25, 0), b.add(0, 0.25, 0), 0.7, 0.5, color);
+			}
+		}
+	}
+
+	/** A box from {@code a} to {@code b}, {@code w} wide and {@code h} high, lit per vertex (lintels, beams, frames). */
+	private static void beamBox(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, double w, double h, int color) {
+		Vec3 axis = b.subtract(a).normalize();
+		Vec3 side = axis.cross(new Vec3(0, 1, 0));
+		side = side.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : side.normalize();
+		Vec3 up = side.cross(axis).normalize();
+		Vec3 sw = side.scale(w / 2);
+		Vec3 uh = up.scale(h / 2);
+		Vec3[] ca = {a.subtract(sw).subtract(uh), a.add(sw).subtract(uh), a.add(sw).add(uh), a.subtract(sw).add(uh)};
+		Vec3[] cb = {b.subtract(sw).subtract(uh), b.add(sw).subtract(uh), b.add(sw).add(uh), b.subtract(sw).add(uh)};
+		Vec3[] normals = {up.scale(-1), side, up, side.scale(-1)};
+		for (int k = 0; k < 4; k++) {
+			int n = (k + 1) % 4;
+			Vec3 normal = normals[k];
+			quadColors(out, m, ca[k], ca[n], cb[n], cb[k], sunlit(stoneGrain(color, ca[k], 0.08f), normal, 0.5f),
+					sunlit(stoneGrain(color, ca[n], 0.08f), normal, 0.5f), sunlit(stoneGrain(color, cb[n], 0.08f), normal, 0.5f),
+					sunlit(stoneGrain(color, cb[k], 0.08f), normal, 0.5f));
+		}
+		int endA = sunlit(color, axis.scale(-1), 0.5f);
+		int endB = sunlit(color, axis, 0.5f);
+		quadColors(out, m, ca[0], ca[1], ca[2], ca[3], endA, endA, endA, endA);
+		quadColors(out, m, cb[0], cb[1], cb[2], cb[3], endB, endB, endB, endB);
+	}
+
+	// ---- Halls
+
+	private static double hallHalf(Ambiance.Hall hall) {
+		return fieldRadius + hall.margin;
+	}
+
+	/** A hall's floor: the real ground under the field, level beyond it. */
+	private static double hallY(double x, double z) {
+		if (active != null && active.hall != null && active.hall.flat) {
+			return groundAt(0, 0) + 0.09;
+		}
+		return blocky() ? snapToBlock(BattleAmbiance::smoothHallY, x, z) : smoothHallY(x, z);
+	}
+
+	private static double smoothHallY(double x, double z) {
+		double r = Math.sqrt(x * x + z * z);
+		double from = fieldRadius + 0.5;
+		if (r <= from) {
+			return groundAt(x, z) + 0.09;
+		}
+		double rim = groundAt(x * from / r, z * from / r) + 0.09;
+		return Mth.lerp(smooth(Mth.clamp((r - from) / 2, 0, 1)), rim, groundAt(0, 0) + 0.09);
+	}
+
+	/** How lit the hall is at {@code p}: brightest under the middle, dimmer to the walls; dim red light in a power cut. */
+	private static float hallLight(Ambiance.Hall hall, Vec3 p) {
+		double s = hallHalf(hall);
+		float lit = (float) (0.55 + 0.45 * Mth.clamp(1 - Math.sqrt(p.x * p.x + p.z * p.z) / (s * 1.5), 0, 1));
+		return active.powerCut != null ? lit * 0.45f : lit;
+	}
+
+	/**
+	 * A hall. Solid pass: the floor (plain or a checkerboard), the walls (or the tent's striped round wall and cone),
+	 * pilasters, the ceiling's beams and lamps, the machines, mirrors, chess pieces. A wall the camera is outside of is
+	 * left out. Light pass: the lamps' glow and beams, warning lights, emergency lights and sparks in a power cut.
+	 */
+	private static void drawHall(PoseStack pose, MultiBufferSource buffers, Ambiance.Hall hall, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		double s = hallHalf(hall);
+		double base = groundAt(0, 0) + 0.09;
+		double top = base + hall.height;
+		boolean tent = "tent".equals(hall.shape);
+		Ambiance.PowerCut cut = active.powerCut;
+		int lamp = Ambiance.color(hall.lamp, 0xFFF0C8);
+		if (glow) {
+			if (!tent) {
+				for (int ix = -1; ix <= 1; ix += 2) {
+					for (int iz = -1; iz <= 1; iz += 2) {
+						for (int q = 0; q < 2; q++) {
+							double lx = ix * s * (0.25 + 0.4 * q);
+							double lz = iz * s * (0.25 + 0.4 * (1 - q));
+							Vec3 at = new Vec3(lx, top - 1.6, lz);
+							if (cut != null) {
+								continue;
+							}
+							glowDisc(out, m, at, new Vec3(0, -1, 0), 1.1f, lamp, 120);
+							beam(out, m, at, new Vec3(lx * 1.05, base, lz * 1.05), 0.8f, 4.5f, lamp, 14);
+						}
+					}
+				}
+			} else {
+				glowDisc(out, m, new Vec3(0, top + hall.height * 0.5, 0), new Vec3(0, -1, 0), 2.5f, lamp, 90);
+			}
+			if (cut != null) {
+				int red = Ambiance.color(cut.color, 0xFF2A1A);
+				float blink = Mth.sin(time * 0.15f) > 0 ? 1f : 0.25f;
+				for (int w = 0; w < 4; w++) {
+					double a = Math.PI / 2 * w;
+					Vec3 at = new Vec3(Math.cos(a) * (s - 0.3), base + hall.height * 0.7, Math.sin(a) * (s - 0.3));
+					glowDisc(out, m, at, new Vec3(-Math.cos(a), 0, -Math.sin(a)), 0.9f, red, (int) (200 * blink));
+					glowDisc(out, m, at, new Vec3(-Math.cos(a), 0, -Math.sin(a)), 3.5f, red, (int) (45 * blink));
+				}
+				for (int c = 0; c < cut.cables; c++) {
+					Vec3 end = cableEnd(hall, c, time);
+					if (hashFloat((int) (time / 3) * 31 + c * 7) > 0.72f) {
+						quadFacing(out, m, end, cameraRel.subtract(end).normalize(), 0.35f, 0xD8F0FF, 230);
+						glowDisc(out, m, end, cameraRel.subtract(end).normalize(), 1.2f, 0x6AA8FF, 70);
+					}
+				}
+			} else if (hall.machines != null) {
+				int warn = Ambiance.color(hall.machines.warning, 0xFFB020);
+				for (int p = 0; p < hall.machines.presses; p++) {
+					Vec3 at = pressSpot(hall, p).add(0, 5.6, 0);
+					double turn = time * 0.2 + p;
+					Vec3 facing = new Vec3(Math.cos(turn), 0, Math.sin(turn));
+					glowDisc(out, m, at.add(facing.scale(0.3)), facing, 0.5f, warn, 200);
+					beam(out, m, at, at.add(facing.scale(8)), 0.3f, 2.5f, warn, 18);
+				}
+			}
+			if (hall.mirrors && mirrorsLive(hall)) {
+				// The glass: a faint cold sheen over the reflection, brighter towards the top.
+				int glass = lerpColor(Ambiance.color(hall.wall, 0x9AA8C0), 0xFFFFFF, 0.3f);
+				for (int w = 0; w < 4; w++) {
+					double nx = w == 0 ? -1 : w == 1 ? 1 : 0;
+					double nz = w == 2 ? -1 : w == 3 ? 1 : 0;
+					double d = s - 0.02;
+					Vec3 a = nx != 0 ? new Vec3(-nx * d, base - 0.1, -s) : new Vec3(-s, base - 0.1, -nz * d);
+					Vec3 b = nx != 0 ? new Vec3(-nx * d, base - 0.1, s) : new Vec3(s, base - 0.1, -nz * d);
+					quad4(out, m, a, b, b.add(0, hall.height + 0.1, 0), a.add(0, hall.height + 0.1, 0), glass, 10, 28);
+				}
+			}
+			if (hall.mirrors) {
+				for (int i = 0; i < 30; i++) {
+					float f = Mth.sin(time * 0.12f + i * 2.7f);
+					if (f < 0.7f) {
+						continue;
+					}
+					int w = i % 4;
+					double along = (hashFloat(i * 131 + 1) * 2 - 1) * s * 0.9;
+					double y = base + 1 + (hall.height - 2) * hashFloat(i * 131 + 2);
+					Vec3 at = w == 0 ? new Vec3(s - 0.1, y, along) : w == 1 ? new Vec3(-s + 0.1, y, along)
+							: w == 2 ? new Vec3(along, y, s - 0.1) : new Vec3(along, y, -s + 0.1);
+					quadFacing(out, m, at, cameraRel.subtract(at).normalize(), 0.25f, 0xFFFFFF, (int) ((f - 0.7f) / 0.3f * 230));
+				}
+			}
+			return;
+		}
+		// The floor: a vertex every block (every tile corner for a checkerboard), lit by the room's light.
+		int floor = Ambiance.color(hall.floor, 0x4A4C50);
+		int checker = hall.checker != null ? Ambiance.color(hall.checker, 0x202020) : -1;
+		double step = checker >= 0 ? hall.tile : 1;
+		int cells = (int) Math.ceil(s / step);
+		double extent = tent ? s + 0.5 : s;
+		if (blocky() && checker < 0 && !hall.flat) {
+			drawBlockFloor(out, m, "hall", extent * 1.42, BattleAmbiance::hallY,
+					(x, z) -> floorColor(hall, floor, new Vec3(x, hallY(x, z) - 0.03, z), 0.14f), null,
+					(x, z, r) -> tent ? r <= extent : Math.abs(x) < extent && Math.abs(z) < extent);
+			cells = 0;
+		}
+		for (int ix = -cells; ix < cells; ix++) {
+			for (int iz = -cells; iz < cells; iz++) {
+				double x0 = Math.max(-extent, ix * step);
+				double z0 = Math.max(-extent, iz * step);
+				double x1 = Math.min(extent, (ix + 1) * step);
+				double z1 = Math.min(extent, (iz + 1) * step);
+				if (tent && Math.min(x0 * x0, x1 * x1) + Math.min(z0 * z0, z1 * z1) > extent * extent) {
+					continue;
+				}
+				int tile = checker >= 0 && ((ix + iz) & 1) == 1 ? checker : floor;
+				Vec3 p00 = new Vec3(x0, hallY(x0, z0) - 0.03, z0);
+				Vec3 p10 = new Vec3(x1, hallY(x1, z0) - 0.03, z0);
+				Vec3 p11 = new Vec3(x1, hallY(x1, z1) - 0.03, z1);
+				Vec3 p01 = new Vec3(x0, hallY(x0, z1) - 0.03, z1);
+				float grain = checker >= 0 ? 0.05f : 0.14f;
+				quadColors(out, m, p00, p10, p11, p01, floorColor(hall, tile, p00, grain), floorColor(hall, tile, p10, grain),
+						floorColor(hall, tile, p11, grain), floorColor(hall, tile, p01, grain));
+			}
+		}
+		if (tent) {
+			drawTent(out, m, hall, s, base);
+		} else {
+			drawRoom(out, m, hall, s, base, top);
+		}
+		if (hall.machines != null) {
+			drawMachines(out, m, hall, hall.machines, s, base, cut != null ? 0 : time);
+		}
+		if (hall.pieces != null) {
+			drawPieces(out, m, hall, hall.pieces, s);
+		}
+		if (cut != null) {
+			for (int c = 0; c < cut.cables; c++) {
+				Vec3 end = cableEnd(hall, c, time);
+				Vec3 from = new Vec3(end.x * 0.95, top - 0.3, end.z * 0.95);
+				lathe(out, m, from, end, new double[] {0.06, 0.06}, new double[] {0, 1}, 4, 0x18181C, 0f, 0);
+			}
+		}
+	}
+
+	private static int floorColor(Ambiance.Hall hall, int tile, Vec3 p, float grain) {
+		return lerpColor(0x000000, stoneGrain(tile, p, grain), hallLight(hall, p));
+	}
+
+	/** Where a cut cable hangs (swinging a little), round the field under the ceiling. */
+	private static Vec3 cableEnd(Ambiance.Hall hall, int c, float time) {
+		double a = Math.PI * 2 * (c + 0.5 * hashFloat(c * 137 + 1)) / Math.max(1, active.powerCut.cables);
+		double r = fieldRadius + 2 + (hall.margin - 4) * hashFloat(c * 137 + 2);
+		double swing = 0.25 * Math.sin(time * 0.04 + c);
+		double y = groundAt(0, 0) + 2.5 + 3 * hashFloat(c * 137 + 3);
+		return new Vec3(Math.cos(a) * r + swing, y, Math.sin(a) * r);
+	}
+
+	/**
+ * Whether the hall's mirrors really reflect (2026-11-19): with the camera inside the room (outside it, the cutaway
+ * opens a wall and the reflections would show through) and no shader pack (Iris draws entities its own way).
+ */
+private static boolean mirrorsLive(Ambiance.Hall hall) {
+double s = hallHalf(hall);
+double base = groundAt(0, 0) + 0.09;
+return Math.abs(cameraRel.x) < s - 0.5 && Math.abs(cameraRel.z) < s - 0.5 && cameraRel.y > base - 0.5
+		&& cameraRel.y < base + hall.height - 0.5 && !shadersOn();
+}
+
+private static boolean shadersOn() {
+if (!irisChecked) {
+	irisChecked = true;
+	try {
+		Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+		iris = api.getMethod("getInstance").invoke(null);
+		irisInUse = api.getMethod("isShaderPackInUse");
+	} catch (ReflectiveOperationException | LinkageError ex) {
+		irisInUse = null; // no Iris: no shader pack
+	}
+}
+try {
+	return irisInUse != null && (boolean) irisInUse.invoke(iris);
+} catch (ReflectiveOperationException ex) {
+	return false;
+}
+}
+
+/**
+ * Real mirrors (2026-11-19): for each wall, the room and everyone in it drawn again mirrored across the wall's plane,
+ * so the copy lies behind the wall, seen through its open surface. The room is closed, so the copy only shows where
+ * the mirror is. A mirror flips the triangles' winding: front faces are clockwise while it draws. One bounce: the
+ * mirrors inside a reflection keep their painted sheen.
+ */
+private static void drawReflections(PoseStack pose, MultiBufferSource.BufferSource buffers, Ambiance.Hall hall, float time,
+	float partialTick) {
+Minecraft mc = Minecraft.getInstance();
+double s = hallHalf(hall);
+List<net.minecraft.world.entity.Entity> inside = new ArrayList<>();
+for (net.minecraft.world.entity.Entity entity : mc.level.entitiesForRendering()) {
+	Vec3 at = entity.getPosition(partialTick).subtract(center);
+	if (Math.abs(at.x) < s - 0.3 && Math.abs(at.z) < s - 0.3 && Math.abs(at.y) < hall.height && inside.size() < 24) {
+		inside.add(entity);
+	}
+}
+net.minecraft.client.renderer.entity.EntityRenderDispatcher dispatcher = mc.getEntityRenderDispatcher();
+reflecting = true;
+org.lwjgl.opengl.GL11.glFrontFace(org.lwjgl.opengl.GL11.GL_CW);
+try {
+	for (int w = 0; w < 4; w++) {
+		double nx = w == 0 ? -1 : w == 1 ? 1 : 0;
+		double nz = w == 2 ? -1 : w == 3 ? 1 : 0;
+		skipWall = w;
+		pose.pushPose();
+		if (nx != 0) {
+			pose.translate(-nx * 2 * s, 0, 0);
+			pose.scale(-1, 1, 1);
+		} else {
+			pose.translate(0, 0, -nz * 2 * s);
+			pose.scale(1, 1, -1);
+		}
+		drawHall(pose, buffers, hall, time, false);
+		buffers.endBatch();
+		for (net.minecraft.world.entity.Entity entity : inside) {
+			Vec3 at = entity.getPosition(partialTick).subtract(center);
+			try {
+				dispatcher.render(entity, at.x, at.y, at.z, entity.getViewYRot(partialTick), partialTick, pose, buffers,
+						dispatcher.getPackedLightCoords(entity, partialTick));
+			} catch (RuntimeException ex) {
+				// A renderer that cannot be drawn twice: that one stays out of the mirror.
+			}
+		}
+		buffers.endBatch();
+		pose.popPose();
+	}
+} finally {
+	org.lwjgl.opengl.GL11.glFrontFace(org.lwjgl.opengl.GL11.GL_CCW);
+	reflecting = false;
+	skipWall = -1;
+}
+}
+
+/** Four walls with pilasters, a ceiling with beams and hanging lamps; mirrors on the walls when the hall has them. */
+	private static void drawRoom(VertexConsumer out, Matrix4f m, Ambiance.Hall hall, double s, double base, double top) {
+		int wall = Ambiance.color(hall.wall, 0x3A3E46);
+		int ceiling = Ambiance.color(hall.ceiling, 0x2A2C32);
+		int lamp = Ambiance.color(hall.lamp, 0xFFF0C8);
+		int steps = (int) Math.ceil(2 * s / 2);
+		int rows = (int) Math.ceil(hall.height / 2);
+		for (int w = 0; w < 4; w++) {
+			// Each wall: its inward normal, and whether the camera is inside it (else it is left out: a cutaway).
+			double nx = w == 0 ? -1 : w == 1 ? 1 : 0;
+			double nz = w == 2 ? -1 : w == 3 ? 1 : 0;
+			Vec3 normal = new Vec3(nx, 0, nz);
+			if (w == skipWall || cameraRel.x * -nx + cameraRel.z * -nz > s - 0.5) {
+				continue;
+			}
+			// Real mirrors: the surface is left open, the reflection drawn behind it shows through (drawReflections).
+			boolean open = hall.mirrors && !reflecting && mirrorsLive(hall);
+			Vec3[][] grid = new Vec3[rows + 1][steps + 1];
+			int[][] colors = new int[rows + 1][steps + 1];
+			for (int j = 0; j <= rows; j++) {
+				for (int k = 0; k <= steps; k++) {
+					double along = -s + 2 * s * k / steps;
+					double y = base - 0.1 + (hall.height + 0.1) * j / rows;
+					Vec3 p = w < 2 ? new Vec3(-nx * s, y, along) : new Vec3(along, y, -nz * s);
+					grid[j][k] = p;
+					int c;
+					if (hall.mirrors) {
+						Vec3 view = p.subtract(cameraRel).normalize();
+						Vec3 reflected = view.subtract(normal.scale(2 * view.dot(normal)));
+						double sheen = 0.5 + 0.5 * Math.sin((reflected.x + reflected.y * 1.3 + reflected.z) * 6);
+						c = lerpColor(lerpColor(wall, 0x000000, 0.4f), lerpColor(wall, lamp, 0.6f),
+								(float) (0.35 + 0.35 * (reflected.y * 0.5 + 0.5) + 0.3 * sheen * sheen));
+						// Dark glass, not plaster (2026-11-19: painted light, the mirrors seen inside a reflection
+						// filled it and the real mirrors read as plain walls); darker still inside a reflection.
+						c = lerpColor(c, 0x0C0E14, reflecting ? 0.72f : 0.5f);
+					} else {
+						c = stoneGrain(wall, p, 0.12f);
+						c = lerpColor(c, 0x000000, 0.35f * (float) (1 - j / (double) rows) * 0.6f);
+					}
+					colors[j][k] = lerpColor(0x000000, c, hallLight(hall, new Vec3(p.x * 0.6, p.y, p.z * 0.6)) + 0.1f);
+				}
+			}
+			for (int j = 0; j < rows && !open; j++) {
+				for (int k = 0; k < steps; k++) {
+					quadColors(out, m, grid[j][k], grid[j][k + 1], grid[j + 1][k + 1], grid[j + 1][k], colors[j][k], colors[j][k + 1],
+							colors[j + 1][k + 1], colors[j + 1][k]);
+				}
+			}
+			// Pilasters (or the mirrors' frames) every six blocks.
+			int frame = hall.mirrors ? lerpColor(wall, 0xFFD87A, 0.5f) : lerpColor(wall, 0x000000, 0.25f);
+			for (double along = -s + 6; along < s - 1; along += 6) {
+				Vec3 foot = w < 2 ? new Vec3(-nx * (s - 0.25), base - 0.1, along) : new Vec3(along, base - 0.1, -nz * (s - 0.25));
+				if (nearFade(foot.add(0, hall.height * 0.5, 0), 1.5, 2) < 0.5f) {
+					continue;
+				}
+				beamBox(out, m, foot, foot.add(0, hall.height, 0), hall.mirrors ? 0.25 : 0.8, hall.mirrors ? 0.25 : 0.6, frame);
+			}
+		}
+		if (cameraRel.y < top - 0.5) {
+			int cells = (int) Math.ceil(s / 2);
+			for (int ix = -cells; ix < cells; ix++) {
+				for (int iz = -cells; iz < cells; iz++) {
+					double x0 = Math.max(-s, ix * 2.0);
+					double z0 = Math.max(-s, iz * 2.0);
+					double x1 = Math.min(s, ix * 2.0 + 2);
+					double z1 = Math.min(s, iz * 2.0 + 2);
+					Vec3 p00 = new Vec3(x0, top, z0);
+					Vec3 p10 = new Vec3(x1, top, z0);
+					Vec3 p11 = new Vec3(x1, top, z1);
+					Vec3 p01 = new Vec3(x0, top, z1);
+					quadColors(out, m, p00, p10, p11, p01, ceilingColor(hall, ceiling, p00), ceilingColor(hall, ceiling, p10),
+							ceilingColor(hall, ceiling, p11), ceilingColor(hall, ceiling, p01));
+				}
+			}
+			int beam = lerpColor(ceiling, 0x000000, 0.3f);
+			for (double x = -s + 4; x < s; x += 6) {
+				beamBox(out, m, new Vec3(x, top - 0.5, -s), new Vec3(x, top - 0.5, s), 0.6, 1.0, beam);
+			}
+			for (int ix = -1; ix <= 1; ix += 2) {
+				for (int iz = -1; iz <= 1; iz += 2) {
+					for (int q = 0; q < 2; q++) {
+						double lx = ix * s * (0.25 + 0.4 * q);
+						double lz = iz * s * (0.25 + 0.4 * (1 - q));
+						lathe(out, m, new Vec3(lx, top, lz), new Vec3(lx, top - 1.6, lz), new double[] {0.04, 0.04, 0.3, 0.9, 0.9},
+								new double[] {0, 0.6, 0.65, 0.98, 1}, 10, lerpColor(beam, 0x000000, 0.2f), 0.05f, 0);
+					}
+				}
+			}
+		}
+	}
+
+	private static int ceilingColor(Ambiance.Hall hall, int ceiling, Vec3 p) {
+		return lerpColor(0x000000, stoneGrain(ceiling, p, 0.1f), hallLight(hall, p) * 0.8f);
+	}
+
+	/** A circus tent: a round wall in vertical stripes, a striped cone up to the mast, the mast in the middle. */
+	private static void drawTent(VertexConsumer out, Matrix4f m, Ambiance.Hall hall, double s, double base) {
+		List<String> stripes = hall.stripes != null && !hall.stripes.isEmpty() ? hall.stripes : List.of("#d02a2a", "#f4f0e0");
+		int sectors = 64;
+		double wallTop = base + hall.height * 0.55;
+		double peak = base + hall.height * 1.5;
+		int roofRings = 6;
+		for (int k = 0; k < sectors; k++) {
+			double a0 = Math.PI * 2 * k / sectors;
+			double a1 = Math.PI * 2 * (k + 1) / sectors;
+			int stripe = Ambiance.color(stripes.get((k / 2) % stripes.size()), 0xD02A2A);
+			Vec3 mid = new Vec3(Math.cos((a0 + a1) / 2) * s, wallTop * 0.5 + base * 0.5, Math.sin((a0 + a1) / 2) * s);
+			Vec3 inward = new Vec3(-mid.x, 0, -mid.z).normalize();
+			boolean wallShown = cameraRel.subtract(mid).dot(inward) >= 0;
+			double[] ys = {base - 0.1, (base + wallTop) / 2, wallTop};
+			for (int j = 0; j < 2 && wallShown; j++) {
+				Vec3 a = new Vec3(Math.cos(a0) * s, ys[j], Math.sin(a0) * s);
+				Vec3 b = new Vec3(Math.cos(a1) * s, ys[j], Math.sin(a1) * s);
+				Vec3 c = new Vec3(Math.cos(a1) * s, ys[j + 1], Math.sin(a1) * s);
+				Vec3 d = new Vec3(Math.cos(a0) * s, ys[j + 1], Math.sin(a0) * s);
+				quadColors(out, m, a, b, c, d, tentColor(hall, stripe, a), tentColor(hall, stripe, b), tentColor(hall, stripe, c),
+						tentColor(hall, stripe, d));
+			}
+			if (cameraRel.y > peak) {
+				continue;
+			}
+			for (int j = 0; j < roofRings; j++) {
+				double f0 = j / (double) roofRings;
+				double f1 = (j + 1) / (double) roofRings;
+				double r0 = s * (1 - f0);
+				double r1 = s * (1 - f1);
+				double y0 = Mth.lerp(f0, wallTop, peak) - 0.6 * Math.sin(Math.PI * f0);
+				double y1 = Mth.lerp(f1, wallTop, peak) - 0.6 * Math.sin(Math.PI * f1);
+				Vec3 a = new Vec3(Math.cos(a0) * r0, y0, Math.sin(a0) * r0);
+				Vec3 b = new Vec3(Math.cos(a1) * r0, y0, Math.sin(a1) * r0);
+				Vec3 c = new Vec3(Math.cos(a1) * r1, y1, Math.sin(a1) * r1);
+				Vec3 d = new Vec3(Math.cos(a0) * r1, y1, Math.sin(a0) * r1);
+				quadColors(out, m, a, b, c, d, tentColor(hall, stripe, a), tentColor(hall, stripe, b), tentColor(hall, stripe, c),
+						tentColor(hall, stripe, d));
+			}
+		}
+		lathe(out, m, new Vec3(fieldRadius + 2, base - 0.1, 0), new Vec3(fieldRadius + 2, peak, 0), new double[] {0.35, 0.25},
+				new double[] {0, 1}, 8, 0xC8A060, 0.15f, 0);
+		lathe(out, m, new Vec3(-fieldRadius - 2, base - 0.1, 0), new Vec3(-fieldRadius - 2, peak, 0), new double[] {0.35, 0.25},
+				new double[] {0, 1}, 8, 0xC8A060, 0.15f, 0);
+	}
+
+	private static int tentColor(Ambiance.Hall hall, int stripe, Vec3 p) {
+		float light = (float) (0.5 + 0.5 * Mth.clamp((p.y - groundAt(0, 0)) / (hall.height * 1.5), 0, 1));
+		return lerpColor(0x000000, stoneGrain(stripe, p, 0.06f), light * hallLight(hall, new Vec3(p.x * 0.5, p.y, p.z * 0.5)) + 0.15f);
+	}
+
+	/** Where press {@code p} stands: in the hall's corners and along its sides, clear of the belt. */
+	private static Vec3 pressSpot(Ambiance.Hall hall, int p) {
+		double s = hallHalf(hall);
+		double a = Math.PI / 4 + Math.PI * 2 * p / Math.max(1, hall.machines.presses);
+		double r = (s - 1.8) * 1.2;
+		double x = Mth.clamp(Math.cos(a) * r, -s + 1.8, s - 1.8);
+		double z = Mth.clamp(Math.sin(a) * r, -s + 1.8, s - 1.8);
+		return new Vec3(x, groundAt(0, 0) + 0.09, z);
+	}
+
+	/** The plant: a conveyor loop carrying crates round the field, gears turning on the walls, presses stamping. */
+	private static void drawMachines(VertexConsumer out, Matrix4f m, Ambiance.Hall hall, Ambiance.Machines machines, double s, double base,
+			float time) {
+		int metal = Ambiance.color(machines.metal, 0x6A7078);
+		int belt = Ambiance.color(machines.belt, 0x24262A);
+		int warning = Ambiance.color(machines.warning, 0xFFB020);
+		double d = Math.min(s - 4, fieldRadius + 3.5);
+		double perimeter = 8 * d;
+		double run = time * 0.05 * machines.speed;
+		double beltY = base + 0.8;
+		// The belt: short segments round a square loop, ribs running along it (a colour per vertex).
+		double seg = 0.25;
+		for (double t = 0; t < perimeter; t += seg) {
+			Vec3 a = loopPoint(d, t, beltY);
+			Vec3 b = loopPoint(d, Math.min(perimeter, t + seg), beltY);
+			Vec3 dir = b.subtract(a).normalize();
+			Vec3 side = new Vec3(-dir.z, 0, dir.x).scale(0.7);
+			if (nearFade(a, 1.2, 1.5) < 0.5f) {
+				continue;
+			}
+			int ca = lerpColor(0x000000, lerpColor(belt, 0x6A6A70, ribs(t - run)), hallLight(hall, a));
+			int cb = lerpColor(0x000000, lerpColor(belt, 0x6A6A70, ribs(t + seg - run)), hallLight(hall, b));
+			quadColors(out, m, a.subtract(side), b.subtract(side), b.add(side), a.add(side), ca, cb, cb, ca);
+			int frame = lerpColor(0x000000, metal, hallLight(hall, a) * 0.8f);
+			Vec3 drop = new Vec3(0, -0.8, 0);
+			quadColors(out, m, a.add(side), b.add(side), b.add(side).add(drop), a.add(side).add(drop), frame, frame,
+					lerpColor(frame, 0x000000, 0.5f), lerpColor(frame, 0x000000, 0.5f));
+			quadColors(out, m, a.subtract(side), b.subtract(side), b.subtract(side).add(drop), a.subtract(side).add(drop), frame,
+					frame, lerpColor(frame, 0x000000, 0.5f), lerpColor(frame, 0x000000, 0.5f));
+		}
+		for (double t = 0; t < perimeter; t += 3) {
+			Vec3 c = loopPoint(d, ((t + run) % perimeter + perimeter) % perimeter, beltY + 0.35);
+			if (nearFade(c, 1.2, 1.5) < 0.5f) {
+				continue;
+			}
+			int crate = Ambiance.color(machines.crates.get((int) (t / 3) % machines.crates.size()), 0xA07A4A);
+			beamBox(out, m, c.add(-0.35, 0, 0), c.add(0.35, 0, 0), 0.7, 0.7, lerpColor(0x000000, crate, hallLight(hall, c)));
+		}
+		// Gears on the walls, turning (meshing pairs turn opposite ways).
+		for (int g = 0; g < machines.gears; g++) {
+			int w = g % 4;
+			double along = (hashFloat(g * 149 + 1) * 1.4 - 0.7) * s;
+			double y = base + 4 + 5 * hashFloat(g * 149 + 2);
+			double radius = 1.2 + 1.3 * hashFloat(g * 149 + 3);
+			Vec3 normal = w == 0 ? new Vec3(-1, 0, 0) : w == 1 ? new Vec3(1, 0, 0) : w == 2 ? new Vec3(0, 0, -1) : new Vec3(0, 0, 1);
+			Vec3 c = normal.scale(-(s - 0.3)).add(w < 2 ? new Vec3(0, y, along) : new Vec3(along, y, 0));
+			if (cameraRel.dot(normal.scale(-1)) > s - 0.5) {
+				continue;
+			}
+			gear(out, m, c, normal, radius, (g % 2 == 0 ? 1 : -1) * time * 0.03 * machines.speed / radius, metal, hall);
+		}
+		// Presses: a frame, an anvil, a ram falling fast and rising slowly.
+		for (int p = 0; p < machines.presses; p++) {
+			Vec3 at = pressSpot(hall, p);
+			if (nearFade(at.add(0, 2.5, 0), 1.5, 2) < 0.5f) {
+				continue;
+			}
+			int frame = lerpColor(0x000000, metal, hallLight(hall, at));
+			beamBox(out, m, at.add(-1.1, 0, 0), at.add(-1.1, 5.4, 0), 0.4, 0.4, frame);
+			beamBox(out, m, at.add(1.1, 0, 0), at.add(1.1, 5.4, 0), 0.4, 0.4, frame);
+			beamBox(out, m, at.add(-1.3, 5.4, 0), at.add(1.3, 5.4, 0), 0.6, 0.6, frame);
+			beamBox(out, m, at.add(-0.8, 0.4, 0), at.add(0.8, 0.4, 0), 1.2, 0.8, lerpColor(frame, 0x000000, 0.3f));
+			double phase = ((time * 0.02 * machines.speed + p * 0.37) % 1 + 1) % 1;
+			double down = phase < 0.1 ? phase / 0.1 : 1 - (phase - 0.1) / 0.9;
+			double ramY = 4.6 - 3.4 * down;
+			beamBox(out, m, at.add(-0.7, ramY, 0), at.add(0.7, ramY, 0), 1.0, 1.0, lerpColor(frame, warning, 0.35f));
+		}
+	}
+
+	/** The belt's ribs: a smooth stripe every half block. */
+	private static float ribs(double t) {
+		double v = 0.5 + 0.5 * Math.sin(t * Math.PI * 4);
+		return (float) (0.3 * v * v);
+	}
+
+	/** A point {@code t} along a square loop of half-size {@code d}. */
+	private static Vec3 loopPoint(double d, double t, double y) {
+		double side = 2 * d;
+		int edge = (int) (t / side) % 4;
+		double u = t - Math.floor(t / side) * side - d;
+		return switch (edge) {
+			case 0 -> new Vec3(u, y, -d);
+			case 1 -> new Vec3(d, y, u);
+			case 2 -> new Vec3(-u, y, d);
+			default -> new Vec3(-d, y, -u);
+		};
+	}
+
+	/** A gear against a wall: a hub, spokes of shade, teeth round its rim, turned by {@code angle}. */
+	private static void gear(VertexConsumer out, Matrix4f m, Vec3 c, Vec3 normal, double radius, double angle, int metal,
+			Ambiance.Hall hall) {
+		Vec3 u = normal.cross(new Vec3(0, 1, 0)).normalize();
+		Vec3 v = new Vec3(0, 1, 0);
+		int teeth = 10 + (int) (radius * 4);
+		int points = teeth * 4;
+		float light = hallLight(hall, new Vec3(c.x * 0.6, c.y, c.z * 0.6));
+		int rim = lerpColor(0x000000, metal, light);
+		int hub = lerpColor(0x000000, lerpColor(metal, 0xFFFFFF, 0.2f), light);
+		for (int k = 0; k < points; k++) {
+			double a0 = angle + Math.PI * 2 * k / points;
+			double a1 = angle + Math.PI * 2 * (k + 1) / points;
+			double r0 = (k % 4 < 2) ? radius * 1.15 : radius;
+			Vec3 o0 = c.add(u.scale(Math.cos(a0) * r0)).add(v.scale(Math.sin(a0) * r0));
+			Vec3 o1 = c.add(u.scale(Math.cos(a1) * r0)).add(v.scale(Math.sin(a1) * r0));
+			Vec3 i0 = c.add(u.scale(Math.cos(a0) * radius * 0.3)).add(v.scale(Math.sin(a0) * radius * 0.3)).add(normal.scale(0.12));
+			Vec3 i1 = c.add(u.scale(Math.cos(a1) * radius * 0.3)).add(v.scale(Math.sin(a1) * radius * 0.3)).add(normal.scale(0.12));
+			float spoke = (float) (0.5 + 0.5 * Math.cos((a0 - angle) * 5));
+			int mid = lerpColor(rim, 0x000000, 0.35f * (1 - spoke));
+			quadColors(out, m, i0, i1, o1, o0, hub, hub, k % 4 < 2 ? rim : mid, k % 4 < 2 ? rim : mid);
+		}
+	}
+
+	/** Giant chess pieces on the board round the field: pawns, rooks, knights, bishops, queens, kings; white and black. */
+	private static void drawPieces(VertexConsumer out, Matrix4f m, Ambiance.Hall hall, Ambiance.Pieces pieces, double s) {
+		int white = Ambiance.color(pieces.white, 0xECE6DA);
+		int black = Ambiance.color(pieces.black, 0x2A2630);
+		String order = "RNBQKBNRPPPPPPPP";
+		for (int i = 0; i < pieces.count; i++) {
+			double a = Math.PI * 2 * (i + 0.5) / pieces.count;
+			double r = fieldRadius + 3 + (s - fieldRadius - 5) * hashFloat(i * 151 + 1);
+			double x = (Math.floor(Math.cos(a) * r / hall.tile) + 0.5) * hall.tile;
+			double z = (Math.floor(Math.sin(a) * r / hall.tile) + 0.5) * hall.tile;
+			Vec3 foot = new Vec3(x, hallY(x, z) - 0.05, z);
+			char kind = order.charAt(i % order.length());
+			double h = switch (kind) {
+				case 'P' -> 2.6;
+				case 'R' -> 3.2;
+				case 'N' -> 3.4;
+				case 'B' -> 3.8;
+				case 'Q' -> 4.4;
+				default -> 4.8;
+			};
+			h *= 0.5 + hall.tile / 4; // the pieces grow with the squares they stand on
+			if (nearFade(foot.add(0, h * 0.5, 0), 1.5, 2) < 0.5f) {
+				continue;
+			}
+			int color = lerpColor(0x000000, x < 0 ? white : black, hallLight(hall, foot) + 0.2f);
+			double w = h;
+			Vec3 tip = foot.add(0, h, 0);
+			double[] baseR = {0.3, 0.3, 0.24, 0.2};
+			double[] baseF = {0, 0.06, 0.1, 0.15};
+			double[] r2;
+			double[] f2;
+			switch (kind) {
+				case 'P' -> {
+					r2 = new double[] {0.13, 0.09, 0.17, 0.1, 0.16, 0.17, 0.12, 0};
+					f2 = new double[] {0.28, 0.5, 0.55, 0.6, 0.7, 0.8, 0.92, 1};
+				}
+				case 'R' -> {
+					r2 = new double[] {0.16, 0.16, 0.23, 0.23, 0.18, 0};
+					f2 = new double[] {0.3, 0.75, 0.8, 1, 1, 1};
+				}
+				case 'B' -> {
+					r2 = new double[] {0.12, 0.09, 0.17, 0.1, 0.15, 0.12, 0.05, 0.04, 0};
+					f2 = new double[] {0.3, 0.55, 0.6, 0.64, 0.75, 0.86, 0.95, 0.97, 1};
+				}
+				case 'Q' -> {
+					r2 = new double[] {0.13, 0.09, 0.17, 0.11, 0.2, 0.15, 0.07, 0};
+					f2 = new double[] {0.3, 0.55, 0.6, 0.64, 0.86, 0.9, 0.96, 1};
+				}
+				case 'N' -> {
+					r2 = new double[] {0.14, 0.15, 0};
+					f2 = new double[] {0.3, 0.4, 0.42};
+				}
+				default -> {
+					r2 = new double[] {0.13, 0.09, 0.17, 0.11, 0.19, 0.15, 0};
+					f2 = new double[] {0.3, 0.55, 0.6, 0.64, 0.86, 0.9, 0.9};
+				}
+			}
+			double[] rr = new double[baseR.length + r2.length];
+			double[] ff = new double[baseF.length + f2.length];
+			for (int k = 0; k < baseR.length; k++) {
+				rr[k] = baseR[k] * w;
+				ff[k] = baseF[k];
+			}
+			for (int k = 0; k < r2.length; k++) {
+				rr[baseR.length + k] = r2[k] * w;
+				ff[baseF.length + k] = f2[k];
+			}
+			lathe(out, m, foot, tip, rr, ff, 16, color, 0.04f, 0);
+			Vec3 inward = new Vec3(-x, 0, -z).normalize();
+			if (kind == 'N') {
+				Vec3 neck = foot.add(0, h * 0.42, 0);
+				Vec3 head = neck.add(inward.scale(h * 0.12)).add(0, h * 0.42, 0);
+				beamBox(out, m, neck, head, h * 0.22, h * 0.26, color);
+				beamBox(out, m, head.add(0, -h * 0.05, 0), head.add(inward.scale(h * 0.28)).add(0, -h * 0.12, 0), h * 0.18, h * 0.16,
+						color);
+			} else if (kind == 'K') {
+				Vec3 crossBase = foot.add(0, h * 0.9, 0);
+				beamBox(out, m, crossBase, crossBase.add(0, h * 0.2, 0), h * 0.06, h * 0.06, color);
+				Vec3 side = new Vec3(-inward.z, 0, inward.x).scale(h * 0.08);
+				beamBox(out, m, crossBase.add(0, h * 0.13, 0).subtract(side), crossBase.add(0, h * 0.13, 0).add(side), h * 0.06, h * 0.06,
+						color);
+			}
+		}
+	}
+
+	/** Grass blades over the place's ground, a wave of wind running across them. */
+	private static void drawGrass(PoseStack pose, MultiBufferSource buffers, Ambiance.Grass grass, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		double wx = 1;
+		double wz = 0.3;
+		if (active.wind != null && active.wind.size() >= 2 && (active.wind.get(0) != 0 || active.wind.get(1) != 0)) {
+			wx = active.wind.get(0);
+			wz = active.wind.get(1);
+		}
+		double wl = Math.sqrt(wx * wx + wz * wz);
+		wx /= wl;
+		wz /= wl;
+		int tip = Ambiance.color(grass.tip, 0xB8E070);
+		for (int i = 0; i < grass.count; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 157 + 1);
+			double r = within(grass.ring, Math.sqrt(hashFloat(i * 157 + 2)));
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			Vec3 at = new Vec3(x, floorY(x, z) - 0.06, z);
+			if (nearFade(at, 0.8, 1) < 0.5f) {
+				continue;
+			}
+			double h = within(grass.height, hashFloat(i * 157 + 3));
+			int color = Ambiance.color(grass.colors.get(i % grass.colors.size()), 0x4A8A2A);
+			double yaw = hashFloat(i * 157 + 4) * Math.PI;
+			double half = 0.045 + 0.03 * hashFloat(i * 157 + 5);
+			double sway = grass.wind * h * (0.12 + 0.2 * Math.sin(time * 0.09 - (x * wx + z * wz) * 0.35) + 0.05 * Math.sin(time * 0.31 + i));
+			Vec3 side = new Vec3(Math.cos(yaw) * half, 0, Math.sin(yaw) * half);
+			Vec3 top = at.add(wx * sway, h, wz * sway);
+			int root = lerpColor(color, 0x000000, 0.45f);
+			int head = lerpColor(color, tip, 0.55f);
+			quadColors(out, m, at.subtract(side), at.add(side), top, top, root, root, head, head);
+		}
+	}
+
+	/** Flowers: a stem, then five petals round a golden heart, each petal pale at its root and coloured at its tip. */
+	private static void drawFlowers(PoseStack pose, MultiBufferSource buffers, Ambiance.Flowers flowers, float time) {
+		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		for (int i = 0; i < flowers.count; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 163 + 1);
+			double r = within(flowers.ring, Math.sqrt(hashFloat(i * 163 + 2)));
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			Vec3 at = new Vec3(x, floorY(x, z) - 0.05, z);
+			if (nearFade(at, 0.8, 1) < 0.5f) {
+				continue;
+			}
+			double h = within(flowers.height, hashFloat(i * 163 + 3));
+			double sway = 0.05 * Math.sin(time * 0.08 + x * 0.3 + i);
+			Vec3 head = at.add(sway, h, sway * 0.4);
+			Vec3 stemSide = new Vec3(0.025, 0, 0.025);
+			quadColors(out, m, at.subtract(stemSide), at.add(stemSide), head.add(stemSide), head.subtract(stemSide), 0x2A5A1A, 0x2A5A1A,
+					0x4A8A2A, 0x4A8A2A);
+			int petal = Ambiance.color(flowers.colors.get(i % flowers.colors.size()), 0xFF6A8A);
+			int heart = 0xFFD23D;
+			double size = 0.1 + 0.08 * hashFloat(i * 163 + 4);
+			double spin = hashFloat(i * 163 + 5) * 6.28;
+			for (int p = 0; p < 5; p++) {
+				double pa = spin + Math.PI * 2 * p / 5;
+				Vec3 tipP = head.add(Math.cos(pa) * size, 0.02, Math.sin(pa) * size);
+				Vec3 left = head.add(Math.cos(pa - 0.5) * size * 0.55, 0.01, Math.sin(pa - 0.5) * size * 0.55);
+				Vec3 right = head.add(Math.cos(pa + 0.5) * size * 0.55, 0.01, Math.sin(pa + 0.5) * size * 0.55);
+				quadColors(out, m, head, left, tipP, right, heart, lerpColor(petal, 0xFFFFFF, 0.35f), petal, lerpColor(petal, 0xFFFFFF, 0.35f));
+			}
+		}
+	}
+
+	/** A land's or a hall's anchors: its floor round the field, the air; a hall's walls and ceiling too. */
+	private static Anchors placeAnchors(Ambiance ambiance) {
+		Anchors result = new Anchors();
+		for (int i = 0; i < 160; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 19 + 1);
+			double r = fieldRadius + 1 + 11 * hashFloat(i * 19 + 2);
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			double y = ambiance.land != null ? landY(ambiance.land, x, z) : hallY(x, z);
+			result.add(Anchors.Kind.FLOOR, new Anchors.Anchor(new Vec3(x, y - 0.12, z), new Vec3(0, 1, 0), 1f));
+		}
+		if (ambiance.hall != null && !"tent".equals(ambiance.hall.shape)) {
+			double s = hallHalf(ambiance.hall);
+			double top = groundAt(0, 0) + 0.09 + ambiance.hall.height;
+			for (int i = 0; i < 160; i++) {
+				double u = (hashFloat(i * 23 + 1) * 2 - 1) * (s - 1);
+				double v = (hashFloat(i * 23 + 2) * 2 - 1) * (s - 1);
+				result.add(Anchors.Kind.CEILING, new Anchors.Anchor(new Vec3(u, top - 0.1, v), new Vec3(0, -1, 0), 1f));
+				int w = i % 4;
+				double y = groundAt(0, 0) + 1 + (ambiance.hall.height - 2) * hashFloat(i * 23 + 3);
+				Vec3 normal = w == 0 ? new Vec3(-1, 0, 0) : w == 1 ? new Vec3(1, 0, 0) : w == 2 ? new Vec3(0, 0, -1) : new Vec3(0, 0, 1);
+				Vec3 p = normal.scale(-(s - 0.1)).add(w < 2 ? new Vec3(0, y, u) : new Vec3(u, y, 0));
+				result.add(Anchors.Kind.WALL, new Anchors.Anchor(p, normal, 1f));
+			}
+		}
+		result.fillFloat(fieldRadius, groundAt(0, 0));
+		return result;
+	}
+
 	// ---------------------------------------------------------------- Props on anchors (2026-11-19)
 
 	/** One prop placed: its kind, the anchor kind it took, where it grows from and which way, its size and colours. */
@@ -3584,6 +5701,10 @@ public final class BattleAmbiance {
 		double ground = groundAt(0, 0);
 		if (ambiance.cavern != null) {
 			anchors = vaultAnchors(ambiance.cavern);
+		} else if (ambiance.sea != null) {
+			anchors = seaAnchors(ambiance.sea);
+		} else if (ambiance.land != null || ambiance.hall != null) {
+			anchors = placeAnchors(ambiance);
 		} else if (ambiance.hideWorld) {
 			// The world hidden by a stadium without surfaces of its own: only its ground (people stand on it) and the air.
 			anchors = new Anchors();
@@ -4095,6 +6216,14 @@ public final class BattleAmbiance {
 	}
 
 	/** Inner radius of the stands. */
+	/**
+	 * The height the stands stand on: level all round (2026-11-19: following the blocks under each segment, the tiers
+	 * rose and fell with the terrain round the arena), at the field's centre.
+	 */
+	private static double standsBase() {
+		return onGround(0, 0).y;
+	}
+
 	private static float standsInner(Ambiance.Crowd crowd) {
 		return crowd.distance > 0 ? crowd.distance : fieldRadius + 5f;
 	}
@@ -4175,8 +6304,8 @@ public final class BattleAmbiance {
 			}
 			Vec3 d0 = new Vec3(Math.cos(a0), 0, Math.sin(a0));
 			Vec3 d1 = new Vec3(Math.cos(a1), 0, Math.sin(a1));
-			double b0 = onGround(d0.x * r0, d0.z * r0).y;
-			double b1 = onGround(d1.x * r0, d1.z * r0).y;
+			double b0 = standsBase();
+			double b1 = b0;
 			int seat = d0.add(d1).dot(fieldAxis) >= 0 ? side1 : side0;
 			boolean aisle = k % 12 == 0;
 			double front = r0 - 0.1;
@@ -4218,7 +6347,7 @@ public final class BattleAmbiance {
 				continue;
 			}
 			// The parapet in front of the first row.
-			quad(out, m, d0.scale(front).add(0, b0 - 0.6, 0), d1.scale(front).add(0, b1 - 0.6, 0), d1.scale(front).add(0, b1 + 1.0, 0),
+			quad(out, m, d0.scale(front).add(0, b0 - 3, 0), d1.scale(front).add(0, b1 - 3, 0), d1.scale(front).add(0, b1 + 1.0, 0),
 					d0.scale(front).add(0, b0 + 1.0, 0), 0x10131C);
 			quad(out, m, d0.scale(front).add(0, b0 + 1.0, 0), d1.scale(front).add(0, b1 + 1.0, 0), d1.scale(r0).add(0, b1 + 1.0, 0),
 					d0.scale(r0).add(0, b0 + 1.0, 0), 0x1A1E2A);
@@ -4235,7 +6364,7 @@ public final class BattleAmbiance {
 						d0.scale(ro).add(0, b0 + y1, 0), tread);
 			}
 			// Back wall, canopy over the top rows.
-			quad(out, m, d0.scale(outer).add(0, b0 - 1, 0), d1.scale(outer).add(0, b1 - 1, 0), d1.scale(outer).add(0, b1 + top + 3.2, 0),
+			quad(out, m, d0.scale(outer).add(0, b0 - 3, 0), d1.scale(outer).add(0, b1 - 3, 0), d1.scale(outer).add(0, b1 + top + 3.2, 0),
 					d0.scale(outer).add(0, b0 + top + 3.2, 0), 0x0E1018);
 			quad(out, m, d0.scale(outer).add(0, b0 + top + 3.2, 0), d1.scale(outer).add(0, b1 + top + 3.2, 0),
 					d1.scale(outer - 3.6).add(0, b1 + top + 2.6, 0), d0.scale(outer - 3.6).add(0, b0 + top + 2.6, 0), 0x12151F);
@@ -4255,7 +6384,7 @@ public final class BattleAmbiance {
 					continue; // an empty seat
 				}
 				Vec3 dir = new Vec3(Math.cos(angle), 0, Math.sin(angle));
-				double base = onGround(dir.x * r0, dir.z * r0).y + (j + 1) * crowd.rise;
+				double base = standsBase() + (j + 1) * crowd.rise;
 				Vec3 at = dir.scale(radius).add(0, base, 0);
 				if (nearFade(at.add(0, 0.6, 0), 1.0, 1.5) <= 0.05f) {
 					continue;
@@ -4335,7 +6464,7 @@ public final class BattleAmbiance {
 		double angle = RANDOM.nextDouble() * Math.PI * 2;
 		float r0 = standsInner(crowd);
 		Vec3 dir = new Vec3(Math.cos(angle), 0, Math.sin(angle));
-		double base = onGround(dir.x * r0, dir.z * r0).y + (row + 1) * crowd.rise;
+		double base = standsBase() + (row + 1) * crowd.rise;
 		CAMERA_FLASHES.add(new CameraFlash(dir.scale(r0 + row * crowd.rowDepth + 0.45).add(0, base + 0.55, 0), ticks));
 	}
 

@@ -135,6 +135,24 @@ remove it from roadmap.md.
   find their own surfaces (stalactites under a ceiling, crystals on walls or floors, else floating round the field),
   from the stadium's vault or a scan of the real blocks. The menu's Scene page has three tabs: Ambiances (only those
   without a place), Stadiums (previewed alone when no ambiance is chosen), Presets.
+- The sea (2026-11-19, League Reborn's waters): two stadiums, **Sea** (the field on a sand islet, rocks on its shore,
+  water rolling to the horizon, foam breaking on the beach, the sun glittering) and **Seabed** (the field on the sand
+  at the bottom, dunes, caustics, the surface rippling bright overhead, rocks, schools of fish). The ambiance sets the
+  water: blue and clear (Water Surface), dark and oily with rainbow slicks (Murkwater), frozen still with cracks and
+  floes (Icy). Presets: Open Sea, Polluted Sea, Frozen Sea, Deep Sea. Every surface coloured per vertex.
+- League Reborn's other places (2026-11-19): land stadiums Meadow, Forest, Badlands, Swamp, Desert, Canyon,
+  Scrapyard, Summit (cliffs over a sea of clouds), Temple (columns above the clouds), Ashen Shore; hall stadiums
+  Factory Hall (conveyor, crates, gears, presses), Chessboard (giant pieces), Big Top (striped tent and its crowd),
+  Mirror Hall. Ambiances change them: grass and flowers grow, a wildfire burns the forest, snow covers the summit, a
+  power cut stops the plant. Twenty more field ambiances (Electric and Psychic Terrain, Chess, Big Top, Swamp,
+  Rainbow, Desert, Rocky, Wasteland, Ashen Beach, Holy, Mirror, Fairy Tale, Starlight, Inverse, Flower Garden I to V)
+  and 24 presets pairing them. Every League Reborn field now has its ambiance and, when asked, its stadium.
+  Then: the Chessboard level with big squares, the Mirror Hall's mirrors reflecting the room and the battle (not
+  under a shader pack), the stands level all round (Big Top, Arena), Ultra Space's islands shaded per vertex like
+  the Reborn stadiums, the Inverse filter softer and looping without a jerk.
+- Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
+  stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
+  size changes by steps of 4, so the place is no longer rebuilt at every step.
 
 ## Trainers (`emote/`, needs Player Animation Library)
 

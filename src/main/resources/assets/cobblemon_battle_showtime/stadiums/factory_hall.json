@@ -1,0 +1,15 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#4a4c50",
+		"wall": "#3a3e46",
+		"ceiling": "#24262c",
+		"lamp": "#ffe8b0",
+		"margin": 13,
+		"height": 14,
+		"machines": {
+			"gears": 6,
+			"presses": 4
+		}
+	}
+}

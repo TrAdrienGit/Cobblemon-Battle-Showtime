@@ -1,0 +1,98 @@
+{
+	"time": {
+		"at": 13000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#3a3a5a",
+		"fog_color": "#4a4a3a",
+		"strength": 0.6,
+		"stars": 0
+	},
+	"veins": {
+		"color": "#ffd23d",
+		"core": "#fffbe0",
+		"alpha": 160,
+		"branches": 3,
+		"length": 9,
+		"pulse": 2.5,
+		"scatter": 9
+	},
+	"neon_grid": {
+		"spacing": 3,
+		"color": "#ffe040",
+		"accent": "#fff8c0",
+		"alpha": 45,
+		"extent": 1.4,
+		"pulse": 4
+	},
+	"particles": [
+		{
+			"type": "minecraft:electric_spark",
+			"rate": 3,
+			"area": "field"
+		},
+		{
+			"type": "minecraft:wax_off",
+			"rate": 0.6,
+			"area": "ring"
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.beacon.ambient",
+		"volume": 0.3,
+		"pitch": 1.4
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.copper_bulb.turn_on",
+			"every": [
+				40,
+				120
+			],
+			"volume": 0.4,
+			"pitch": [
+				1.2,
+				1.6
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:electric_spark",
+			"count": 30
+		},
+		"crit": {
+			"particle": "minecraft:electric_spark",
+			"count": 80,
+			"flash": "#fff6a0",
+			"sound": "minecraft:entity.lightning_bolt.impact",
+			"volume": 0.4
+		},
+		"faint": {
+			"particle": "minecraft:electric_spark",
+			"count": 40
+		},
+		"victory": {
+			"particle": "minecraft:electric_spark",
+			"count": 120,
+			"flash": "#ffe040",
+			"sound": "minecraft:block.beacon.power_select"
+		},
+		"named": {
+			"electric_awake": {
+				"particle": "minecraft:electric_spark",
+				"count": 60,
+				"flash": "#ffe860",
+				"sound": "minecraft:block.copper_bulb.turn_on"
+			},
+			"stray_electricity": {
+				"particle": "minecraft:electric_spark",
+				"count": 50,
+				"flash": "#fff0a0",
+				"sound": "minecraft:entity.lightning_bolt.impact",
+				"volume": 0.3
+			}
+		}
+	}
+}

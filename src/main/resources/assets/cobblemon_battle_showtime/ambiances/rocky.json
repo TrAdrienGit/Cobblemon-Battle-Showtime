@@ -1,0 +1,90 @@
+{
+	"time": {
+		"at": 7000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#8ab0d0",
+		"fog_color": "#c8c0b0",
+		"strength": 0.5,
+		"fog_start": 20,
+		"fog_end": 110
+	},
+	"particles": [
+		{
+			"type": "minecraft:dust_plume",
+			"rate": 0.4,
+			"area": "ring"
+		},
+		{
+			"type": "minecraft:white_ash",
+			"rate": 0.8,
+			"area": "air"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.gravel.fall",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.7,
+				1.0
+			]
+		},
+		{
+			"id": "minecraft:block.stone.hit",
+			"every": [
+				140,
+				320
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.6,
+				0.8
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:dust_plume",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:poof",
+			"count": 40,
+			"flash": "#e8e0d0",
+			"sound": "minecraft:block.stone.break"
+		},
+		"faint": {
+			"particle": "minecraft:poof",
+			"count": 40,
+			"sound": "minecraft:block.gravel.break"
+		},
+		"victory": {
+			"particle": "minecraft:poof",
+			"count": 80,
+			"sound": "minecraft:block.stone.place"
+		},
+		"named": {
+			"hit_rock": {
+				"particle": "minecraft:poof",
+				"count": 30,
+				"sound": "minecraft:block.stone.break"
+			},
+			"knocked_rock": {
+				"particle": "minecraft:poof",
+				"count": 30,
+				"sound": "minecraft:block.stone.fall"
+			},
+			"rock_hide": {
+				"particle": "minecraft:dust_plume",
+				"count": 30,
+				"sound": "minecraft:block.stone.place"
+			}
+		}
+	}
+}

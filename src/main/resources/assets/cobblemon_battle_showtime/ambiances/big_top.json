@@ -1,0 +1,133 @@
+{
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#2a1418",
+		"fog_color": "#3a2018",
+		"strength": 0.9,
+		"fog_start": 12,
+		"fog_end": 70,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"spotlights": {
+		"count": 6,
+		"colors": [
+			"#fff0c0",
+			"#ff6a6a",
+			"#6ab0ff",
+			"#ffd23d"
+		],
+		"sweep": 18,
+		"height": 20,
+		"width": 1.4,
+		"alpha": 40,
+		"ring": 8
+	},
+	"followspots": {
+		"color": "#fff4d0",
+		"alpha": 40
+	},
+	"particles": [
+		{
+			"type": "minecraft:wax_on",
+			"rate": 0.6,
+			"area": "air"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.player.levelup",
+			"every": [
+				400,
+				900
+			],
+			"volume": 0.2,
+			"pitch": [
+				1.4,
+				1.8
+			]
+		},
+		{
+			"id": "minecraft:block.note_block.bell",
+			"every": [
+				200,
+				500
+			],
+			"volume": 0.25
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:crit",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:firework",
+			"count": 40,
+			"flash": "#ffd23d",
+			"confetti": 40,
+			"cheer": true,
+			"sound": "minecraft:entity.firework_rocket.blast"
+		},
+		"faint": {
+			"particle": "minecraft:poof",
+			"count": 30,
+			"cheer": true
+		},
+		"victory": {
+			"particle": "minecraft:firework",
+			"count": 100,
+			"confetti": 120,
+			"cheer": true,
+			"sound": "minecraft:entity.firework_rocket.twinkle"
+		},
+		"named": {
+			"whammo": {
+				"particle": "minecraft:firework",
+				"count": 60,
+				"flash": "#ffffff",
+				"confetti": 60,
+				"cheer": true,
+				"sound": "minecraft:block.bell.use"
+			},
+			"striker_0": {
+				"particle": "minecraft:poof",
+				"count": 10,
+				"sound": "minecraft:block.note_block.bass",
+				"pitch": 0.6
+			},
+			"striker_1": {
+				"particle": "minecraft:crit",
+				"count": 15,
+				"sound": "minecraft:block.note_block.bell",
+				"pitch": 0.7
+			},
+			"striker_2": {
+				"particle": "minecraft:crit",
+				"count": 25,
+				"sound": "minecraft:block.note_block.bell",
+				"pitch": 0.9
+			},
+			"striker_3": {
+				"particle": "minecraft:firework",
+				"count": 30,
+				"confetti": 30,
+				"cheer": true,
+				"sound": "minecraft:block.bell.use",
+				"pitch": 1.2
+			},
+			"striker_4": {
+				"particle": "minecraft:firework",
+				"count": 60,
+				"flash": "#ffd23d",
+				"confetti": 80,
+				"cheer": true,
+				"sound": "minecraft:block.bell.use",
+				"pitch": 1.5
+			}
+		}
+	}
+}

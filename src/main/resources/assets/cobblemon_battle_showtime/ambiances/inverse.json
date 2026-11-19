@@ -1,0 +1,94 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/wobble_soft.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#d8f0a0",
+		"fog_color": "#a0f0d8",
+		"strength": 0.7,
+		"fog_start": 10,
+		"fog_end": 70,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"sky_cracks": {
+		"color": "#2a0a50",
+		"count": 5,
+		"alpha": 160,
+		"size": 14
+	},
+	"glitch_cubes": {
+		"color": "#40e0a0",
+		"count": 6,
+		"size": [
+			0.5,
+			1.2
+		],
+		"radius": [
+			6,
+			15
+		],
+		"height": [
+			2,
+			7
+		],
+		"jump": 80
+	},
+	"particles": [
+		{
+			"type": "minecraft:reverse_portal",
+			"rate": 1.5,
+			"area": "field"
+		},
+		{
+			"type": "minecraft:white_ash",
+			"rate": 1,
+			"area": "air",
+			"motion": [
+				0,
+				0.04,
+				0
+			]
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.portal.ambient",
+		"volume": 0.15,
+		"pitch": 1.6
+	},
+	"moments": {
+		"attack": {
+			"particle": "minecraft:reverse_portal",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:reverse_portal",
+			"count": 50,
+			"flash": "#2a0a50",
+			"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+			"filter_ticks": 15
+		},
+		"faint": {
+			"particle": "minecraft:reverse_portal",
+			"count": 40
+		},
+		"victory": {
+			"particle": "minecraft:reverse_portal",
+			"count": 100,
+			"sound": "minecraft:block.portal.travel",
+			"volume": 0.2
+		},
+		"named": {
+			"type_roll": {
+				"particle": "minecraft:enchant",
+				"count": 50,
+				"flash": "#a0f0d8",
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 20
+			}
+		}
+	}
+}

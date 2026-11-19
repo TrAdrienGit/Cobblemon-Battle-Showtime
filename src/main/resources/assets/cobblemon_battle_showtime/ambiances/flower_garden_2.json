@@ -1,0 +1,101 @@
+{
+	"time": {
+		"at": 3400,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#8ad0ff",
+		"fog_color": "#e0f0c8",
+		"strength": 0.45
+	},
+	"grass": {
+		"colors": [
+			"#4a8a2a",
+			"#5a9a32",
+			"#6aaa3a"
+		],
+		"tip": "#b8e070",
+		"count": 1800,
+		"ring": [
+			0,
+			26
+		],
+		"height": [
+			0.3,
+			0.7
+		],
+		"wind": 0.8
+	},
+	"flowers": {
+		"colors": [
+			"#ffd23d",
+			"#ffffff",
+			"#ff9ad5"
+		],
+		"count": 70,
+		"ring": [
+			1,
+			26
+		],
+		"height": [
+			0.25,
+			0.6
+		]
+	},
+	"critters": {
+		"kind": "butterfly",
+		"count": 8,
+		"colors": [
+			"#ffd23d",
+			"#ffffff",
+			"#ff9ad5"
+		],
+		"radius": 13
+	},
+	"wind": [
+		0.03,
+		0.01
+	],
+	"particles": [
+		{
+			"type": "minecraft:spore_blossom_air",
+			"rate": 0.6,
+			"area": "field"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.bee.pollinate",
+			"every": [
+				280,
+				540
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.9,
+				1.1
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:happy_villager",
+			"count": 40,
+			"flash": "#ffe8f0",
+			"sound": "minecraft:block.azalea_leaves.break"
+		},
+		"faint": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:cherry_leaves",
+			"count": 100,
+			"sound": "minecraft:entity.player.levelup"
+		}
+	}
+}

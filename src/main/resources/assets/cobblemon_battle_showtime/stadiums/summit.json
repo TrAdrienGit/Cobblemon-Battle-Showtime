@@ -1,0 +1,36 @@
+{
+	"hide_world": true,
+	"land": {
+		"ground": [
+			"#7a7a70",
+			"#6a6a62",
+			"#5a7a4a"
+		],
+		"style": "summit",
+		"flat": 5,
+		"hills": 3,
+		"radius": 60,
+		"rocks": {
+			"color": "#6e6a64",
+			"count": 14,
+			"spires": 5,
+			"ring": [
+				2,
+				12
+			],
+			"size": [
+				0.5,
+				1.6
+			]
+		},
+		"clouds": {
+			"depth": 24
+		},
+		"ranges": {
+			"color": "#5a6a80",
+			"height": 40,
+			"distance": 110,
+			"layers": 3
+		}
+	}
+}

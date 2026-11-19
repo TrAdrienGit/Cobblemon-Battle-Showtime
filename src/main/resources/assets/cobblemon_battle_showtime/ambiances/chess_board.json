@@ -1,0 +1,133 @@
+{
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#1a1628",
+		"fog_color": "#221c34",
+		"strength": 0.9,
+		"fog_start": 10,
+		"fog_end": 70,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"spotlights": {
+		"count": 4,
+		"colors": [
+			"#f0e8ff",
+			"#c8b8ff"
+		],
+		"sweep": 14,
+		"height": 18,
+		"width": 1.2,
+		"alpha": 30,
+		"ring": 10
+	},
+	"glints": {
+		"color": "#ffffff",
+		"count": 14,
+		"radius": [
+			3,
+			14
+		],
+		"height": [
+			0.05,
+			0.3
+		],
+		"size": 0.25
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.stone.place",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.6,
+				0.8
+			]
+		},
+		{
+			"id": "minecraft:block.note_block.chime",
+			"every": [
+				300,
+				700
+			],
+			"volume": 0.2,
+			"pitch": [
+				0.6,
+				0.9
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:crit",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:enchanted_hit",
+			"count": 40,
+			"flash": "#ffffff",
+			"sound": "minecraft:block.stone.break",
+			"volume": 0.7
+		},
+		"faint": {
+			"particle": "minecraft:poof",
+			"count": 30,
+			"sound": "minecraft:block.stone.fall"
+		},
+		"victory": {
+			"particle": "minecraft:totem_of_undying",
+			"count": 80,
+			"sound": "minecraft:ui.toast.challenge_complete",
+			"volume": 0.5
+		},
+		"named": {
+			"chess_slam": {
+				"particle": "minecraft:poof",
+				"count": 40,
+				"flash": "#e8e0ff",
+				"sound": "minecraft:block.anvil.land",
+				"volume": 0.5
+			},
+			"piece_king": {
+				"particle": "minecraft:totem_of_undying",
+				"count": 30,
+				"flash": "#ffd23d"
+			},
+			"piece_queen": {
+				"particle": "minecraft:enchant",
+				"count": 40,
+				"flash": "#ff9ad8"
+			},
+			"piece_rook": {
+				"particle": "minecraft:poof",
+				"count": 25,
+				"sound": "minecraft:block.stone.place"
+			},
+			"piece_bishop": {
+				"particle": "minecraft:enchant",
+				"count": 25
+			},
+			"piece_knight": {
+				"particle": "minecraft:crit",
+				"count": 25,
+				"sound": "minecraft:entity.horse.gallop"
+			},
+			"piece_pawn": {
+				"particle": "minecraft:crit",
+				"count": 15,
+				"sound": "minecraft:block.stone.place"
+			},
+			"queen_dominates": {
+				"particle": "minecraft:enchant",
+				"count": 60,
+				"flash": "#ff9ad8"
+			}
+		}
+	}
+}

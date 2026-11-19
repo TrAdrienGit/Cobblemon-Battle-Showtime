@@ -1,0 +1,40 @@
+{
+	"hide_world": true,
+	"land": {
+		"ground": [
+			"#3a3e22",
+			"#2e3a1e",
+			"#4a4a2a"
+		],
+		"style": "marsh",
+		"flat": 3,
+		"hills": 1.2,
+		"radius": 80,
+		"pools": {
+			"color": "#2e3a24",
+			"rim": "#24281a",
+			"count": 12,
+			"ring": [
+				2,
+				26
+			],
+			"size": [
+				1.5,
+				4.5
+			]
+		},
+		"trees": {
+			"kind": "dead",
+			"count": 14,
+			"ring": [
+				5,
+				35
+			],
+			"height": [
+				5,
+				9
+			],
+			"trunk": "#3a3024"
+		}
+	}
+}

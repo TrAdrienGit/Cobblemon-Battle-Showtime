@@ -1,6 +1,6 @@
 {
 	"time": {
-		"at": 12000,
+		"at": 10500,
 		"speed": 0
 	},
 	"sky": {
@@ -11,6 +11,14 @@
 		"fog_end": 54,
 		"stars": 0,
 		"cloud_color": "#5a5a3a"
+	},
+	"water": {
+		"color": "#3a4224",
+		"deep": "#14180c",
+		"foam": "#7a8048",
+		"waves": 0.45,
+		"oil": true,
+		"clarity": 0.25
 	},
 	"mist": {
 		"color": "#5a6a2a",

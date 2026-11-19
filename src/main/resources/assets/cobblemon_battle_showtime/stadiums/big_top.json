@@ -1,0 +1,25 @@
+{
+	"hide_world": true,
+	"hall": {
+		"shape": "tent",
+		"floor": "#c8a070",
+		"stripes": [
+			"#d02a2a",
+			"#f4f0e0"
+		],
+		"lamp": "#fff0c0",
+		"margin": 16,
+		"height": 14
+	},
+	"crowd": {
+		"rows": 4,
+		"row_depth": 1.2,
+		"rise": 0.8,
+		"spacing": 0.75,
+		"sides": [
+			"#d02a2a",
+			"#f4f0e0"
+		],
+		"flashes": 0.3
+	}
+}

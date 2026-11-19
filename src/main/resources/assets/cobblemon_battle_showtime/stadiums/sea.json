@@ -1,0 +1,15 @@
+{
+	"hide_world": true,
+	"sea": {
+		"sand": "#d9c48f",
+		"rock": "#6e675c",
+		"water": "#2f8fc0",
+		"deep": "#0e3f66",
+		"foam": "#f2fbff",
+		"margin": 3,
+		"radius": 96,
+		"wave": 0.32,
+		"speed": 1,
+		"rocks": 7
+	}
+}

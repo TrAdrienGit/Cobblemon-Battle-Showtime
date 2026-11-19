@@ -11,6 +11,13 @@
 		"fog_end": 80,
 		"cloud_color": "#e8f0f8"
 	},
+	"water": {
+		"color": "#cfe6f2",
+		"deep": "#7fa8c4",
+		"foam": "#ffffff",
+		"frozen": true,
+		"clarity": 0.8
+	},
 	"floating_blocks": {
 		"block": "minecraft:packed_ice",
 		"count": 9,

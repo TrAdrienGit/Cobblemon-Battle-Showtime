@@ -10,8 +10,8 @@ in vec2 texCoord;
 out vec4 fragColor;
 
 void main() {
-    float drift = sin(Time * 6.2831) * 0.5 + 0.5;
-    vec2 offset = vec2(Amount * (0.6 + drift), Amount * 0.3 * sin(Time * 12.566));
+    float drift = sin(Time * 6.2831853) * 0.5 + 0.5;
+    vec2 offset = vec2(Amount * (0.6 + drift), Amount * 0.3 * sin(Time * 12.5663706));
     float r = texture(DiffuseSampler, texCoord + offset).r;
     float g = texture(DiffuseSampler, texCoord).g;
     float b = texture(DiffuseSampler, texCoord - offset).b;

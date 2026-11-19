@@ -12,6 +12,10 @@
 		"stars": 0,
 		"cloud_color": "#5a3a6a"
 	},
+	"water": {
+		"color": "#5a2a7a",
+		"light": "#9aff40"
+	},
 	"veins": {
 		"color": "#8a2aff",
 		"core": "#b8ff40",

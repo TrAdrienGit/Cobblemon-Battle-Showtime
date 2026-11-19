@@ -8,16 +8,38 @@
 		"fog_color": "#d8f0c0",
 		"strength": 0.45
 	},
-	"kelp": {
-		"color": "#4aa83a",
-		"count": 34,
+	"grass": {
+		"colors": [
+			"#4a8a2a",
+			"#5a9a32",
+			"#6aaa3a"
+		],
+		"tip": "#b8e070",
+		"count": 2400,
 		"ring": [
-			1,
-			7
+			0,
+			28
 		],
 		"height": [
-			1,
-			2.2
+			0.4,
+			1.0
+		],
+		"wind": 1
+	},
+	"flowers": {
+		"colors": [
+			"#ffd23d",
+			"#ffffff",
+			"#ff9ad5"
+		],
+		"count": 40,
+		"ring": [
+			2,
+			26
+		],
+		"height": [
+			0.3,
+			0.6
 		]
 	},
 	"critters": {

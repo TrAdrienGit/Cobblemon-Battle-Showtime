@@ -46,7 +46,7 @@ public final class Ambiances {
 	private static final Logger LOG = LoggerFactory.getLogger(Ambiances.class);
 	private static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 	/** The keys that make a place: an ambiance's are dropped under a stadium. */
-	private static final Set<String> STADIUM_KEYS = Set.of("hide_world", "cavern", "island", "islands", "court", "crowd",
+	private static final Set<String> STADIUM_KEYS = Set.of("hide_world", "cavern", "sea", "land", "hall", "island", "islands", "court", "crowd",
 			"light_towers", "backdrop", "galaxy", "planets");
 	public static final String NONE = "none";
 
@@ -242,7 +242,7 @@ public final class Ambiances {
 
 	/** Whether an ambiance carries a place of its own (an older pack's that hides the world): listed with presets. */
 	public static boolean hasPlace(Ambiance ambiance) {
-		return ambiance.hideWorld || ambiance.cavern != null || ambiance.island != null || ambiance.islands != null
+		return ambiance.hideWorld || ambiance.cavern != null || ambiance.sea != null || ambiance.land != null || ambiance.hall != null || ambiance.island != null || ambiance.islands != null
 				|| ambiance.court != null || ambiance.crowd != null;
 	}
 
