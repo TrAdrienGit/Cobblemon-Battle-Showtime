@@ -1576,7 +1576,7 @@ private static boolean irisChecked;
 
 	private static void drawStars(MultiBufferSource buffers, Matrix4f m, Ambiance.Backdrop backdrop, float r, float time) {
 		if (backdrop.stars > 0) {
-			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+			VertexConsumer glow = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 			int color = Ambiance.color(backdrop.starColor, 0xFFFFFF);
 			int[] colors = backdrop.starColors.stream().mapToInt(c -> Ambiance.color(c, 0xFFFFFF)).toArray();
 			RandomSource seeded = RandomSource.create(1234L);
@@ -1597,7 +1597,7 @@ private static boolean irisChecked;
 
 	private static void drawRainbow(PoseStack pose, MultiBufferSource buffers, Ambiance.Rainbow rainbow, Vec3 camera) {
 		int[] bands = { 0xFF3B30, 0xFF9500, 0xFFCC00, 0x34C759, 0x32ADE6, 0x5856D6, 0xAF52DE };
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		// Behind the field as the player saw it at the start, and fixed there.
 		Vec3 back = rainbowBack;
@@ -1651,7 +1651,7 @@ private static boolean irisChecked;
 	}
 
 	private static void drawSpotlights(PoseStack pose, MultiBufferSource buffers, Ambiance.Spotlights spotlights, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float ring = fieldRadius + spotlights.ring;
 		for (int i = 0; i < spotlights.count; i++) {
@@ -1685,7 +1685,7 @@ private static boolean irisChecked;
 	}
 
 	private static void drawFloorLights(PoseStack pose, MultiBufferSource buffers, Ambiance.FloorLights lights, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		for (int i = 0; i < lights.count; i++) {
 			// Each spot runs its own loop over the floor: different radii, speeds and directions.
@@ -1826,7 +1826,7 @@ private static boolean irisChecked;
 			for (int s = 0; s < steps; s++) {
 				coreQuad(core, m, left[s], right[s], right[s + 1], left[s + 1]);
 			}
-			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+			VertexConsumer glow = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 			for (int s = 0; s < steps; s++) {
 				// The burning rim, out on both sides.
 				Vec3 outL = across.scale(-0.35 * open);
@@ -1855,7 +1855,7 @@ private static boolean irisChecked;
 	 * in from below and out above, flickering on its own — light, not cloth (2026-10-30).
 	 */
 	private static void drawAurora(PoseStack pose, MultiBufferSource buffers, Ambiance.Aurora aurora, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int bands = 3;
 		int rays = 140;
@@ -1926,7 +1926,7 @@ private static boolean irisChecked;
 				int[] bands = planet.bands.stream().mapToInt(c -> Ambiance.color(c, 0x9FB8FF)).toArray();
 				sphere(buffers.getBuffer(solidType), m, at, planet.size, color, light, false, bands);
 			}
-			VertexConsumer glow = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+			VertexConsumer glow = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 			if (planet.atmosphere != null) {
 				// The atmosphere: a soft rim, brighter on the lit side.
 				Vec3 toCamera = cameraRel.subtract(at).normalize();
@@ -2009,7 +2009,7 @@ private static boolean irisChecked;
 	}
 
 	private static void drawStreaks(PoseStack pose, MultiBufferSource buffers, float partialTick) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(active.shootingStars.color, 0xE8F0FF);
 		for (Streak streak : STREAKS) {
@@ -2102,7 +2102,7 @@ private static boolean irisChecked;
 
 	/** Disco's floor: tiles on the ground lighting up on the beat, each with its colour and its own rhythm. */
 	private static void drawDanceFloor(PoseStack pose, MultiBufferSource buffers, Ambiance.DanceFloor floor, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float radius = floor.radius > 0 ? floor.radius : fieldRadius * 0.95f;
 		int beat = Math.max(1, floor.beat);
@@ -2135,7 +2135,7 @@ private static boolean irisChecked;
 
 	/** Arcade's grid: lines on the ground fading into the distance, a wave of the accent colour running out. */
 	private static void drawNeonGrid(PoseStack pose, MultiBufferSource buffers, Ambiance.NeonGrid grid, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float extent = fieldRadius * grid.extent;
 		int lines = (int) Math.ceil(extent / grid.spacing);
@@ -2167,7 +2167,7 @@ private static boolean irisChecked;
 
 	/** The mirror ball's light dots: thrown down from the ball, turning with it, landing on the ground. */
 	private static void drawMirrorBallDots(PoseStack pose, MultiBufferSource buffers, Ambiance.MirrorBall ball, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		double turn = time / 1200.0 * ball.speed * Math.PI * 2;
 		for (int i = 0; i < ball.dots; i++) {
@@ -2208,7 +2208,7 @@ private static boolean irisChecked;
 
 	/** Nebulae: clusters of soft glowing puffs, mixing two colours, far away on the sky. */
 	private static void drawNebulae(PoseStack pose, MultiBufferSource buffers, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float r = skyRadius();
 		int index = 0;
@@ -2238,7 +2238,7 @@ private static boolean irisChecked;
 
 	/** The galaxy's band: a soft glowing strip along a great circle, sprinkled with fine stars. */
 	private static void drawGalaxy(PoseStack pose, MultiBufferSource buffers, Ambiance.Galaxy galaxy, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float r = skyRadius() * 1.02f;
 		int color = Ambiance.color(galaxy.color, 0xC8D0FF);
@@ -2277,7 +2277,7 @@ private static boolean irisChecked;
 
 	/** Mist: translucent layers just over the ground, their thickness changing in slow drifting patches. */
 	private static void drawMist(PoseStack pose, MultiBufferSource buffers, Ambiance.Mist mist, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		float radius = mist.radius > 0 ? mist.radius : fieldRadius * 1.5f;
 		int color = Ambiance.color(mist.color, 0xB0C0C8);
@@ -2352,7 +2352,7 @@ private static boolean irisChecked;
 	}
 
 	private static void drawVeins(PoseStack pose, MultiBufferSource buffers, Ambiance.Veins veins, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(veins.color, 0xFF2A8A);
 		int core = veins.core != null ? Ambiance.color(veins.core, 0xFFD060) : -1;
@@ -2370,7 +2370,7 @@ private static boolean irisChecked;
 
 	/** Cracks in the sky: jagged lines on the sky's sphere, a thin hot core in a wide soft glow, pulsing. */
 	private static void drawSkyCracks(PoseStack pose, MultiBufferSource buffers, Ambiance.SkyCracks cracks, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(cracks.color, 0xFF3070);
 		float r = 48f;
@@ -2415,7 +2415,7 @@ private static boolean irisChecked;
 	 * coloured shell (light pass); otherwise the black body (solid pass).
 	 */
 	private static void drawGlitchCubes(PoseStack pose, MultiBufferSource buffers, Ambiance.GlitchCubes cubes, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(cubes.color, 0xFF2A8A);
 		int jump = Math.max(10, cubes.jump);
@@ -2460,7 +2460,7 @@ private static boolean irisChecked;
 
 	/** Will-o'-wisps: a bright flickering core in a soft halo, wandering slowly round the field. */
 	private static void drawWisps(PoseStack pose, MultiBufferSource buffers, Ambiance.Wisps wisps, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int a = Ambiance.color(wisps.color, 0x5CFFD0);
 		int b = Ambiance.color(wisps.accent, 0x3DB8FF);
@@ -2499,7 +2499,7 @@ private static boolean irisChecked;
 
 	/** Ghosts: pale silhouettes far beyond the field, drifting sideways, fading in and out at their own pace. */
 	private static void drawGhosts(PoseStack pose, MultiBufferSource buffers, Ambiance.Ghosts ghosts, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(ghosts.color, 0xD8F4FF);
 		for (int i = 0; i < ghosts.count; i++) {
@@ -2541,7 +2541,7 @@ private static boolean irisChecked;
 
 	/** Soap bubbles: a thin bright rim, a faint body and a glint, rising and swaying, popping at the top. */
 	private static void drawBubbles(PoseStack pose, MultiBufferSource buffers, Ambiance.Bubbles bubbles, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(bubbles.color, 0xE8F4FF);
 		int[] sheen = { 0xFFB0E0, 0xB0FFE8, 0xB8C8FF };
@@ -2604,7 +2604,7 @@ private static boolean irisChecked;
 	 */
 	private static void drawMushrooms(PoseStack pose, MultiBufferSource buffers, Ambiance.Mushrooms mushrooms, float time,
 			boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		for (int c = 0; c < mushrooms.clumps; c++) {
 			double angle = Math.PI * 2 * (c + hashFloat(c * 53 + 1) * 0.6) / mushrooms.clumps;
@@ -2743,7 +2743,7 @@ private static boolean irisChecked;
 
 	/** Embers (or plankton): small glows rising and swaying, their colour moving from {@code color} to {@code accent}. */
 	private static void drawEmbers(PoseStack pose, MultiBufferSource buffers, Ambiance.Embers embers, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int young = Ambiance.color(embers.color, 0xFFC040);
 		int old = Ambiance.color(embers.accent, 0xFF3010);
@@ -2780,7 +2780,7 @@ private static boolean irisChecked;
 	 * streams down its flanks, a plume of light and a red glow along the horizon (light pass).
 	 */
 	private static void drawVolcano(PoseStack pose, MultiBufferSource buffers, Ambiance.Volcano volcano, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		double yaw = Math.toRadians(volcano.yaw);
 		Vec3 dir = new Vec3(Math.cos(yaw), 0, Math.sin(yaw));
@@ -2822,7 +2822,7 @@ private static boolean irisChecked;
 
 	/** Caustics: a web of bright wavering lines on the floor, from two drifting interference patterns. */
 	private static void drawCaustics(PoseStack pose, MultiBufferSource buffers, Ambiance.Caustics caustics, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(caustics.color, 0xA8F4FF);
 		float radius = Math.min(caustics.radius > 0 ? caustics.radius : fieldRadius * 1.35f, 22f);
@@ -2870,7 +2870,7 @@ private static boolean irisChecked;
 
 	/** Shafts of light from above, all leaning the same way, swaying and breathing. */
 	private static void drawShafts(PoseStack pose, MultiBufferSource buffers, Ambiance.Shafts shafts, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(shafts.color, 0xBFF4FF);
 		double lean = Math.tan(Math.toRadians(shafts.tilt)) * shafts.height;
@@ -2890,7 +2890,7 @@ private static boolean irisChecked;
 
 	/** Kelp: ribbons rooted beyond the field, swaying more toward their tips, darker at the root. */
 	private static void drawKelp(PoseStack pose, MultiBufferSource buffers, Ambiance.Kelp kelp, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(kelp.color, 0x1F6A48);
 		int root = lerpColor(color, 0x000000, 0.45f);
@@ -2931,7 +2931,7 @@ private static boolean irisChecked;
 	 * its flame round it (light pass). Each fades in near the ground and out high in the sky.
 	 */
 	private static void drawLanterns(PoseStack pose, MultiBufferSource buffers, Ambiance.Lanterns lanterns, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		double seconds = lanterns.height / Math.max(0.05f, lanterns.rise);
 		for (int i = 0; i < lanterns.count; i++) {
@@ -2994,7 +2994,7 @@ private static boolean irisChecked;
 
 	/** Glints: four-pointed stars flashing for a moment here and there in the air, each at its own beat. */
 	private static void drawGlints(PoseStack pose, MultiBufferSource buffers, Ambiance.Glints glints, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(glints.color, 0xE8F8FF);
 		for (int i = 0; i < glints.count; i++) {
@@ -3041,7 +3041,7 @@ private static boolean irisChecked;
 	 * when the camera comes near it or goes past it, so it never stands between the camera and the battle.
 	 */
 	private static void drawFogWall(PoseStack pose, MultiBufferSource buffers, Ambiance.FogWall wall, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(wall.color, 0xE4EEF8);
 		float radius = wall.radius > 0 ? wall.radius : fieldRadius + 8f;
@@ -3076,7 +3076,7 @@ private static boolean irisChecked;
 
 	/** The mirage: a band of pale "water" all round the horizon, shimmering, fading above and below. */
 	private static void drawMirage(PoseStack pose, MultiBufferSource buffers, Ambiance.Mirage mirage, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(mirage.color, 0xBFE0FF);
 		float r = skyRadius();
@@ -3104,7 +3104,7 @@ private static boolean irisChecked;
 
 	/** Birds: dark V shapes circling high up, their wings beating now and then, gliding the rest of the time. */
 	private static void drawBirds(PoseStack pose, MultiBufferSource buffers, Ambiance.Birds birds, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(birds.color, 0x2A2018);
 		for (int i = 0; i < birds.count; i++) {
@@ -3135,7 +3135,7 @@ private static boolean irisChecked;
 	 * widen toward the horizon (solid pass); a warm glow round it (light pass).
 	 */
 	private static void drawStripedSun(PoseStack pose, MultiBufferSource buffers, Ambiance.StripedSun sun, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		double yaw = Math.toRadians(sun.yaw);
 		Vec3 dir = new Vec3(Math.cos(yaw), 0, Math.sin(yaw));
@@ -3174,7 +3174,7 @@ private static boolean irisChecked;
 
 	/** Palm silhouettes: a curved trunk tapering up, a crown of drooping fronds. */
 	private static void drawPalms(PoseStack pose, MultiBufferSource buffers, Ambiance.Palms palms, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(palms.color, 0x1A0628);
 		for (int i = 0; i < palms.count; i++) {
@@ -3261,7 +3261,7 @@ private static boolean irisChecked;
 		if (size <= 0.01f) {
 			return;
 		}
-		VertexConsumer out = buffers.getBuffer(layer == 1 ? com.mystaria.showtime.ShowtimeRenderTypes.TINT : com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, layer == 1 ? com.mystaria.showtime.ShowtimeRenderTypes.TINT : com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		Vec3 u = normal.cross(new Vec3(0, 1, 0));
 		u = u.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : u.normalize();
@@ -3461,7 +3461,7 @@ private static boolean irisChecked;
 	 * top (solid pass, writing depth); the crystals' glow (light pass). They bob and turn slowly.
 	 */
 	private static void drawIslands(PoseStack pose, MultiBufferSource buffers, Ambiance.Islands islands, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		int rock = Ambiance.color(islands.rock, 0x2A1F4A);
 		int top = Ambiance.color(islands.top, 0x5A3F9A);
@@ -3568,7 +3568,7 @@ private static boolean irisChecked;
 	 * cells sparkling, a glowing rim, the crystals' glow.
 	 */
 	private static void drawFieldIsland(PoseStack pose, MultiBufferSource buffers, Ambiance.Island island, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		int top = Ambiance.color(island.top, 0x241A52);
 		int line = Ambiance.color(island.line, 0x7FF8FF);
@@ -3956,7 +3956,7 @@ private static boolean irisChecked;
 			caveInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawCave(pose, buffers, center, cameraWorld, frustum,
 					cavern, lightStrength(cavern), fieldRadius, BattleAmbiance::groundAt);
 		}
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		// The ambiance may recolour the stadium's stone (the same vault black in a dark crystal cave).
 		int rock = Ambiance.color(active.light != null && active.light.rock != null ? active.light.rock : cavern.rock, 0x3A332C);
@@ -4193,7 +4193,7 @@ private static boolean irisChecked;
 		if (seaInBlocks && !sea.under) {
 			return; // the islet, its rocks and the water are blocks; the sun's glitter would sit under their surface
 		}
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		WaterLook look = waterLook(sea);
 		if (sea.under) {
@@ -4932,13 +4932,13 @@ private static boolean irisChecked;
 					land, active.grass, active.flowers, active.snowCover, active.blaze != null, fieldRadius, BattleAmbiance::groundAt);
 			if (landInBlocks) {
 				if (land.clouds != null) {
-					drawCloudSea(buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE), pose.last().pose(), land.clouds,
+					drawCloudSea(ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE), pose.last().pose(), land.clouds,
 							groundAt(0, 0) + 0.09, time);
 				}
 				return;
 			}
 		}
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		double base = groundAt(0, 0) + 0.09;
 		if (glow) {
@@ -5526,7 +5526,7 @@ private static boolean irisChecked;
 			hallInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawHall(pose, buffers, center, cameraWorld, frustum,
 					hall, active.powerCut != null, fieldRadius, BattleAmbiance::groundAt);
 		}
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		double s = hallHalf(hall);
 		double base = groundAt(0, 0) + 0.09;
@@ -5686,6 +5686,28 @@ double s = hallHalf(hall);
 double base = groundAt(0, 0) + 0.09;
 return Math.abs(cameraRel.x) < s - 0.5 && Math.abs(cameraRel.z) < s - 0.5 && cameraRel.y > base - 0.5
 		&& cameraRel.y < base + hall.height - 0.5 && (hallInBlocks || !shadersOn());
+}
+
+/**
+ * The buffer for one of Showtime's colour-only render types; under a shader pack, its entity-format sibling instead
+ * (2026-11-19: packs drew the lightning shader those use as a bolt, so glows were dull and solid shapes flat and dark),
+ * the shapes written through {@link com.mystaria.showtime.ShaderPackQuads}. Glows and tints at full light; solid shapes
+ * in daylight, no block light, for the pack to light them as the world.
+ */
+private static VertexConsumer ambianceBuffer(MultiBufferSource buffers, RenderType type) {
+if (!shadersOn()) {
+	return buffers.getBuffer(type);
+}
+if (type == com.mystaria.showtime.ShowtimeRenderTypes.GLOW) {
+	return new com.mystaria.showtime.ShaderPackQuads(buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW_SHADERS), 0xF000F0);
+}
+if (type == com.mystaria.showtime.ShowtimeRenderTypes.TINT) {
+	return new com.mystaria.showtime.ShaderPackQuads(buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT_SHADERS), 0xF000F0);
+}
+if (type == com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE) {
+	return new com.mystaria.showtime.ShaderPackQuads(buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE_SHADERS), 0xF00000);
+}
+return buffers.getBuffer(type);
 }
 
 private static boolean shadersOn() {
@@ -6199,7 +6221,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** Grass blades over the place's ground, a wave of wind running across them. */
 	private static void drawGrass(PoseStack pose, MultiBufferSource buffers, Ambiance.Grass grass, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		double wx = 1;
 		double wz = 0.3;
@@ -6235,7 +6257,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** Flowers: a stem, then five petals round a golden heart, each petal pale at its root and coloured at its tip. */
 	private static void drawFlowers(PoseStack pose, MultiBufferSource buffers, Ambiance.Flowers flowers, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		for (int i = 0; i < flowers.count; i++) {
 			double a = Math.PI * 2 * hashFloat(i * 163 + 1);
@@ -6412,7 +6434,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** The props: rock and crystals (solid pass), the crystals' light, beams and dripping water (light pass); rocks falling. */
 	private static void drawProps(PoseStack pose, MultiBufferSource buffers, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		Vec3 up = new Vec3(0, 1, 0);
 		int beamsLeft = 0;
@@ -6804,7 +6826,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** The court: border, centre line, centre circle and spot, a box at each trainer's end. */
 	private static void drawCourt(PoseStack pose, MultiBufferSource buffers, Ambiance.Court court) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		double[] size = courtSize();
 		double l = size[0];
@@ -6900,7 +6922,7 @@ for (int fx = -1; fx <= 1; fx++) {
 	 * strips along the rows, lamps under the canopy's edge, the lights in the crowd.
 	 */
 	private static void drawStands(PoseStack pose, MultiBufferSource buffers, Ambiance.Crowd crowd, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		float r0 = standsInner(crowd);
 		int side0 = Ambiance.color(crowd.sides.get(0), 0x2A5AD0);
@@ -7084,7 +7106,7 @@ for (int fx = -1; fx <= 1; fx++) {
 	}
 
 	private static void drawCameraFlashes(PoseStack pose, MultiBufferSource buffers, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		for (CameraFlash flash : CAMERA_FLASHES) {
 			float age = time - flash.born();
@@ -7139,7 +7161,7 @@ for (int fx = -1; fx <= 1; fx++) {
 	 * flaring when it faces the camera, a soft wide beam falling on the field.
 	 */
 	private static void drawLightTowers(PoseStack pose, MultiBufferSource buffers, Ambiance.LightTowers towers, float time, boolean glow) {
-		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		int frame = Ambiance.color(towers.frame, 0x2A2E38);
 		int lamp = Ambiance.color(towers.lamp, 0xFFF6E0);
@@ -7219,7 +7241,7 @@ for (int fx = -1; fx <= 1; fx++) {
 		if (stage == null) {
 			return;
 		}
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(spots.color, 0xFFF4D0);
 		for (int k = 0; k < 2; k++) {
@@ -7295,7 +7317,7 @@ for (int fx = -1; fx <= 1; fx++) {
 	 * turn); once down they lie flat on the ground, then fade.
 	 */
 	private static void drawConfetti(PoseStack pose, MultiBufferSource buffers, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		double drag = 0.06;
 		for (Confetti piece : CONFETTI) {
@@ -7349,7 +7371,7 @@ for (int fx = -1; fx <= 1; fx++) {
 	}
 
 	private static void drawMoonHalo(PoseStack pose, MultiBufferSource buffers, Ambiance.Moon moon) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Vec3 at = moonPlace(moon);
 		glowDisc(out, pose.last().pose(), at, at.normalize().scale(-1), moon.size * moon.halo, Ambiance.color(moon.color, 0xF4F0E0),
 				moon.haloAlpha);
@@ -7357,7 +7379,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** The moon's disc: solid, slightly darker toward one side, with a few soft grey seas. */
 	private static void drawMoonDisc(PoseStack pose, MultiBufferSource buffers, Ambiance.Moon moon) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		Vec3 at = moonPlace(moon);
 		Vec3 normal = at.normalize().scale(-1);
@@ -7408,7 +7430,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** The mirror ball itself: a turning sphere of small square facets, some catching the light. */
 	private static void drawMirrorBall(PoseStack pose, MultiBufferSource buffers, Ambiance.MirrorBall ball, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		Vec3 centre = new Vec3(0, ball.height, 0);
 		// The cord it hangs from.
@@ -7450,7 +7472,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** Arcade's sprites: pixel art floating round the field, always facing the camera, bobbing and turning. */
 	private static void drawSprites(PoseStack pose, MultiBufferSource buffers, Ambiance.Sprites sprites, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		for (Orbiter o : SPRITES) {
 			double angle = o.angle() + time / 1200.0 * sprites.orbit * Math.PI * 2;
@@ -7485,7 +7507,7 @@ for (int fx = -1; fx <= 1; fx++) {
 
 	/** Meadow's butterflies: two wings flapping, wandering round the field at grass height. */
 	private static void drawCritters(PoseStack pose, MultiBufferSource buffers, Ambiance.Critters critters, float time) {
-		VertexConsumer out = buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		for (Orbiter o : CRITTERS) {
 			double t = time / 20.0;

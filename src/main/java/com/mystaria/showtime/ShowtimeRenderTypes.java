@@ -47,6 +47,50 @@ public final class ShowtimeRenderTypes extends RenderType {
 					.setOutputState(WEATHER_TARGET)
 					.createCompositeState(false));
 
+	/** A plain white texture, for the entity formats below: the vertex colour alone shows. */
+	private static final net.minecraft.resources.ResourceLocation WHITE = net.minecraft.resources.ResourceLocation
+			.fromNamespaceAndPath("cobblemon_battle_showtime", "textures/misc/white.png");
+
+	/**
+	 * {@link #GLOW} under a shader pack (2026-11-19). Shader packs draw lightning's shader with their own program, made
+	 * for bolts: the ambiances' glows came out dull, or not at all. This one uses glowing eyes' shader, which packs draw
+	 * emissive (often with bloom); same blending, no depth write, no culling. Entity vertex format: write through
+	 * {@link ShaderPackQuads}.
+	 */
+	public static final RenderType GLOW_SHADERS = create("cobblemon_battle_showtime_glow_shaders", DefaultVertexFormat.NEW_ENTITY,
+			VertexFormat.Mode.QUADS, 1536, false, true, CompositeState.builder()
+					.setShaderState(RENDERTYPE_EYES_SHADER)
+					.setTextureState(new TextureStateShard(WHITE, false, false))
+					.setWriteMaskState(COLOR_WRITE)
+					.setTransparencyState(LIGHTNING_TRANSPARENCY)
+					.setCullState(NO_CULL)
+					.createCompositeState(false));
+
+	/** {@link #TINT} under a shader pack: translucent, its own colour whatever the light (emissive entity shader). */
+	public static final RenderType TINT_SHADERS = create("cobblemon_battle_showtime_tint_shaders", DefaultVertexFormat.NEW_ENTITY,
+			VertexFormat.Mode.QUADS, 1536, false, true, CompositeState.builder()
+					.setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER)
+					.setTextureState(new TextureStateShard(WHITE, false, false))
+					.setWriteMaskState(COLOR_WRITE)
+					.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+					.setCullState(NO_CULL)
+					.setOverlayState(OVERLAY)
+					.createCompositeState(false));
+
+	/**
+	 * {@link #OPAQUE} under a shader pack: a solid entity surface the pack lights and shades (sun, shadows, its normal)
+	 * instead of a flat colour drawn as weather.
+	 */
+	public static final RenderType OPAQUE_SHADERS = create("cobblemon_battle_showtime_opaque_shaders", DefaultVertexFormat.NEW_ENTITY,
+			VertexFormat.Mode.QUADS, 1536, true, false, CompositeState.builder()
+					.setShaderState(RENDERTYPE_ENTITY_SOLID_SHADER)
+					.setTextureState(new TextureStateShard(WHITE, false, false))
+					.setTransparencyState(NO_TRANSPARENCY)
+					.setCullState(NO_CULL)
+					.setLightmapState(LIGHTMAP)
+					.setOverlayState(OVERLAY)
+					.createCompositeState(true));
+
 	private ShowtimeRenderTypes(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumbling,
 			boolean sortOnUpload, Runnable setup, Runnable clear) {
 		super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload, setup, clear);
