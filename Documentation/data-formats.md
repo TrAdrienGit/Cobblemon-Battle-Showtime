@@ -69,7 +69,8 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   id anywhere (an override naming a preset brings its stadium). Showtime's: `cosmos` (void), `ultra_space`
   (ultra_island), `champion` (arena), `grotto`, `crystal_grotto`, `dark_grotto` (cave), `dragon_lair` (volcanic_den), `open_sea`, `polluted_sea`,
   `frozen_sea` (sea), `deep_sea` (seabed), and one per League Reborn land or hall (`sunny_meadow`, `wildfire`,
-  `snowy_peak`, `blackout`, `circus`...: the full list is `PRESETS` in `tools/stadiums.py`).
+  `snowy_peak`, `blackout`, `circus`...: the full list is `PRESETS` in `tools/stadiums.py`). The block palettes of
+  the stadiums built of blocks are `BLOCKS` in the same script, laid over each stadium when it writes the files.
 - `sea` (2026-11-19): the field on an islet (the real ground under the field, a sand beach, rocks on the shore), water
   out to `radius` rolling in waves of height `wave`; with `under`, the field on a sand seabed instead, the surface
   rippling `depth` blocks overhead, rocks and fish round it. Two stadiums use it: `sea` and `seabed` (a stadium of its

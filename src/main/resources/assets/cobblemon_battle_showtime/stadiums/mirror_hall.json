@@ -1,19 +1,6 @@
 {
 	"hide_world": true,
 	"hall": {
-		"floor_blocks": ["minecraft:polished_deepslate"],
-		"checker_blocks": ["minecraft:deepslate_tiles"],
-		"wall_blocks": ["minecraft:polished_deepslate"],
-		"ceiling_blocks": ["minecraft:polished_blackstone_bricks"],
-		"trim": "minecraft:smooth_quartz",
-		"lamp_block": "minecraft:sea_lantern",
-		"mirror_block": "minecraft:glass",
-		"wainscot": "minecraft:polished_blackstone_bricks",
-		"cornice": true,
-		"chandeliers": true,
-		"pedestal": "minecraft:chiseled_quartz_block",
-		"wall_props": ["minecraft:potted_flowering_azalea_bush", "minecraft:amethyst_cluster", "minecraft:potted_azalea_bush"],
-		"carpet": "minecraft:red_carpet",
 		"floor": "#2a2a34",
 		"checker": "#3a3a48",
 		"tile": 3,
@@ -23,6 +10,31 @@
 		"lamp": "#e8f0ff",
 		"mirrors": true,
 		"margin": 11,
-		"height": 12
+		"height": 12,
+		"floor_blocks": [
+			"minecraft:polished_deepslate"
+		],
+		"checker_blocks": [
+			"minecraft:deepslate_tiles"
+		],
+		"wall_blocks": [
+			"minecraft:polished_deepslate"
+		],
+		"ceiling_blocks": [
+			"minecraft:polished_blackstone_bricks"
+		],
+		"trim": "minecraft:smooth_quartz",
+		"lamp_block": "minecraft:sea_lantern",
+		"mirror_block": "minecraft:glass",
+		"wainscot": "minecraft:polished_blackstone_bricks",
+		"cornice": true,
+		"chandeliers": true,
+		"pedestal": "minecraft:chiseled_quartz_block",
+		"wall_props": [
+			"minecraft:potted_flowering_azalea_bush",
+			"minecraft:amethyst_cluster",
+			"minecraft:potted_azalea_bush"
+		],
+		"carpet": "minecraft:red_carpet"
 	}
 }

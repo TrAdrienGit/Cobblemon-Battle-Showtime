@@ -1,0 +1,37 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#101010",
+		"checker": "#f000f0",
+		"tile": 1,
+		"flat": true,
+		"wall": "#20a0a0",
+		"ceiling": "#181018",
+		"lamp": "#a0fff0",
+		"margin": 12,
+		"height": 14,
+		"floor_blocks": [
+			"minecraft:black_concrete"
+		],
+		"checker_blocks": [
+			"minecraft:magenta_concrete"
+		],
+		"wall_blocks": [
+			"minecraft:cyan_concrete",
+			"minecraft:command_block",
+			"minecraft:black_concrete",
+			"minecraft:lime_concrete",
+			"minecraft:structure_block",
+			"minecraft:magenta_concrete",
+			"minecraft:chain_command_block",
+			"minecraft:repeating_command_block"
+		],
+		"ceiling_blocks": [
+			"minecraft:black_concrete",
+			"minecraft:magenta_concrete"
+		],
+		"trim": "minecraft:structure_block",
+		"lamp_block": "minecraft:verdant_froglight",
+		"carpet": "minecraft:lime_carpet"
+	}
+}

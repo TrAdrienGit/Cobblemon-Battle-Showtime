@@ -1,12 +1,6 @@
 {
 	"hide_world": true,
 	"hall": {
-		"floor_blocks": ["minecraft:smooth_quartz"],
-		"checker_blocks": ["minecraft:polished_blackstone"],
-		"wall_blocks": ["minecraft:obsidian"],
-		"ceiling_blocks": ["minecraft:obsidian"],
-		"trim": "minecraft:polished_blackstone_bricks",
-		"lamp_block": "minecraft:pearlescent_froglight",
 		"floor": "#e8e2d6",
 		"checker": "#2a2630",
 		"tile": 4,
@@ -18,6 +12,20 @@
 		"height": 18,
 		"pieces": {
 			"count": 16
-		}
+		},
+		"floor_blocks": [
+			"minecraft:smooth_quartz"
+		],
+		"checker_blocks": [
+			"minecraft:polished_blackstone"
+		],
+		"wall_blocks": [
+			"minecraft:obsidian"
+		],
+		"ceiling_blocks": [
+			"minecraft:obsidian"
+		],
+		"trim": "minecraft:polished_blackstone_bricks",
+		"lamp_block": "minecraft:pearlescent_froglight"
 	}
 }

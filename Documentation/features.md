@@ -170,6 +170,11 @@ remove it from roadmap.md.
   reflected behind them, also under shader packs: the reflection is real blocks; a wainscot and cornice, chandeliers,
   pedestals with azaleas and amethyst, a red carpet round the room). A camera outside
   the room sees in; a power cut puts the lamps and the room's light out.
+- Four more hall stadiums (2026-11-20), for the League Reborn fields that had none: Power Station (copper, redstone
+  lamps, lightning rods; electric terrain), Psychic Sanctum (purpur, amethyst checkerboard, froglight chandeliers;
+  psychic terrain), Glitch Room (the missing texture's black and magenta squares, mismatched walls; glitch), Negative
+  Hall (black floor, white walls, wither roses; inverse). Presets: `charged_station`, `mind_sanctum`, `glitched_room`,
+  `negative_hall`.
 - Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
   stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
   size changes by steps of 4, so the place is no longer rebuilt at every step.

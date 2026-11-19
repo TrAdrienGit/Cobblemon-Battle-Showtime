@@ -1,0 +1,37 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#a878b8",
+		"checker": "#7a4aa0",
+		"tile": 2,
+		"flat": true,
+		"wall": "#d8d0b0",
+		"ceiling": "#5a3a6a",
+		"lamp": "#ffc0f0",
+		"margin": 12,
+		"height": 16,
+		"floor_blocks": [
+			"minecraft:purpur_block"
+		],
+		"checker_blocks": [
+			"minecraft:amethyst_block"
+		],
+		"wall_blocks": [
+			"minecraft:end_stone_bricks"
+		],
+		"ceiling_blocks": [
+			"minecraft:purpur_block"
+		],
+		"trim": "minecraft:purpur_pillar",
+		"lamp_block": "minecraft:pearlescent_froglight",
+		"wainscot": "minecraft:purpur_block",
+		"cornice": true,
+		"chandeliers": true,
+		"pedestal": "minecraft:purpur_pillar",
+		"wall_props": [
+			"minecraft:amethyst_cluster",
+			"minecraft:end_rod"
+		],
+		"carpet": "minecraft:magenta_carpet"
+	}
+}

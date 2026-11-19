@@ -1,0 +1,32 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#8a5a3a",
+		"wall": "#5a7a70",
+		"ceiling": "#24262c",
+		"lamp": "#fff0a0",
+		"margin": 12,
+		"height": 14,
+		"floor_blocks": [
+			"minecraft:cut_copper",
+			"minecraft:exposed_cut_copper"
+		],
+		"wall_blocks": [
+			"minecraft:weathered_copper",
+			"minecraft:exposed_copper"
+		],
+		"ceiling_blocks": [
+			"minecraft:polished_deepslate"
+		],
+		"trim": "minecraft:oxidized_cut_copper",
+		"lamp_block": "minecraft:redstone_lamp[lit=true]",
+		"wainscot": "minecraft:polished_deepslate",
+		"cornice": true,
+		"pedestal": "minecraft:chiseled_copper",
+		"wall_props": [
+			"minecraft:lightning_rod",
+			"minecraft:copper_bulb[lit=true]"
+		],
+		"carpet": "minecraft:yellow_carpet"
+	}
+}

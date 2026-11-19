@@ -220,6 +220,62 @@ STADIUMS = {
         "hall": {"floor": "#2a2a34", "checker": "#3a3a48", "tile": 3, "flat": True, "wall": "#9aa8c0",
                  "ceiling": "#1a1a24", "lamp": "#e8f0ff", "mirrors": True, "margin": 11, "height": 12},
     },
+
+    # Power Station (2026-11-20): a copper hall, oxidised pilasters, lit redstone lamps on chains, lightning rods and
+    # copper bulbs on pedestals, a yellow hazard carpet (electric terrain).
+    "power_station": {
+        "hide_world": True,
+        "hall": {"floor": "#8a5a3a", "wall": "#5a7a70", "ceiling": "#24262c", "lamp": "#fff0a0", "margin": 12, "height": 14,
+                 "floor_blocks": ["minecraft:cut_copper", "minecraft:exposed_cut_copper"],
+                 "wall_blocks": ["minecraft:weathered_copper", "minecraft:exposed_copper"],
+                 "ceiling_blocks": ["minecraft:polished_deepslate"], "trim": "minecraft:oxidized_cut_copper",
+                 "lamp_block": "minecraft:redstone_lamp[lit=true]", "wainscot": "minecraft:polished_deepslate",
+                 "cornice": True, "pedestal": "minecraft:chiseled_copper",
+                 "wall_props": ["minecraft:lightning_rod", "minecraft:copper_bulb[lit=true]"], "carpet": "minecraft:yellow_carpet"},
+    },
+
+    # Psychic Sanctum (2026-11-20): purpur and end stone, an amethyst checkerboard, froglight chandeliers, amethyst on
+    # pedestals, a magenta carpet (psychic terrain).
+    "psychic_sanctum": {
+        "hide_world": True,
+        "hall": {"floor": "#a878b8", "checker": "#7a4aa0", "tile": 2, "flat": True, "wall": "#d8d0b0", "ceiling": "#5a3a6a",
+                 "lamp": "#ffc0f0", "margin": 12, "height": 16,
+                 "floor_blocks": ["minecraft:purpur_block"], "checker_blocks": ["minecraft:amethyst_block"],
+                 "wall_blocks": ["minecraft:end_stone_bricks"], "ceiling_blocks": ["minecraft:purpur_block"],
+                 "trim": "minecraft:purpur_pillar", "lamp_block": "minecraft:pearlescent_froglight",
+                 "wainscot": "minecraft:purpur_block", "cornice": True, "chandeliers": True,
+                 "pedestal": "minecraft:purpur_pillar", "wall_props": ["minecraft:amethyst_cluster", "minecraft:end_rod"],
+                 "carpet": "minecraft:magenta_carpet"},
+    },
+
+    # Glitch Room (2026-11-20): the missing texture's black and magenta squares underfoot, walls of mismatched blocks,
+    # a speckled ceiling (glitch).
+    "glitch_room": {
+        "hide_world": True,
+        "hall": {"floor": "#101010", "checker": "#f000f0", "tile": 1, "flat": True, "wall": "#20a0a0", "ceiling": "#181018",
+                 "lamp": "#a0fff0", "margin": 12, "height": 14,
+                 "floor_blocks": ["minecraft:black_concrete"], "checker_blocks": ["minecraft:magenta_concrete"],
+                 "wall_blocks": ["minecraft:cyan_concrete", "minecraft:command_block", "minecraft:black_concrete",
+                                 "minecraft:lime_concrete", "minecraft:structure_block", "minecraft:magenta_concrete",
+                                 "minecraft:chain_command_block", "minecraft:repeating_command_block"],
+                 "ceiling_blocks": ["minecraft:black_concrete", "minecraft:magenta_concrete"],
+                 "trim": "minecraft:structure_block", "lamp_block": "minecraft:verdant_froglight",
+                 "carpet": "minecraft:lime_carpet"},
+    },
+
+    # Negative Hall (2026-11-20): a room in negative, white walls round a black floor, a white ceiling with black beams,
+    # sea lantern chandeliers, wither roses on quartz (inverse).
+    "inverse_hall": {
+        "hide_world": True,
+        "hall": {"floor": "#141414", "checker": "#f0f0f0", "tile": 2, "flat": True, "wall": "#ececec", "ceiling": "#f4f4f4",
+                 "lamp": "#202020", "margin": 12, "height": 14,
+                 "floor_blocks": ["minecraft:black_concrete"], "checker_blocks": ["minecraft:white_concrete"],
+                 "wall_blocks": ["minecraft:white_concrete", "minecraft:calcite"], "ceiling_blocks": ["minecraft:white_concrete"],
+                 "trim": "minecraft:black_concrete", "lamp_block": "minecraft:sea_lantern",
+                 "wainscot": "minecraft:black_concrete", "cornice": True, "chandeliers": True,
+                 "pedestal": "minecraft:quartz_pillar", "wall_props": ["minecraft:potted_wither_rose"],
+                 "carpet": "minecraft:black_carpet"},
+    },
 }
 
 PRESETS = {
@@ -258,7 +314,670 @@ PRESETS = {
     "grand_chessboard": {"stadium": "chessboard", "ambiance": "chess_board"},
     "circus": {"stadium": "big_top", "ambiance": "big_top"},
     "hall_of_mirrors": {"stadium": "mirror_hall", "ambiance": "mirror"},
+    "charged_station": {"stadium": "power_station", "ambiance": "electric_terrain"},
+    "mind_sanctum": {"stadium": "psychic_sanctum", "ambiance": "psychic_terrain"},
+    "glitched_room": {"stadium": "glitch_room", "ambiance": "corrupted"},
+    "negative_hall": {"stadium": "inverse_hall", "ambiance": "inverse"},
 }
+
+
+# The stadiums built of blocks (2026-11-19, the "Grounds in blocks" setting): each one's block palette, laid over its
+# entry above when the files are written.
+BLOCKS = {
+    "cave": {
+        "cavern": {
+            "blocks": {
+                "surface": [
+                    "minecraft:stone",
+                    "minecraft:gravel",
+                    "minecraft:tuff"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:andesite",
+                    "minecraft:tuff"
+                ],
+                "bands": [
+                    "minecraft:stone",
+                    "minecraft:stone",
+                    "minecraft:andesite",
+                    "minecraft:tuff",
+                    "minecraft:stone",
+                    "minecraft:dripstone_block",
+                    "minecraft:stone",
+                    "minecraft:granite"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:brown_mushroom",
+                    "chance": 0.01
+                },
+                {
+                    "block": "minecraft:red_mushroom",
+                    "chance": 0.004
+                }
+            ]
+        }
+    },
+    "volcanic_den": {
+        "cavern": {
+            "blocks": {
+                "surface": [
+                    "minecraft:blackstone",
+                    "minecraft:basalt",
+                    "minecraft:magma_block"
+                ],
+                "rock": [
+                    "minecraft:blackstone",
+                    "minecraft:basalt"
+                ],
+                "bands": [
+                    "minecraft:blackstone",
+                    "minecraft:basalt",
+                    "minecraft:blackstone",
+                    "minecraft:gilded_blackstone",
+                    "minecraft:blackstone",
+                    "minecraft:tuff"
+                ]
+            },
+            "pillar": "minecraft:basalt",
+            "dripstone": False
+        }
+    },
+    "sea": {
+        "sea": {
+            "biome": "minecraft:beach",
+            "blocks": {
+                "surface": [
+                    "minecraft:sand",
+                    "minecraft:sand",
+                    "minecraft:gravel"
+                ],
+                "soil": [
+                    "minecraft:sand",
+                    "minecraft:sandstone"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:andesite"
+                ]
+            },
+            "rock_blocks": [
+                "minecraft:stone",
+                "minecraft:andesite",
+                "minecraft:cobblestone",
+                "minecraft:mossy_cobblestone"
+            ],
+            "plants": [
+                {
+                    "block": "minecraft:sugar_cane",
+                    "chance": 0.25
+                },
+                {
+                    "block": "minecraft:dead_bush",
+                    "chance": 0.006
+                }
+            ]
+        }
+    },
+    "seabed": {
+        "sea": {
+            "biome": "minecraft:warm_ocean",
+            "blocks": {
+                "surface": [
+                    "minecraft:sand",
+                    "minecraft:sand",
+                    "minecraft:gravel"
+                ],
+                "soil": [
+                    "minecraft:sand",
+                    "minecraft:sandstone"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:andesite"
+                ]
+            },
+            "rock_blocks": [
+                "minecraft:stone",
+                "minecraft:andesite",
+                "minecraft:mossy_cobblestone",
+                "minecraft:prismarine"
+            ],
+            "plants": [
+                {
+                    "block": "minecraft:seagrass",
+                    "chance": 0.14
+                },
+                {
+                    "block": "minecraft:tall_seagrass",
+                    "chance": 0.04
+                },
+                {
+                    "block": "minecraft:kelp",
+                    "chance": 0.025
+                },
+                {
+                    "block": "minecraft:sea_pickle",
+                    "chance": 0.008
+                },
+                {
+                    "block": "minecraft:tube_coral",
+                    "chance": 0.004
+                },
+                {
+                    "block": "minecraft:brain_coral",
+                    "chance": 0.004
+                },
+                {
+                    "block": "minecraft:bubble_coral",
+                    "chance": 0.004
+                },
+                {
+                    "block": "minecraft:fire_coral",
+                    "chance": 0.004
+                },
+                {
+                    "block": "minecraft:horn_coral",
+                    "chance": 0.004
+                },
+                {
+                    "block": "minecraft:tube_coral_fan",
+                    "chance": 0.003
+                },
+                {
+                    "block": "minecraft:fire_coral_fan",
+                    "chance": 0.003
+                }
+            ]
+        }
+    },
+    "meadow": {
+        "land": {
+            "trees": {
+                "species": [
+                    "oak",
+                    "birch",
+                    "oak"
+                ]
+            },
+            "rocks": {
+                "blocks": [
+                    "minecraft:stone",
+                    "minecraft:andesite",
+                    "minecraft:mossy_cobblestone"
+                ]
+            },
+            "biome": "minecraft:plains",
+            "blocks": {
+                "surface": [
+                    "minecraft:grass_block",
+                    "minecraft:grass_block",
+                    "minecraft:moss_block"
+                ],
+                "soil": [
+                    "minecraft:dirt"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:andesite"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:short_grass",
+                    "chance": 0.3
+                },
+                {
+                    "block": "minecraft:tall_grass",
+                    "chance": 0.035
+                },
+                {
+                    "block": "minecraft:dandelion",
+                    "chance": 0.014
+                },
+                {
+                    "block": "minecraft:poppy",
+                    "chance": 0.012
+                },
+                {
+                    "block": "minecraft:oxeye_daisy",
+                    "chance": 0.01
+                },
+                {
+                    "block": "minecraft:cornflower",
+                    "chance": 0.008
+                },
+                {
+                    "block": "minecraft:azure_bluet",
+                    "chance": 0.008
+                },
+                {
+                    "block": "minecraft:allium",
+                    "chance": 0.004
+                }
+            ]
+        }
+    },
+    "forest": {
+        "land": {
+            "trees": {
+                "species": [
+                    "dark_oak",
+                    "oak",
+                    "dark_oak",
+                    "birch"
+                ]
+            },
+            "rocks": {
+                "blocks": [
+                    "minecraft:mossy_cobblestone",
+                    "minecraft:cobblestone",
+                    "minecraft:stone"
+                ]
+            },
+            "biome": "minecraft:dark_forest",
+            "blocks": {
+                "surface": [
+                    "minecraft:grass_block",
+                    "minecraft:podzol",
+                    "minecraft:moss_block"
+                ],
+                "soil": [
+                    "minecraft:dirt",
+                    "minecraft:coarse_dirt"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:andesite"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:fern",
+                    "chance": 0.12
+                },
+                {
+                    "block": "minecraft:large_fern",
+                    "chance": 0.03
+                },
+                {
+                    "block": "minecraft:short_grass",
+                    "chance": 0.18
+                },
+                {
+                    "block": "minecraft:brown_mushroom",
+                    "chance": 0.03
+                },
+                {
+                    "block": "minecraft:red_mushroom",
+                    "chance": 0.012
+                },
+                {
+                    "block": "minecraft:lily_of_the_valley",
+                    "chance": 0.006
+                },
+                {
+                    "block": "minecraft:sweet_berry_bush[age=3]",
+                    "chance": 0.004
+                }
+            ]
+        }
+    },
+    "badlands": {
+        "land": {
+            "biome": "minecraft:badlands",
+            "blocks": {
+                "surface": [
+                    "minecraft:red_sand",
+                    "minecraft:terracotta",
+                    "minecraft:coarse_dirt"
+                ],
+                "soil": [
+                    "minecraft:terracotta"
+                ],
+                "bands": [
+                    "minecraft:terracotta",
+                    "minecraft:orange_terracotta",
+                    "minecraft:terracotta",
+                    "minecraft:yellow_terracotta",
+                    "minecraft:brown_terracotta",
+                    "minecraft:red_terracotta",
+                    "minecraft:terracotta",
+                    "minecraft:white_terracotta",
+                    "minecraft:light_gray_terracotta",
+                    "minecraft:orange_terracotta"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:dead_bush",
+                    "chance": 0.015
+                }
+            ]
+        }
+    },
+    "swamp": {
+        "land": {
+            "pools": {
+                "lilies": 0.18
+            },
+            "biome": "minecraft:swamp",
+            "blocks": {
+                "surface": [
+                    "minecraft:grass_block",
+                    "minecraft:mud",
+                    "minecraft:moss_block"
+                ],
+                "soil": [
+                    "minecraft:mud",
+                    "minecraft:dirt"
+                ],
+                "rock": [
+                    "minecraft:packed_mud",
+                    "minecraft:stone"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:sugar_cane",
+                    "chance": 0.3
+                },
+                {
+                    "block": "minecraft:short_grass",
+                    "chance": 0.18
+                },
+                {
+                    "block": "minecraft:fern",
+                    "chance": 0.05
+                },
+                {
+                    "block": "minecraft:blue_orchid",
+                    "chance": 0.01
+                }
+            ]
+        }
+    },
+    "desert": {
+        "land": {
+            "rocks": {
+                "blocks": [
+                    "minecraft:sandstone",
+                    "minecraft:smooth_sandstone",
+                    "minecraft:terracotta"
+                ]
+            },
+            "biome": "minecraft:desert",
+            "blocks": {
+                "surface": [
+                    "minecraft:sand",
+                    "minecraft:sand",
+                    "minecraft:sandstone"
+                ],
+                "soil": [
+                    "minecraft:sand",
+                    "minecraft:sandstone"
+                ],
+                "rock": [
+                    "minecraft:sandstone",
+                    "minecraft:smooth_sandstone"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:dead_bush",
+                    "chance": 0.012
+                },
+                {
+                    "block": "minecraft:cactus",
+                    "chance": 0.005
+                }
+            ]
+        }
+    },
+    "canyon": {
+        "land": {
+            "biome": "minecraft:savanna",
+            "blocks": {
+                "surface": [
+                    "minecraft:coarse_dirt",
+                    "minecraft:packed_mud",
+                    "minecraft:gravel"
+                ],
+                "soil": [
+                    "minecraft:coarse_dirt"
+                ],
+                "bands": [
+                    "minecraft:granite",
+                    "minecraft:dripstone_block",
+                    "minecraft:terracotta",
+                    "minecraft:granite",
+                    "minecraft:stone",
+                    "minecraft:packed_mud"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:dead_bush",
+                    "chance": 0.01
+                },
+                {
+                    "block": "minecraft:short_grass",
+                    "chance": 0.05
+                }
+            ]
+        }
+    },
+    "scrapyard": {
+        "land": {
+            "rocks": {
+                "blocks": [
+                    "minecraft:cobblestone",
+                    "minecraft:tuff",
+                    "minecraft:stone"
+                ]
+            },
+            "biome": "minecraft:swamp",
+            "blocks": {
+                "surface": [
+                    "minecraft:coarse_dirt",
+                    "minecraft:gravel",
+                    "minecraft:packed_mud"
+                ],
+                "soil": [
+                    "minecraft:coarse_dirt",
+                    "minecraft:dirt"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:cobblestone",
+                    "minecraft:tuff"
+                ]
+            },
+            "plants": [
+                {
+                    "block": "minecraft:dead_bush",
+                    "chance": 0.012
+                },
+                {
+                    "block": "minecraft:short_grass",
+                    "chance": 0.04
+                }
+            ]
+        }
+    },
+    "summit": {
+        "land": {
+            "biome": "minecraft:windswept_hills",
+            "blocks": {
+                "surface": [
+                    "minecraft:stone",
+                    "minecraft:andesite",
+                    "minecraft:grass_block"
+                ],
+                "soil": [
+                    "minecraft:andesite",
+                    "minecraft:stone"
+                ],
+                "rock": [
+                    "minecraft:stone",
+                    "minecraft:andesite",
+                    "minecraft:tuff"
+                ],
+                "far": "minecraft:stone"
+            },
+            "plants": [
+                {
+                    "block": "minecraft:short_grass",
+                    "chance": 0.12
+                }
+            ]
+        }
+    },
+    "temple": {
+        "land": {
+            "tiles": {
+                "blocks": [
+                    "minecraft:smooth_quartz",
+                    "minecraft:quartz_bricks",
+                    "minecraft:calcite"
+                ]
+            },
+            "biome": "minecraft:cherry_grove",
+            "blocks": {
+                "surface": [
+                    "minecraft:calcite",
+                    "minecraft:calcite",
+                    "minecraft:diorite"
+                ],
+                "soil": [
+                    "minecraft:calcite"
+                ],
+                "rock": [
+                    "minecraft:calcite",
+                    "minecraft:diorite"
+                ]
+            }
+        }
+    },
+    "ashen_shore": {
+        "sea": {
+            "biome": "minecraft:stony_shore",
+            "blocks": {
+                "surface": [
+                    "minecraft:gravel",
+                    "minecraft:gravel",
+                    "minecraft:tuff"
+                ],
+                "soil": [
+                    "minecraft:gravel",
+                    "minecraft:tuff"
+                ],
+                "rock": [
+                    "minecraft:tuff",
+                    "minecraft:andesite",
+                    "minecraft:blackstone"
+                ]
+            },
+            "rock_blocks": [
+                "minecraft:tuff",
+                "minecraft:blackstone",
+                "minecraft:andesite"
+            ],
+            "plants": [
+                {
+                    "block": "minecraft:dead_bush",
+                    "chance": 0.01
+                }
+            ]
+        }
+    },
+    "factory_hall": {
+        "hall": {
+            "floor_blocks": [
+                "minecraft:smooth_stone",
+                "minecraft:polished_andesite"
+            ],
+            "wall_blocks": [
+                "minecraft:gray_concrete",
+                "minecraft:light_gray_concrete"
+            ],
+            "ceiling_blocks": [
+                "minecraft:polished_deepslate"
+            ],
+            "trim": "minecraft:iron_block",
+            "lamp_block": "minecraft:lantern[hanging=true]"
+        }
+    },
+    "chessboard": {
+        "hall": {
+            "floor_blocks": [
+                "minecraft:smooth_quartz"
+            ],
+            "checker_blocks": [
+                "minecraft:polished_blackstone"
+            ],
+            "wall_blocks": [
+                "minecraft:obsidian"
+            ],
+            "ceiling_blocks": [
+                "minecraft:obsidian"
+            ],
+            "trim": "minecraft:polished_blackstone_bricks",
+            "lamp_block": "minecraft:pearlescent_froglight"
+        }
+    },
+    "big_top": {
+        "hall": {
+            "floor_blocks": [
+                "minecraft:smooth_sandstone",
+                "minecraft:sandstone"
+            ],
+            "stripe_blocks": [
+                "minecraft:red_wool",
+                "minecraft:white_wool"
+            ],
+            "lamp_block": "minecraft:lantern[hanging=true]"
+        }
+    },
+    "mirror_hall": {
+        "hall": {
+            "floor_blocks": [
+                "minecraft:polished_deepslate"
+            ],
+            "checker_blocks": [
+                "minecraft:deepslate_tiles"
+            ],
+            "wall_blocks": [
+                "minecraft:polished_deepslate"
+            ],
+            "ceiling_blocks": [
+                "minecraft:polished_blackstone_bricks"
+            ],
+            "trim": "minecraft:smooth_quartz",
+            "lamp_block": "minecraft:sea_lantern",
+            "mirror_block": "minecraft:glass",
+            "wainscot": "minecraft:polished_blackstone_bricks",
+            "cornice": True,
+            "chandeliers": True,
+            "pedestal": "minecraft:chiseled_quartz_block",
+            "wall_props": [
+                "minecraft:potted_flowering_azalea_bush",
+                "minecraft:amethyst_cluster",
+                "minecraft:potted_azalea_bush"
+            ],
+            "carpet": "minecraft:red_carpet"
+        }
+    }
+}
+
+
+def merged(base, extra):
+    out = dict(base)
+    for key, value in extra.items():
+        out[key] = merged(out[key], value) if isinstance(value, dict) and isinstance(out.get(key), dict) else value
+    return out
 
 
 def write(folder, entries):
@@ -272,5 +991,5 @@ def write(folder, entries):
 
 
 if __name__ == "__main__":
-    write("stadiums", STADIUMS)
+    write("stadiums", {name: merged(data, BLOCKS.get(name, {})) for name, data in STADIUMS.items()})
     write("presets", PRESETS)

@@ -1,0 +1,37 @@
+{
+	"hide_world": true,
+	"hall": {
+		"floor": "#141414",
+		"checker": "#f0f0f0",
+		"tile": 2,
+		"flat": true,
+		"wall": "#ececec",
+		"ceiling": "#f4f4f4",
+		"lamp": "#202020",
+		"margin": 12,
+		"height": 14,
+		"floor_blocks": [
+			"minecraft:black_concrete"
+		],
+		"checker_blocks": [
+			"minecraft:white_concrete"
+		],
+		"wall_blocks": [
+			"minecraft:white_concrete",
+			"minecraft:calcite"
+		],
+		"ceiling_blocks": [
+			"minecraft:white_concrete"
+		],
+		"trim": "minecraft:black_concrete",
+		"lamp_block": "minecraft:sea_lantern",
+		"wainscot": "minecraft:black_concrete",
+		"cornice": true,
+		"chandeliers": true,
+		"pedestal": "minecraft:quartz_pillar",
+		"wall_props": [
+			"minecraft:potted_wither_rose"
+		],
+		"carpet": "minecraft:black_carpet"
+	}
+}
