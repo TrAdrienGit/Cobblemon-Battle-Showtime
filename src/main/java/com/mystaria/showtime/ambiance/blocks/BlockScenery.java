@@ -78,7 +78,7 @@ public final class BlockScenery {
 	}
 
 	/**
-	 * Draws a hall stadium in blocks (a room or a tent; with mirrors, only its floor); {@code powerCut}: lamps out, the
+	 * Draws a hall stadium in blocks (a room, with its mirrored rooms behind glass mirrors, or a tent); {@code powerCut}: lamps out, the
 	 * room dark. As {@link #drawLand}.
 	 */
 	public static boolean drawHall(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
@@ -86,6 +86,14 @@ public final class BlockScenery {
 		Key wanted = new Key(hall, powerCut, center, fieldRadius);
 		return draw(wanted, () -> HallScene.recipe(hall, powerCut, center, fieldRadius, ground), pose, buffers, center, camera,
 				frustum);
+	}
+
+	/**
+	 * A box hall's mirror planes as built of blocks (absolute x west, x east, z north, z south), across which the people
+	 * in it are drawn mirrored.
+	 */
+	public static double[] hallMirrorPlanes(Vec3 center, double half) {
+		return HallScene.mirrorPlanes(center, half);
 	}
 
 	private static boolean draw(Key wanted, Supplier<Supplier<SceneMesh>> recipe, PoseStack pose, MultiBufferSource buffers,

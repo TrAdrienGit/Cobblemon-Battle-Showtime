@@ -1326,7 +1326,11 @@ private static boolean irisChecked;
 			}
 			buffers.endBatch();
 			if (active.hall != null && active.hall.mirrors && mirrorsLive(active.hall)) {
-				drawReflections(pose, buffers, active.hall, time, partialTick);
+				if (hallInBlocks) {
+					drawBlockReflections(pose, buffers, active.hall, partialTick);
+				} else {
+					drawReflections(pose, buffers, active.hall, time, partialTick);
+				}
 			}
 		}
 		if (active.backdrop != null) {
@@ -5516,9 +5520,9 @@ private static boolean irisChecked;
 	 * left out. Light pass: the lamps' glow and beams, warning lights, emergency lights and sparks in a power cut.
 	 */
 	private static void drawHall(PoseStack pose, MultiBufferSource buffers, Ambiance.Hall hall, float time, boolean glow) {
-		if (!glow && blocky()) {
-			// Built of blocks (2026-11-19): the floor, and the walls and ceiling unless the hall has mirrors (its
-			// reflections are drawn behind smooth walls). Asked before any buffer.
+		if (!glow && !reflecting && blocky()) {
+			// Built of blocks (2026-11-19), mirrors included (glass, the room built again mirrored behind it). Asked
+			// before any buffer.
 			hallInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawHall(pose, buffers, center, cameraWorld, frustum,
 					hall, active.powerCut != null, fieldRadius, BattleAmbiance::groundAt);
 		}
@@ -5575,7 +5579,7 @@ private static boolean irisChecked;
 					beam(out, m, at, at.add(facing.scale(8)), 0.3f, 2.5f, warn, 18);
 				}
 			}
-			if (hall.mirrors && mirrorsLive(hall)) {
+			if (hall.mirrors && !hallInBlocks && mirrorsLive(hall)) {
 				// The glass: a faint cold sheen over the reflection, brighter towards the top.
 				int glass = lerpColor(Ambiance.color(hall.wall, 0x9AA8C0), 0xFFFFFF, 0.3f);
 				for (int w = 0; w < 4; w++) {
@@ -5636,7 +5640,7 @@ private static boolean irisChecked;
 						floorColor(hall, tile, p11, grain), floorColor(hall, tile, p01, grain));
 			}
 		}
-		if (!hallInBlocks || hall.mirrors) {
+		if (!hallInBlocks) {
 			if (tent) {
 				drawTent(out, m, hall, s, base);
 			} else {
@@ -5673,13 +5677,15 @@ private static boolean irisChecked;
 
 	/**
  * Whether the hall's mirrors really reflect (2026-11-19): with the camera inside the room (outside it, the cutaway
- * opens a wall and the reflections would show through) and no shader pack (Iris draws entities its own way).
+ * opens a wall and the reflections would show through), and, for the smooth hall, no shader pack (Iris draws entities
+ * its own way). The hall in blocks reflects under shaders too: its mirrored room is blocks, its people drawn without
+ * flipping the triangles (drawBlockReflections).
  */
 private static boolean mirrorsLive(Ambiance.Hall hall) {
 double s = hallHalf(hall);
 double base = groundAt(0, 0) + 0.09;
 return Math.abs(cameraRel.x) < s - 0.5 && Math.abs(cameraRel.z) < s - 0.5 && cameraRel.y > base - 0.5
-		&& cameraRel.y < base + hall.height - 0.5 && !shadersOn();
+		&& cameraRel.y < base + hall.height - 0.5 && (hallInBlocks || !shadersOn());
 }
 
 private static boolean shadersOn() {
@@ -5751,6 +5757,89 @@ try {
 	org.lwjgl.opengl.GL11.glFrontFace(org.lwjgl.opengl.GL11.GL_CCW);
 	reflecting = false;
 	skipWall = -1;
+}
+}
+
+/**
+ * The people in a hall built of blocks, drawn mirrored behind its glass (2026-11-19): the room itself is already built
+ * mirrored there. Eight copies: one behind each mirror, one behind each corner (a reflection of a reflection, a plain
+ * half turn). Without a shader pack a copy behind one mirror is a true mirror image (flipped, its triangles wound the
+ * other way while it draws); with one, shader packs batch entities and draw them later, after the winding is back, so
+ * it is placed and turned as its image would be instead: only its left and right stay unswapped.
+ */
+private static void drawBlockReflections(PoseStack pose, MultiBufferSource.BufferSource buffers, Ambiance.Hall hall,
+	float partialTick) {
+Minecraft mc = Minecraft.getInstance();
+double s = hallHalf(hall);
+double[] planes = com.mystaria.showtime.ambiance.blocks.BlockScenery.hallMirrorPlanes(center, s);
+double px0 = planes[0] - center.x;
+double px1 = planes[1] - center.x;
+double pz0 = planes[2] - center.z;
+double pz1 = planes[3] - center.z;
+List<net.minecraft.world.entity.Entity> inside = new ArrayList<>();
+for (net.minecraft.world.entity.Entity entity : mc.level.entitiesForRendering()) {
+	Vec3 at = entity.getPosition(partialTick).subtract(center);
+	if (at.x > px0 && at.x < px1 && at.z > pz0 && at.z < pz1 && Math.abs(at.y) < hall.height && inside.size() < 24) {
+		inside.add(entity);
+	}
+}
+if (inside.isEmpty()) {
+	return;
+}
+boolean shaders = shadersOn();
+net.minecraft.client.renderer.entity.EntityRenderDispatcher dispatcher = mc.getEntityRenderDispatcher();
+for (int fx = -1; fx <= 1; fx++) {
+	for (int fz = -1; fz <= 1; fz++) {
+		if (fx == 0 && fz == 0) {
+			continue;
+		}
+		double planeX = fx < 0 ? px0 : px1;
+		double planeZ = fz < 0 ? pz0 : pz1;
+		boolean flipped = (fx != 0) != (fz != 0);
+		boolean trueImage = flipped && !shaders;
+		if (trueImage) {
+			org.lwjgl.opengl.GL11.glFrontFace(org.lwjgl.opengl.GL11.GL_CW);
+		}
+		try {
+			for (net.minecraft.world.entity.Entity entity : inside) {
+				Vec3 at = entity.getPosition(partialTick).subtract(center);
+				double mx = fx != 0 ? 2 * planeX - at.x : at.x;
+				double mz = fz != 0 ? 2 * planeZ - at.z : at.z;
+				pose.pushPose();
+				float yaw = 0;
+				if (trueImage) {
+					// The world mirrored across the plane; the entity drawn where it really is.
+					pose.translate(fx != 0 ? 2 * planeX : 0, 0, fz != 0 ? 2 * planeZ : 0);
+					pose.scale(fx != 0 ? -1 : 1, 1, fz != 0 ? -1 : 1);
+					mx = at.x;
+					mz = at.z;
+				} else {
+					// Its image's place, turned as its image faces: across x, a yaw of -φ; across z, 180 - φ; behind a
+					// corner, φ + 180. Renderers turn by 180 - φ, so the extra turn is φ less the image's yaw.
+					float body = entity instanceof net.minecraft.world.entity.LivingEntity living
+							? Mth.rotLerp(partialTick, living.yBodyRotO, living.yBodyRot)
+							: entity.getViewYRot(partialTick);
+					yaw = !flipped ? 180 : fx != 0 ? 2 * body : 2 * body - 180;
+				}
+				pose.translate(mx, at.y, mz);
+				if (yaw != 0) {
+					pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yaw));
+				}
+				try {
+					dispatcher.render(entity, 0, 0, 0, entity.getViewYRot(partialTick), partialTick, pose, buffers,
+							dispatcher.getPackedLightCoords(entity, partialTick));
+				} catch (RuntimeException ex) {
+					// A renderer that cannot be drawn twice: that one stays out of the mirror.
+				}
+				pose.popPose();
+			}
+			buffers.endBatch();
+		} finally {
+			if (trueImage) {
+				org.lwjgl.opengl.GL11.glFrontFace(org.lwjgl.opengl.GL11.GL_CCW);
+			}
+		}
+	}
 }
 }
 

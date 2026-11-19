@@ -5,11 +5,14 @@ import java.util.function.DoubleBinaryOperator;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LightBlock;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -19,8 +22,12 @@ import com.mystaria.showtime.ambiance.Ambiance;
  * A hall stadium built of blocks (2026-11-19): a room ({@code box}: walls with pilasters, a ceiling with beams and
  * hanging lamps) or a circus tent (a round wall striped in wool, a stepped cone over it), the floor plain or a
  * checkerboard on the world's grid. As in a cave, only the inner skin is stored and nothing faces outwards, so a camera
- * outside sees in. A hall with mirrors keeps its smooth walls (its reflections are drawn behind them): only its floor
- * is blocks.
+ * outside sees in.
+ * <p>
+ * Mirrors are glass walls with the room built again, mirrored, behind each (and behind each corner, the reflection of
+ * a reflection): real blocks, so shader packs light the reflection like the room, and their own reflections play on
+ * the glass. The people in the room are drawn mirrored there by {@code BattleAmbiance}, across the planes
+ * {@link #mirrorPlanes} gives.
  */
 final class HallScene {
 
@@ -30,17 +37,25 @@ final class HallScene {
 	private final boolean dark;
 	private final FieldGround g;
 	private final boolean tent;
-	private final boolean floorOnly;
+	private final boolean mirrors;
 	private final double half;
 	private final int ox;
 	private final int oz;
+	/** The glass columns (mirrors), or the first wall columns: west, east, north, south. */
+	private final int wx0;
+	private final int wx1;
+	private final int wz0;
+	private final int wz1;
 	private final BlockState[] floor;
 	private final BlockState[] checker;
 	private final BlockState[] wall;
 	private final BlockState[] ceiling;
 	private final BlockState[] stripes;
 	private final BlockState trim;
+	private final BlockState glass;
 	private final Long2IntOpenHashMap floors = new Long2IntOpenHashMap();
+	/** Lamps, chains and hidden lights in the room (not mirrored: the build mirrors them). */
+	private final Long2ObjectOpenHashMap<BlockState> extras = new Long2ObjectOpenHashMap<>();
 
 	private HallScene(Ambiance.Hall hall, boolean dark, Vec3 center, float fieldRadius, DoubleBinaryOperator ground) {
 		this.hall = hall;
@@ -48,21 +63,36 @@ final class HallScene {
 		this.half = fieldRadius + hall.margin;
 		this.g = new FieldGround(center, fieldRadius, fieldRadius + 2.5, ground);
 		this.tent = "tent".equals(hall.shape);
-		this.floorOnly = hall.mirrors;
+		this.mirrors = hall.mirrors && !tent;
 		this.ox = (int) Math.round(center.x);
 		this.oz = (int) Math.round(center.z);
+		double[] planes = mirrorPlanes(center, half);
+		this.wx0 = (int) Math.floor(planes[0]);
+		this.wx1 = (int) Math.floor(planes[1]);
+		this.wz0 = (int) Math.floor(planes[2]);
+		this.wz1 = (int) Math.floor(planes[3]);
 		this.floor = Palette.blocks(hall.floorBlocks, Blocks.SMOOTH_STONE.defaultBlockState());
 		this.checker = Palette.blocks(hall.checkerBlocks, Blocks.POLISHED_BLACKSTONE.defaultBlockState());
 		this.wall = Palette.blocks(hall.wallBlocks, Blocks.STONE_BRICKS.defaultBlockState());
 		this.ceiling = Palette.blocks(hall.ceilingBlocks, Blocks.DARK_OAK_PLANKS.defaultBlockState());
 		this.stripes = Palette.blocks(hall.stripeBlocks, Blocks.WHITE_WOOL.defaultBlockState());
 		this.trim = Palette.block(hall.trim, Blocks.POLISHED_DEEPSLATE.defaultBlockState());
+		this.glass = Palette.block(hall.mirrorBlock, Blocks.GLASS.defaultBlockState());
 		floors.defaultReturnValue(NONE + 1);
 	}
 
 	static Supplier<SceneMesh> recipe(Ambiance.Hall hall, boolean dark, Vec3 center, float fieldRadius, DoubleBinaryOperator ground) {
 		HallScene scene = new HallScene(hall, dark, center, fieldRadius, ground);
 		return scene::build;
+	}
+
+	/**
+	 * A box hall's mirror planes (absolute x west, x east, z north, z south): the middle of its first wall columns, where
+	 * the glass stands.
+	 */
+	static double[] mirrorPlanes(Vec3 center, double half) {
+		return new double[] {Math.floor(center.x - half - 0.5) + 0.5, Math.ceil(center.x + half - 0.5) + 0.5,
+				Math.floor(center.z - half - 0.5) + 0.5, Math.ceil(center.z + half - 0.5) + 0.5};
 	}
 
 	// ---------------------------------------------------------------- the room's shape
@@ -115,7 +145,7 @@ final class HallScene {
 		return wallTop + (int) Math.floor(hall.height * 0.5 * Mth.clamp(1 - r / half, 0, 1));
 	}
 
-	/** A pilaster stands against the wall every six blocks. */
+	/** A pilaster (a mirror's frame) stands against the wall every six blocks. */
 	private boolean pilaster(int bx, int bz) {
 		if (tent) {
 			return false;
@@ -133,9 +163,6 @@ final class HallScene {
 
 	private boolean solid(int x, int y, int z) {
 		int f = floorTop(x, z);
-		if (floorOnly) {
-			return f != NONE && y < f;
-		}
 		if (f == NONE || y < f || y >= ceiling(x, z)) {
 			return true;
 		}
@@ -167,34 +194,108 @@ final class HallScene {
 		return Palette.pick(wall, (float) Mth.clamp(Noise.value(x * 0.2, y * 0.2, z * 0.2) * 1.4 - 0.2, 0, 0.999));
 	}
 
+	// ---------------------------------------------------------------- mirrors
+
+	/** A coordinate folded back into the room across the mirror it lies behind (one bounce each way). */
+	private static int fold(int v, int lo, int hi) {
+		return v > hi ? 2 * hi - v : v < lo ? 2 * lo - v : v;
+	}
+
+	/** Whether a column lies within the room and its reflections (beyond: solid). */
+	private boolean inReflections(int x, int z) {
+		return x >= 2 * wx0 - wx1 && x <= 2 * wx1 - wx0 && z >= 2 * wz0 - wz1 && z <= 2 * wz1 - wz0;
+	}
+
+	/** The glass of a mirror at a room column (not a corner), between floor and ceiling. */
+	private boolean mirrorAt(int sx, int y, int sz) {
+		boolean onX = sx == wx0 || sx == wx1;
+		boolean onZ = sz == wz0 || sz == wz1;
+		if (onX == onZ) {
+			return false;
+		}
+		int inX = onX ? (sx == wx0 ? sx + 1 : sx - 1) : sx;
+		int inZ = onZ ? (sz == wz0 ? sz + 1 : sz - 1) : sz;
+		int f = floorTop(inX, inZ);
+		return f != NONE && y >= f && y < ceiling(inX, inZ);
+	}
+
+	/** What stands at a block: null for air (open), else its block. */
+	private BlockState cell(int x, int y, int z) {
+		if (!mirrors) {
+			BlockState extra = extras.get(BlockPos.asLong(x, y, z));
+			return extra != null ? extra : solid(x, y, z) ? material(x, y, z) : null;
+		}
+		if (!inReflections(x, z)) {
+			return SceneLevel.FILL;
+		}
+		int sx = fold(x, wx0, wx1);
+		int sz = fold(z, wz0, wz1);
+		if (mirrorAt(sx, y, sz)) {
+			// A mirror stays glass where it really stands; the far side of a reflection is a wall.
+			boolean real = sx == wx0 || sx == wx1 ? x == sx : z == sz;
+			return real ? glass : material(sx, y, sz);
+		}
+		BlockState state = extras.get(BlockPos.asLong(sx, y, sz));
+		if (state == null) {
+			state = solid(sx, y, sz) ? material(sx, y, sz) : null;
+		}
+		if (state != null) {
+			if (sx != x) {
+				state = state.mirror(Mirror.FRONT_BACK);
+			}
+			if (sz != z) {
+				state = state.mirror(Mirror.LEFT_RIGHT);
+			}
+		}
+		return state;
+	}
+
+	/** Air, light, glass and lamps let the eye through: the faces behind them are drawn. */
+	private boolean open(BlockState state) {
+		return state == null || state == glass || !state.canOcclude();
+	}
+
 	// ---------------------------------------------------------------- building
 
 	private SceneMesh build() {
-		SceneLevel level = new SceneLevel(g.host, g.biome("minecraft:plains"), null, g.minY, g.height)
-				.skyLight(dark ? 3 : floorOnly ? 15 : 9);
-		level.fallback((x, y, z) -> solid(x, y, z) ? SceneLevel.FILL : SceneLevel.AIR);
-		int reach = Mth.ceil(half) + 3;
+		lamps();
+		SceneLevel level = new SceneLevel(g.host, g.biome("minecraft:plains"), null, g.minY, g.height).skyLight(dark ? 3 : 9);
+		level.fallback((x, y, z) -> open(cell(x, y, z)) ? SceneLevel.AIR : SceneLevel.FILL);
+		int x0;
+		int x1;
+		int z0;
+		int z1;
+		if (mirrors) {
+			x0 = 2 * wx0 - wx1;
+			x1 = 2 * wx1 - wx0;
+			z0 = 2 * wz0 - wz1;
+			z1 = 2 * wz1 - wz0;
+		} else {
+			int reach = Mth.ceil(half) + 3;
+			x0 = Mth.floor(g.cx - reach);
+			x1 = Mth.floor(g.cx + reach);
+			z0 = Mth.floor(g.cz - reach);
+			z1 = Mth.floor(g.cz + reach);
+		}
 		int lo = g.baseFace - 8;
 		int hi = g.baseFace + Math.round(hall.height * 1.5f) + 2;
-		for (int bx = Mth.floor(g.cx - reach); bx <= Mth.floor(g.cx + reach); bx++) {
-			for (int bz = Mth.floor(g.cz - reach); bz <= Mth.floor(g.cz + reach); bz++) {
+		for (int bx = x0; bx <= x1; bx++) {
+			for (int bz = z0; bz <= z1; bz++) {
 				for (int y = lo; y <= hi; y++) {
-					if (solid(bx, y, bz) && touchesRoom(bx, y, bz)) {
-						level.set(bx, y, bz, material(bx, y, bz));
+					BlockState state = cell(bx, y, bz);
+					if (state != null && (open(state) || touchesOpen(bx, y, bz))) {
+						level.set(bx, y, bz, state);
 					}
 				}
 			}
-		}
-		if (!floorOnly) {
-			lamps(level);
 		}
 		level.spreadLight();
 		return SceneBuilder.compile(List.of(new SceneBuilder.Part(level, 1)), Mth.floor(g.cx), Mth.floor(g.cz));
 	}
 
-	private boolean touchesRoom(int x, int y, int z) {
+	private boolean touchesOpen(int x, int y, int z) {
 		for (Direction d : Direction.values()) {
-			if (!solid(x + d.getStepX(), y + d.getStepY(), z + d.getStepZ())) {
+			if (open(cell(x + d.getStepX(), y + d.getStepY(), z + d.getStepZ()))) {
 				return true;
 			}
 		}
@@ -205,18 +306,18 @@ final class HallScene {
 	 * Lamps hanging where the smooth hall has its lights (their glow is still drawn there), on chains; in a tent, one
 	 * from the cone's top. Light blocks under the ceiling light the room evenly, none in a power cut.
 	 */
-	private void lamps(SceneLevel level) {
+	private void lamps() {
 		BlockState lamp = Palette.block(hall.lampBlock, Blocks.LANTERN.defaultBlockState());
 		int lampY = (int) Math.floor(g.baseAbs + hall.height - 1.6);
 		if (tent) {
-			hang(level, Mth.floor(g.cx), Mth.floor(g.cz), lampY + Math.round(hall.height * 0.5f), lamp);
+			hang(Mth.floor(g.cx), Mth.floor(g.cz), lampY + Math.round(hall.height * 0.5f), lamp);
 		} else {
 			for (int ix = -1; ix <= 1; ix += 2) {
 				for (int iz = -1; iz <= 1; iz += 2) {
 					for (int q = 0; q < 2; q++) {
 						int bx = Mth.floor(g.cx + ix * half * (0.25 + 0.4 * q));
 						int bz = Mth.floor(g.cz + iz * half * (0.25 + 0.4 * (1 - q)));
-						hang(level, bx, bz, lampY, lamp);
+						hang(bx, bz, lampY, lamp);
 					}
 				}
 			}
@@ -230,24 +331,25 @@ final class HallScene {
 			for (int dz = -(int) half; dz <= half; dz += step) {
 				int bx = Mth.floor(g.cx) + dx;
 				int bz = Mth.floor(g.cz) + dz;
-				if (inRoom(bx, bz) && level.stored(bx, lightY, bz) == null) {
-					level.set(bx, lightY, bz, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, 13));
+				long key = BlockPos.asLong(bx, lightY, bz);
+				if (inRoom(bx, bz) && !extras.containsKey(key) && !solid(bx, lightY, bz)) {
+					extras.put(key, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, 13));
 				}
 			}
 		}
 	}
 
 	/** A chain from the ceiling down to {@code y}, the lamp at its end (none lit in a power cut: the chain alone). */
-	private void hang(SceneLevel level, int bx, int bz, int y, BlockState lamp) {
+	private void hang(int bx, int bz, int y, BlockState lamp) {
 		int c = ceiling(bx, bz);
 		if (floorTop(bx, bz) == NONE || y >= c || y <= floorTop(bx, bz) + 2) {
 			return;
 		}
 		for (int k = c - 1; k > y; k--) {
-			if (level.stored(bx, k, bz) == null) {
-				level.set(bx, k, bz, Blocks.CHAIN.defaultBlockState());
+			if (!solid(bx, k, bz)) {
+				extras.putIfAbsent(BlockPos.asLong(bx, k, bz), Blocks.CHAIN.defaultBlockState());
 			}
 		}
-		level.set(bx, y, bz, dark ? Blocks.CHAIN.defaultBlockState() : lamp);
+		extras.put(BlockPos.asLong(bx, y, bz), dark ? Blocks.CHAIN.defaultBlockState() : lamp);
 	}
 }
