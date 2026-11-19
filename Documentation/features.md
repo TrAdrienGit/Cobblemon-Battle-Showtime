@@ -166,7 +166,8 @@ remove it from roadmap.md.
 - Halls built of blocks (2026-11-19): Factory Hall (concrete walls, iron pilasters and beams, lanterns on chains),
   Big Top (a tent of red and white wool, a stepped cone, a sandstone ring), Chessboard (quartz and blackstone tiles,
   obsidian walls, froglights), Mirror Hall (a deepslate checkerboard, glass mirrors with the room and everyone in it
-  reflected behind them, also under shader packs: the reflection is real blocks). A camera outside
+  reflected behind them, also under shader packs: the reflection is real blocks; a wainscot and cornice, chandeliers,
+  pedestals with azaleas and amethyst, a red carpet round the room). A camera outside
   the room sees in; a power cut puts the lamps and the room's light out.
 - Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
   stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its

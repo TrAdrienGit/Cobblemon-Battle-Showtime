@@ -53,6 +53,10 @@ final class HallScene {
 	private final BlockState[] stripes;
 	private final BlockState trim;
 	private final BlockState glass;
+	private final BlockState wainscot;
+	private final BlockState pedestal;
+	private final BlockState[] wallProps;
+	private final BlockState carpet;
 	private final Long2IntOpenHashMap floors = new Long2IntOpenHashMap();
 	/** Lamps, chains and hidden lights in the room (not mirrored: the build mirrors them). */
 	private final Long2ObjectOpenHashMap<BlockState> extras = new Long2ObjectOpenHashMap<>();
@@ -78,6 +82,10 @@ final class HallScene {
 		this.stripes = Palette.blocks(hall.stripeBlocks, Blocks.WHITE_WOOL.defaultBlockState());
 		this.trim = Palette.block(hall.trim, Blocks.POLISHED_DEEPSLATE.defaultBlockState());
 		this.glass = Palette.block(hall.mirrorBlock, Blocks.GLASS.defaultBlockState());
+		this.wainscot = tent ? null : Palette.block(hall.wainscot, null);
+		this.pedestal = tent ? null : Palette.block(hall.pedestal, null);
+		this.wallProps = hall.wallProps == null || hall.wallProps.isEmpty() ? null : Palette.blocks(hall.wallProps, Blocks.AIR.defaultBlockState());
+		this.carpet = tent ? null : Palette.block(hall.carpet, null);
 		floors.defaultReturnValue(NONE + 1);
 	}
 
@@ -157,6 +165,16 @@ final class HallScene {
 		return byX && Math.floorMod(bz - oz, 6) == 0 || byZ && Math.floorMod(bx - ox, 6) == 0;
 	}
 
+	/** A pedestal against the wall between two pilasters (none in the corners). */
+	private boolean pedestal(int bx, int bz) {
+		if (pedestal == null) {
+			return false;
+		}
+		boolean byX = half - Math.abs(x(bx)) < 1;
+		boolean byZ = half - Math.abs(z(bz)) < 1;
+		return byX != byZ && (byX ? Math.floorMod(bz - oz, 6) == 3 : Math.floorMod(bx - ox, 6) == 3);
+	}
+
 	private boolean beam(int bz, int y, int bx) {
 		return !tent && y == ceiling(bx, bz) - 1 && Math.floorMod(bz - oz, 8) == 4;
 	}
@@ -166,7 +184,7 @@ final class HallScene {
 		if (f == NONE || y < f || y >= ceiling(x, z)) {
 			return true;
 		}
-		return pilaster(x, z) || beam(z, y, x);
+		return pilaster(x, z) || beam(z, y, x) || y == f && pedestal(x, z);
 	}
 
 	private BlockState material(int x, int y, int z) {
@@ -182,6 +200,18 @@ final class HallScene {
 		}
 		if (pilaster(x, z) || beam(z, y, x)) {
 			return trim;
+		}
+		if (f != NONE && y == f && pedestal(x, z)) {
+			return pedestal;
+		}
+		if (f == NONE && !tent) {
+			// The walls' foot and top: a wainscot under the mirrors, a cornice under the ceiling.
+			if (wainscot != null && y < g.baseFace + hall.wainscotHeight) {
+				return wainscot;
+			}
+			if (hall.cornice && y == g.baseFace + Math.round(hall.height) - 1) {
+				return trim;
+			}
 		}
 		if (tent) {
 			double a = Math.atan2(z(z), x(x));
@@ -216,7 +246,8 @@ final class HallScene {
 		int inX = onX ? (sx == wx0 ? sx + 1 : sx - 1) : sx;
 		int inZ = onZ ? (sz == wz0 ? sz + 1 : sz - 1) : sz;
 		int f = floorTop(inX, inZ);
-		return f != NONE && y >= f && y < ceiling(inX, inZ);
+		return f != NONE && y >= f + (wainscot != null ? hall.wainscotHeight : 0)
+				&& y < ceiling(inX, inZ) - (hall.cornice ? 1 : 0);
 	}
 
 	/** What stands at a block: null for air (open), else its block. */
@@ -322,6 +353,7 @@ final class HallScene {
 				}
 			}
 		}
+		furnish();
 		if (dark) {
 			return;
 		}
@@ -339,6 +371,32 @@ final class HallScene {
 		}
 	}
 
+	/** The things on the pedestals, in turn, and a carpet round the room two blocks from the walls. */
+	private void furnish() {
+		if (tent || wallProps == null && carpet == null) {
+			return;
+		}
+		int reach = Mth.ceil(half);
+		for (int bx = Mth.floor(g.cx) - reach; bx <= Mth.floor(g.cx) + reach; bx++) {
+			for (int bz = Mth.floor(g.cz) - reach; bz <= Mth.floor(g.cz) + reach; bz++) {
+				int f = floorTop(bx, bz);
+				if (f == NONE) {
+					continue;
+				}
+				if (wallProps != null && pedestal(bx, bz)) {
+					BlockState prop = wallProps[Math.floorMod(bx * 31 + bz * 17, wallProps.length)];
+					if (!prop.isAir()) {
+						extras.put(BlockPos.asLong(bx, f + 1, bz), prop);
+					}
+				}
+				double inset = Math.min(half - Math.abs(x(bx)), half - Math.abs(z(bz)));
+				if (carpet != null && inset >= 2 && inset < 3 && !solid(bx, f, bz)) {
+					extras.put(BlockPos.asLong(bx, f, bz), carpet);
+				}
+			}
+		}
+	}
+
 	/** A chain from the ceiling down to {@code y}, the lamp at its end (none lit in a power cut: the chain alone). */
 	private void hang(int bx, int bz, int y, BlockState lamp) {
 		int c = ceiling(bx, bz);
@@ -351,5 +409,13 @@ final class HallScene {
 			}
 		}
 		extras.put(BlockPos.asLong(bx, y, bz), dark ? Blocks.CHAIN.defaultBlockState() : lamp);
+		if (hall.chandeliers && !dark) {
+			// A chandelier: rods of light out to the four sides and one down.
+			BlockState rod = Blocks.END_ROD.defaultBlockState();
+			for (Direction d : Direction.Plane.HORIZONTAL) {
+				extras.put(BlockPos.asLong(bx + d.getStepX(), y, bz + d.getStepZ()), rod.setValue(net.minecraft.world.level.block.EndRodBlock.FACING, d));
+			}
+			extras.put(BlockPos.asLong(bx, y - 1, bz), rod.setValue(net.minecraft.world.level.block.EndRodBlock.FACING, Direction.DOWN));
+		}
 	}
 }

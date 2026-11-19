@@ -669,6 +669,19 @@ public final class Ambiance {
 		public String trim = "minecraft:polished_deepslate";
 		public String lampBlock = "minecraft:lantern[hanging=true]";
 		public String mirrorBlock = "minecraft:glass";
+		/**
+		 * A box hall's furnishings in blocks (2026-11-20, a bare room read big and empty): a {@code wainscot} band
+		 * {@code wainscot_height} high at the walls' foot (under the mirrors), a {@code cornice} of {@code trim} under the
+		 * ceiling, {@code chandeliers} instead of plain lamps, a {@code pedestal} between each two pilasters holding the
+		 * {@code wall_props} in turn, a {@code carpet} running round the room two blocks from the walls.
+		 */
+		public String wainscot;
+		public int wainscotHeight = 1;
+		public boolean cornice;
+		public boolean chandeliers;
+		public String pedestal;
+		public List<String> wallProps;
+		public String carpet;
 	}
 
 	/** A plant's machines: conveyor belts carrying crates, gears turning on the walls, presses stamping. */
