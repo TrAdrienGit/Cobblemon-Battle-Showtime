@@ -638,6 +638,16 @@ private static final int BLACK = 0xFF1A1A1A;
 		minecraft.setScreen(parent);
 	}
 
+	/** The menu's key closes it, as it opened it (the menu has no text field to type it in). */
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (com.mystaria.showtime.CobblemonBattleShowtime.isMenuKey(keyCode, scanCode)) {
+			onClose();
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
 	// ---------------------------------------------------------------- drawing
 
 	@Override

@@ -26,6 +26,11 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 	private static final net.minecraft.client.KeyMapping MENU_KEY = new net.minecraft.client.KeyMapping(
 			"key.cobblemon_battle_showtime.menu", org.lwjgl.glfw.GLFW.GLFW_KEY_N, "key.categories.cobblemon_battle_showtime");
 
+	/** Whether a key pressed in a screen is the menu's: pressed again, it closes the menu. */
+	public static boolean isMenuKey(int keyCode, int scanCode) {
+		return MENU_KEY.matches(keyCode, scanCode);
+	}
+
 	@Override
 	public void onInitializeClient() {
 		net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(MENU_KEY);
