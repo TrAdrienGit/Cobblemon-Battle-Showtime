@@ -3281,6 +3281,56 @@ public final class BattleAmbiance {
 		return lerpColor(base, lightColor(cavern), lightStrength(cavern) * lit);
 	}
 
+	/** A quad with a colour per corner, blended across it. */
+	private static void quadColors(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, Vec3 c, Vec3 d, int ca, int cb, int cc, int cd) {
+		vertex(out, m, a, ca, 255);
+		vertex(out, m, b, cb, 255);
+		vertex(out, m, c, cc, 255);
+		vertex(out, m, d, cd, 255);
+	}
+
+	/**
+	 * Stone's grain at {@code p}: the colour made darker or lighter by a smooth noise of three sizes (patches of a few
+	 * blocks, then finer), at most {@code amount}; continuous, so it never shows the faces it is drawn on.
+	 */
+	private static int stoneGrain(int color, Vec3 p, float amount) {
+		double n = 0.55 * valueNoise(p.x * 0.28, p.y * 0.28, p.z * 0.28) + 0.3 * valueNoise(p.x * 0.8 + 17, p.y * 0.8, p.z * 0.8)
+				+ 0.15 * valueNoise(p.x * 2.1 + 41, p.y * 2.1, p.z * 2.1);
+		double d = (n - 0.5) * 2;
+		return lerpColor(color, d > 0 ? 0xFFFFFF : 0x000000, amount * (float) Math.min(1, Math.abs(d) * 1.4));
+	}
+
+	/** Smooth value noise in 0..1: random values on a lattice, blended with a smoothstep. */
+	private static double valueNoise(double x, double y, double z) {
+		int x0 = Mth.floor(x);
+		int y0 = Mth.floor(y);
+		int z0 = Mth.floor(z);
+		double fx = smooth(x - x0);
+		double fy = smooth(y - y0);
+		double fz = smooth(z - z0);
+		double c000 = lattice(x0, y0, z0);
+		double c100 = lattice(x0 + 1, y0, z0);
+		double c010 = lattice(x0, y0 + 1, z0);
+		double c110 = lattice(x0 + 1, y0 + 1, z0);
+		double c001 = lattice(x0, y0, z0 + 1);
+		double c101 = lattice(x0 + 1, y0, z0 + 1);
+		double c011 = lattice(x0, y0 + 1, z0 + 1);
+		double c111 = lattice(x0 + 1, y0 + 1, z0 + 1);
+		double a = Mth.lerp(fx, c000, c100);
+		double b = Mth.lerp(fx, c010, c110);
+		double c = Mth.lerp(fx, c001, c101);
+		double d = Mth.lerp(fx, c011, c111);
+		return Mth.lerp(fz, Mth.lerp(fy, a, b), Mth.lerp(fy, c, d));
+	}
+
+	private static double smooth(double t) {
+		return t * t * (3 - 2 * t);
+	}
+
+	private static double lattice(int x, int y, int z) {
+		return hashFloat(x * 73856093 ^ y * 19349663 ^ z * 83492791);
+	}
+
 	/** A rough cone of rock: six faces of uneven width, darker at the root, lighter (wet) at the point. */
 	private static void cone(VertexConsumer out, Matrix4f m, Vec3 base, Vec3 tip, float width, int root, int point, int seed) {
 		Vec3[] frame = crystalFrame(base, tip);
@@ -3411,42 +3461,58 @@ public final class BattleAmbiance {
 		double lavaOut = lava == null ? Double.MAX_VALUE : Math.min(radius + 2, lavaIn + lava.width);
 		Vec3 up = new Vec3(0, 1, 0);
 		if (!glow) {
-			// The floor, out to the walls (the lava's ring left for the lava).
-			int sectors = 64;
-			int rings = (int) Math.ceil(radius / 1.5);
-			for (int j = 0; j < rings; j++) {
-				double r0 = radius * j / rings;
-				double r1 = radius * (j + 1) / rings;
-				if (r0 >= lavaIn - 0.01 && r1 <= lavaOut + 0.01) {
-					continue;
-				}
-				if (r0 < lavaIn && r1 > lavaIn) {
-					r1 = lavaIn;
-				} else if (r0 < lavaOut && r1 > lavaOut) {
-					r0 = lavaOut;
-				}
-				for (int k = 0; k < sectors; k++) {
-					double a0 = Math.PI * 2 * k / sectors;
-					double a1 = Math.PI * 2 * (k + 1) / sectors;
-					Vec3 p00 = onGround(Math.cos(a0) * r0, Math.sin(a0) * r0).add(0, -0.03, 0);
-					Vec3 p01 = onGround(Math.cos(a1) * r0, Math.sin(a1) * r0).add(0, -0.03, 0);
-					Vec3 p11 = onGround(Math.cos(a1) * r1, Math.sin(a1) * r1).add(0, -0.03, 0);
-					Vec3 p10 = onGround(Math.cos(a0) * r1, Math.sin(a0) * r1).add(0, -0.03, 0);
-					int tile = lerpColor(floorColor, hashFloat(j * 131 + k * 7) > 0.5 ? 0x000000 : 0xFFFFFF,
-							0.1f * hashFloat(j * 53 + k * 29 + 5));
-					quad(out, m, p00, p01, p11, p10, caveLit(cavern, tile, p00.add(p11).scale(0.5), up));
-				}
+			// The floor, out to the walls (the lava's ring left for the lava). Every vertex has its own colour (the
+			// light there, the stone's grain), shared with its neighbours and blended across each face by the GPU: no
+			// tile, no ring shows (2026-11-19: one colour per face read as a chequerboard and concentric bands).
+			int sectors = 96;
+			List<Double> radii = new ArrayList<>();
+			for (double r = 0; r < radius; r += 1.0) {
+				radii.add(r);
 			}
-			// The vault.
-			int stacks = 14;
-			int around = 72;
+			radii.add(radius);
+			if (lava != null) {
+				radii.removeIf(r -> r > lavaIn && r < lavaOut);
+				radii.add(Math.min(lavaIn, radius));
+				radii.add(Math.min(lavaOut, radius));
+				radii.sort(Double::compare);
+			}
+			Vec3[] inner = null;
+			int[] innerColor = null;
+			double innerR = 0;
+			for (double r : radii) {
+				Vec3[] ring = new Vec3[sectors];
+				int[] ringColor = new int[sectors];
+				for (int k = 0; k < sectors; k++) {
+					double a = Math.PI * 2 * k / sectors;
+					ring[k] = onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.03, 0);
+					ringColor[k] = caveLit(cavern, stoneGrain(floorColor, ring[k], 0.16f), ring[k], up);
+				}
+				boolean inLava = lava != null && innerR >= lavaIn - 0.01 && r <= lavaOut + 0.01;
+				if (inner != null && r > innerR + 1.0E-3 && !inLava) {
+					for (int k = 0; k < sectors; k++) {
+						int n = (k + 1) % sectors;
+						quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+					}
+				}
+				inner = ring;
+				innerColor = ringColor;
+				innerR = r;
+			}
+			// The vault, coloured per vertex too: its light and grain, strata running round it at uneven heights.
+			int stacks = 18;
+			int around = 96;
 			Vec3[][] grid = new Vec3[stacks + 1][around];
+			int[][] colors = new int[stacks + 1][around];
+			Vec3 heart = new Vec3(0, cavern.height * 0.25, 0);
 			for (int j = 0; j <= stacks; j++) {
 				for (int k = 0; k < around; k++) {
-					grid[j][k] = vaultPoint(cavern, Math.PI * 2 * k / around, j / (double) stacks);
+					Vec3 p = vaultPoint(cavern, Math.PI * 2 * k / around, j / (double) stacks);
+					grid[j][k] = p;
+					double strata = Math.sin(p.y * 1.7 + 2.5 * valueNoise(p.x * 0.2, p.y * 0.2, p.z * 0.2));
+					int stone = lerpColor(rock, strata > 0 ? 0xFFFFFF : 0x000000, 0.06f * (float) Math.abs(strata));
+					colors[j][k] = caveLit(cavern, stoneGrain(stone, p, 0.2f), p, heart.subtract(p).normalize());
 				}
 			}
-			Vec3 heart = new Vec3(0, cavern.height * 0.25, 0);
 			for (int j = 0; j < stacks; j++) {
 				for (int k = 0; k < around; k++) {
 					int n = (k + 1) % around;
@@ -3455,10 +3521,8 @@ public final class BattleAmbiance {
 					if (cameraRel.subtract(mid).dot(inward) < 0 || nearFade(mid, 1.5, 2) < 0.5f) {
 						continue;
 					}
-					// Strata: bands of slightly different rock up the walls.
-					int band = lerpColor(rock, hashFloat(j * 31 + 7) > 0.5 ? 0x000000 : 0xFFFFFF,
-							0.08f + 0.1f * hashFloat(j * 131 + k / 5));
-					quad(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], caveLit(cavern, band, mid, inward));
+					quadColors(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], colors[j][k], colors[j][n],
+							colors[j + 1][n], colors[j + 1][k]);
 				}
 			}
 			// Pillars: a stalactite and a stalagmite grown into one, narrow in the middle.
