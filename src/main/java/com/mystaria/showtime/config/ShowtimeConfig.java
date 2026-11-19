@@ -63,6 +63,11 @@ public final class ShowtimeConfig {
 		 * biome, its climate, underground, under water...) instead of {@link #ambiance} and {@link #stadium}.
 		 */
 		boolean biomeScene = false;
+		/**
+		 * With LeagueWay installed (2026-11-19): its battle intro plays instead of Showtime's. Off by default: Showtime's
+		 * plays and LeagueWay's is skipped ({@code LeagueWayCompat}).
+		 */
+		boolean leagueWayIntro = false;
 		/** Whether a newer version is looked up on Modrinth at launch (2026-11-09). */
 		boolean checkUpdates = true;
 		/**
@@ -162,6 +167,14 @@ public final class ShowtimeConfig {
 
 	public static void setBiomeScene(boolean on) {
 		get().biomeScene = on;
+	}
+
+	public static boolean leagueWayIntro() {
+		return get().leagueWayIntro;
+	}
+
+	public static void setLeagueWayIntro(boolean on) {
+		get().leagueWayIntro = on;
 	}
 
 	/** The stadium chosen: an id, "none", or null (the chosen preset's own). */

@@ -459,6 +459,12 @@ private static final int BLACK = 0xFF1A1A1A;
 		}
 		List<String> names = all.stream().filter(each -> generation == 0
 				|| generation == FAVORITES && IntroSettings.favorite(each) || introGeneration(each) == generation).toList();
+		// LeagueWay has a battle intro of its own: one of the two plays, the player picks which.
+		if (com.mystaria.showtime.classic.LeagueWayCompat.loaded()) {
+			rows.add(setting("intro.leagueway", ShowtimeConfig.leagueWayIntro(),
+					() -> ShowtimeConfig.setLeagueWayIntro(!ShowtimeConfig.leagueWayIntro())));
+			note(Component.translatable(KEY + (ShowtimeConfig.leagueWayIntro() ? "intro.leagueway_on" : "intro.leagueway_off")));
+		}
 		rows.add(new Row(Style.SWITCH, Component.translatable(KEY + "music.only_favorites"), IntroSettings.onlyFavorites(), 0, () -> {
 			IntroSettings.setOnlyFavorites(!IntroSettings.onlyFavorites());
 			rebuild();

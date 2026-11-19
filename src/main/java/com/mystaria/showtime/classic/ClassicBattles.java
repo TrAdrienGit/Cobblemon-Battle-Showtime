@@ -49,6 +49,10 @@ public final class ClassicBattles {
 	private static boolean reopenBattleScreen;
 	/** The victory / defeat music started: the battle's end lets it play out. */
 	private static boolean outcomePlayed;
+	/** Ticks left before our battle music starts, LeagueWay's intro playing (0: not waiting). */
+	private static int musicWait;
+	/** One second after LeagueWay's intro closed (or never opened): its music has had time to start by then. */
+	private static final int MUSIC_WAIT = 20;
 
 	private ClassicBattles() {
 	}
@@ -84,7 +88,8 @@ public final class ClassicBattles {
 			BattleMusic.setKind(kind);
 			ClientBattle battle = CobblemonClient.INSTANCE.getBattle();
 			String chosen = BattleCinematic.pickIntroName();
-			if (pvp && chosen != null && ShowtimeConfig.battle(kind).intro && battle != null && !battle.getSpectating()
+			if (pvp && chosen != null && ShowtimeConfig.battle(kind).intro && LeagueWayCompat.showtimeIntro()
+					&& battle != null && !battle.getSpectating()
 					&& !battle.getSide2().getActors().isEmpty()) {
 				ClientBattleActor opponent = battle.getSide2().getActors().get(0);
 				// Our team: the party's Pokémon able to fight. Theirs isn't sent to us: unknown (-1), no made-up balls.
@@ -94,6 +99,8 @@ public final class ClassicBattles {
 						chosen, (Runnable) null);
 				BattleCinematic.skipSendOuts();
 				reopenBattleScreen = true;
+			} else if (LeagueWayCompat.leagueWayIntro()) {
+				musicWait = MUSIC_WAIT; // LeagueWay's intro brings its own music: ours only if it brought none
 			} else {
 				BattleMusic.play(BattleMusic.Track.BATTLE);
 			}
@@ -157,6 +164,16 @@ public final class ClassicBattles {
 			pendingInitialize = null;
 			onInitialize(packet);
 		}
+		if (musicWait > 0) {
+			if (!ours()) {
+				musicWait = 0;
+			} else if (LeagueWayCompat.introOpen()) {
+				musicWait = MUSIC_WAIT;
+			} else if (--musicWait == 0 && !LeagueWayCompat.musicPlaying()) {
+				BattleMusic.play(BattleMusic.Track.BATTLE);
+				silencesCobblemonMusic();
+			}
+		}
 		if (!reopenBattleScreen || BattleCinematic.introPlaying()) {
 			return;
 		}
@@ -180,6 +197,7 @@ public final class ClassicBattles {
 		stage = null;
 		pendingInitialize = null;
 		outcomePlayed = false;
+		musicWait = 0;
 		BattleMusic.setKind(null);
 		reopenBattleScreen = false;
 	}

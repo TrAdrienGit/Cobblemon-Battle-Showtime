@@ -31,7 +31,8 @@
 		"DimensionSpecialEffectsAmbianceMixin",
 		"LevelWeatherAmbianceMixin",
 		"LevelRendererHideWorldMixin",
-		"BlockEntityRenderDispatcherHideWorldMixin"
+		"BlockEntityRenderDispatcherHideWorldMixin",
+		"MinecraftLeagueWayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

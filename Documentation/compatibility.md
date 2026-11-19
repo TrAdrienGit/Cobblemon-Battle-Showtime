@@ -15,6 +15,7 @@ mixins into the same class before changing the logic.
 | **Mod Menu** | Optional. | `ShowtimeModMenu` opens the N menu from the mod list. |
 | **catchindicator, ShoulderSurfing** | Hook Cobblemon's naming and the camera. | No conflict known; first suspects if names or the camera misbehave. |
 | **Phantasmon** | Drives its own battles through the API. | See api.md; its packets are flagged foreign, and the classic path skips them. |
+| **LeagueWay** (Cobblemon Academy 2.0's client mod, source not public; audited on 0.7.0, 2026-11-19) | When Cobblemon's battle screen opens against a named opponent (PvP, NPC), cancels `Minecraft.setScreen` and shows its own intro (`LeagueBattleStartScreen`), which also starts its own battle music; then reopens the battle screen. Its battle handler mixins only observe. | One intro plays, the player's pick in the Intros page ("LeagueWay's intro", shown only when it is loaded). Showtime's (default): `MinecraftLeagueWayMixin` (HEAD, priority 500, before LeagueWay's) writes the current `CobblemonClient.battle` into its public `LeagueBattleStartScreen.lastBattleObject`, which it reads as "intro already played", so it lets the screen through and its music never starts. LeagueWay's: no Showtime intro; our battle music waits for its intro to close, then starts only if `LeagueBattleStartScreen.hasActiveSound()` is false. All by reflection (`LeagueWayCompat`); if a later version renames those, both intros play again, nothing breaks. |
 
 ## Cobblemon specifics worth knowing
 
