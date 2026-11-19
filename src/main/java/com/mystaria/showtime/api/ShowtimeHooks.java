@@ -208,6 +208,28 @@ public final class ShowtimeHooks {
 	 * (1.4, 2026-11-19) The ambiance of the place the local player stands in ({@link AmbianceArea}), asked twice a
 	 * second outside battles; null: none here. Phantasmon Events: the ambiance of the hub the player is in.
 	 */
+	private static Boolean biomeScenes;
+
+	/**
+	 * (1.5.0, 2026-11-19) "Scene by biome" imposed: {@code true} on, {@code false} off, whatever the player ticked;
+	 * {@code null} gives the choice back to the player (the default). While imposed, the menu shows the box greyed with
+	 * a note. Phantasmon Events: off in a tournament, for instance.
+	 */
+	public static void setBiomeScenes(Boolean imposed) {
+		biomeScenes = imposed;
+	}
+
+	/** What a mod imposes: true, false, or null (the player's choice). */
+	public static Boolean biomeScenesImposed() {
+		return biomeScenes;
+	}
+
+	/** Whether the player's own scene follows the biome now: imposed, else their box. */
+	public static boolean biomeScenesOn() {
+		Boolean imposed = biomeScenes;
+		return imposed != null ? imposed : com.mystaria.showtime.config.ShowtimeConfig.biomeScene();
+	}
+
 	public static void setAreaAmbiance(java.util.function.Supplier<AmbianceArea> area) {
 		areaAmbiance = area == null ? () -> null : area;
 	}

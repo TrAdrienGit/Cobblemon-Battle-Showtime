@@ -21,6 +21,10 @@ repositories {
 	}
 }
 
+loom {
+	accessWidenerPath = file("src/main/resources/cobblemon_battle_showtime.accesswidener")
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()

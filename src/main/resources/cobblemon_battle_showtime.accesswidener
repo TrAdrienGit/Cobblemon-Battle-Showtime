@@ -1,0 +1,5 @@
+accessWidener v2 named
+# The biome's downfall (humidity), for "Scene by biome": Minecraft keeps it private.
+accessible class net/minecraft/world/level/biome/Biome$ClimateSettings
+accessible field net/minecraft/world/level/biome/Biome climateSettings Lnet/minecraft/world/level/biome/Biome$ClimateSettings;
+accessible field net/minecraft/world/level/biome/Biome$ClimateSettings downfall F

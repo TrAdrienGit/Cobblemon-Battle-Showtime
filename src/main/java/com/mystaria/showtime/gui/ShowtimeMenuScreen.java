@@ -336,6 +336,19 @@ private static final int BLACK = 0xFF1A1A1A;
 						rebuild();
 					}));
 		}
+		// Scene by biome: the place picks the stadium and the ambiance; a mod may impose it either way.
+		Boolean imposed = com.mystaria.showtime.api.ShowtimeHooks.biomeScenesImposed();
+		if (imposed == null) {
+			rows.add(setting("scene.biome", ShowtimeConfig.biomeScene(), () -> {
+				ShowtimeConfig.setBiomeScene(!ShowtimeConfig.biomeScene());
+				BattleAmbiance.endPreview();
+			}));
+		} else {
+			note(Component.translatable(KEY + (imposed ? "scene.biome_imposed_on" : "scene.biome_imposed_off")));
+		}
+		if (com.mystaria.showtime.api.ShowtimeHooks.biomeScenesOn()) {
+			note(Component.translatable(KEY + "scene.biome_note"));
+		}
 		String chosen = ShowtimeConfig.ambiance();
 		boolean presetWhole = ShowtimeConfig.stadium() == null && Ambiances.isPreset(chosen) || isPlaceAmbiance(chosen);
 		String stadium = BattleAmbiance.ownStadiumChoice();

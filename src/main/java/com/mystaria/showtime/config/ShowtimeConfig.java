@@ -58,6 +58,11 @@ public final class ShowtimeConfig {
 		 * preset {@link #ambiance} names, if it names one (so Cosmos, Ultra Space and Champion's Stage look as before).
 		 */
 		String stadium;
+		/**
+		 * Scene by biome (2026-11-19): a battle's stadium and ambiance follow the place the player stands in (the
+		 * biome, its climate, underground, under water...) instead of {@link #ambiance} and {@link #stadium}.
+		 */
+		boolean biomeScene = false;
 		/** Whether a newer version is looked up on Modrinth at launch (2026-11-09). */
 		boolean checkUpdates = true;
 		/**
@@ -149,6 +154,14 @@ public final class ShowtimeConfig {
 
 	public static void setAmbiance(String id) {
 		get().ambiance = id;
+	}
+
+	public static boolean biomeScene() {
+		return get().biomeScene;
+	}
+
+	public static void setBiomeScene(boolean on) {
+		get().biomeScene = on;
 	}
 
 	/** The stadium chosen: an id, "none", or null (the chosen preset's own). */

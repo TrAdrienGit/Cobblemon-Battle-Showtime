@@ -218,6 +218,7 @@ private static boolean irisChecked;
 
 	/** A battle with these player trainers starts: the ambiance chosen (or imposed) plays around them. */
 	public static void start(Collection<UUID> battleTrainers) {
+		BiomeScenes.forget(); // the place is read again for each battle
 		String[] want = wanted();
 		begin(Ambiances.resolve(want[1], want[0]), battleTrainers, 0);
 		owned = true;
@@ -276,6 +277,10 @@ private static boolean irisChecked;
 	}
 
 	private static String ownStadium() {
+		String[] biome = biomeScene();
+		if (biome != null) {
+			return biome[0] == null ? NONE : biome[0];
+		}
 		String chosen = ShowtimeConfig.stadium();
 		if (chosen == null) {
 			String preset = Ambiances.presetStadium(ownChoice());
@@ -332,8 +337,17 @@ private static boolean irisChecked;
 
 	/** The player's own ambiance, or none once it is reserved and no longer unlocked for them. */
 	private static String ownChoice() {
+		String[] biome = biomeScene();
+		if (biome != null) {
+			return biome[1];
+		}
 		String id = ShowtimeConfig.ambiance();
 		return Ambiances.usable(id) ? id : NONE;
+	}
+
+	/** The scene of the place ({@code [stadium, ambiance]}) when "Scene by biome" is on; null: the player's own. */
+	private static String[] biomeScene() {
+		return com.mystaria.showtime.api.ShowtimeHooks.biomeScenesOn() ? BiomeScenes.scene() : null;
 	}
 
 	/** The battle seen from afar is over (or no longer seen). */
@@ -588,6 +602,7 @@ private static boolean irisChecked;
 	/** The menu's preview: around the player for 30 s ({@code none} stops it). */
 	public static void preview(String id) {
 		Minecraft mc = Minecraft.getInstance();
+		BiomeScenes.forget();
 		begin(Ambiances.resolve(id, ownStadium()), mc.player == null ? List.of() : List.of(mc.player.getUUID()), PREVIEW_TICKS);
 		owned = true;
 	}

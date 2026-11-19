@@ -18,6 +18,7 @@
 			"com.mystaria.showtime.gui.ShowtimeModMenu"
 		]
 	},
+	"accessWidener": "cobblemon_battle_showtime.accesswidener",
 	"mixins": [
 		"cobblemon_battle_showtime.mixins.json"
 	],

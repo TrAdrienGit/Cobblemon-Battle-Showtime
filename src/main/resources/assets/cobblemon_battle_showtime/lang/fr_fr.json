@@ -227,6 +227,10 @@
   "cobblemon_battle_showtime.ambiance.hall_of_mirrors": "Galerie des glaces",
   "cobblemon_battle_showtime.scene.tab.ambiances": "Ambiances",
   "cobblemon_battle_showtime.scene.tab.stadiums": "Stades",
+  "cobblemon_battle_showtime.scene.biome": "Scène selon le biome",
+  "cobblemon_battle_showtime.scene.biome_note": "Le lieu choisit le stade et l'ambiance.",
+  "cobblemon_battle_showtime.scene.biome_imposed_on": "Scène selon le biome : imposée par un mod",
+  "cobblemon_battle_showtime.scene.biome_imposed_off": "Scène selon le biome : coupée par un mod",
   "cobblemon_battle_showtime.scene.blocky_ground": "Sol en blocs (désactivé : lisse)",
   "cobblemon_battle_showtime.scene.tab.presets": "Préréglages",
   "cobblemon_battle_showtime.stadium.field": "Celui du terrain"
