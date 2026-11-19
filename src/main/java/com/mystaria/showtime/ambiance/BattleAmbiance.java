@@ -137,7 +137,8 @@ private static boolean irisChecked;
 
 	private static final List<Orbiter> SPRITES = new ArrayList<>();
 	/** Corrupted's veins: segments on the ground (x0, z0, x1, z1, distance from their root), built once. */
-	private static final List<double[]> VEINS = new ArrayList<>();
+	/** Vein blocks, by cell (x << 32 | z, from the centre's block): the sides each runs out of, how far along the vein. */
+	private static final java.util.Map<Long, int[]> VEINS = new java.util.LinkedHashMap<>();
 	private static long nextFlicker = -1;
 	/** When each of the ambiance's ambient sounds plays next (ticks). */
 	private static long[] nextAmbientSound = new long[0];
@@ -2133,34 +2134,48 @@ private static boolean irisChecked;
 		}
 	}
 
-	/** Arcade's grid: lines on the ground fading into the distance, a wave of the accent colour running out. */
+	/**
+	 * A neon grid on the floor (2026-11-20: on the blocks' grid, as the veins): a line of glowing strips every
+	 * {@code spacing} blocks each way, through the blocks' middles, down the side of each step; a brighter wave running
+	 * out from the field.
+	 */
 	private static void drawNeonGrid(PoseStack pose, MultiBufferSource buffers, Ambiance.NeonGrid grid, float time) {
 		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		float extent = fieldRadius * grid.extent;
-		int lines = (int) Math.ceil(extent / grid.spacing);
+		int spacing = Math.max(2, Math.round(grid.spacing));
 		int color = Ambiance.color(grid.color, 0x00FFD5);
 		int accent = Ambiance.color(grid.accent, 0xFF00C8);
 		float wave = (time / 20f * grid.pulse) % (extent + 6f);
-		for (int axis = 0; axis < 2; axis++) {
-			for (int l = -lines; l <= lines; l++) {
-				double fixed = l * grid.spacing;
-				for (double run = -extent; run < extent; run += 1.0) {
-					double ax = axis == 0 ? fixed : run;
-					double az = axis == 0 ? run : fixed;
-					double bx = axis == 0 ? fixed : run + 1;
-					double bz = axis == 0 ? run + 1 : fixed;
-					double da = Math.sqrt(ax * ax + az * az);
-					double db = Math.sqrt(bx * bx + bz * bz);
-					if (da > extent && db > extent) {
-						continue;
-					}
-					boolean inWave = Math.abs(da - wave) < 1.6;
-					int c = inWave ? accent : color;
-					int a0 = Math.round(grid.alpha * (float) Mth.clamp(1 - da / extent, 0, 1) * (inWave ? 1.4f : 1f));
-					int a1 = Math.round(grid.alpha * (float) Mth.clamp(1 - db / extent, 0, 1) * (inWave ? 1.4f : 1f));
-					groundLine(out, m, ax, az, bx, bz, 0.07, c, Math.min(255, a0), Math.min(255, a1));
+		int bx0 = Mth.floor(center.x);
+		int bz0 = Mth.floor(center.z);
+		int reach = Mth.ceil(extent) + 1;
+		double[] below = new double[4];
+		for (int dx = -reach; dx <= reach; dx++) {
+			boolean onX = Math.floorMod(bx0 + dx, spacing) == 0;
+			for (int dz = -reach; dz <= reach; dz++) {
+				boolean onZ = Math.floorMod(bz0 + dz, spacing) == 0;
+				if (!onX && !onZ) {
+					continue;
 				}
+				double x = bx0 + dx + 0.5 - center.x;
+				double z = bz0 + dz + 0.5 - center.z;
+				double d = Math.sqrt(x * x + z * z);
+				if (d > extent || hole(x, z)) {
+					continue;
+				}
+				boolean inWave = Math.abs(d - wave) < 1.6;
+				int alpha = Math.min(255, Math.round(grid.alpha * (float) (1 - d / extent) * (inWave ? 1.4f : 1f)));
+				if (alpha < 3) {
+					continue;
+				}
+				// A line along z where x is on the grid (south and north sides), along x where z is.
+				int arms = (onX ? 4 | 8 : 0) | (onZ ? 1 | 2 : 0);
+				double top = veinTop(x, z);
+				for (int side = 0; side < 4; side++) {
+					below[side] = (arms & 1 << side) != 0 ? veinTop(x + VEIN_DX[side], z + VEIN_DZ[side]) : top;
+				}
+				veinBlock(out, m, x, top, z, arms, below, 0.05, inWave ? accent : color, alpha);
 			}
 		}
 	}
@@ -2305,7 +2320,11 @@ private static boolean irisChecked;
 		}
 	}
 
-	/** Corrupted's veins: from each rift's foot (or from round the field), a few branches crawling toward it. */
+	/**
+	 * Corrupted's veins: from each rift's foot (or from round the field), a few branches crawling toward it. Laid on the
+	 * blocks' grid (2026-11-20: free lines crossed the blocks at any angle, floated over steps and cut into them): runs
+	 * of a few blocks, turning at right angles like a circuit, each block knowing which sides it runs out of.
+	 */
 	private static void buildVeins(Ambiance.Veins veins) {
 		if (veins.scatter > 0) {
 			// Cracks over the whole floor, each from a random point, heading anywhere.
@@ -2336,36 +2355,131 @@ private static boolean irisChecked;
 		}
 	}
 
-	/** One vein, crawling from (x, z) roughly toward {@code heading}, bending as it goes. */
+	/** The four sides a vein block runs out of: east, west, south, north (a side's opposite is its index xor 1). */
+	private static final int[] VEIN_DX = {1, -1, 0, 0};
+	private static final int[] VEIN_DZ = {0, 0, 1, -1};
+
+	/** One vein, crawling block by block from (x, z) roughly toward {@code heading}, in straight runs, never doubling back. */
 	private static void crawl(Ambiance.Veins veins, double x, double z, double heading) {
-		double walked = 0;
+		int cx = Mth.floor(x);
+		int cz = Mth.floor(z);
+		int walked = 0;
+		int last = -1;
 		while (walked < veins.length) {
 			heading += (RANDOM.nextDouble() - 0.5) * 0.9;
-			double step = 0.8 + RANDOM.nextDouble() * 0.6;
-			double nx = x + Math.cos(heading) * step;
-			double nz = z + Math.sin(heading) * step;
-			VEINS.add(new double[] {x, z, nx, nz, walked});
-			x = nx;
-			z = nz;
-			walked += step;
+			double c = Math.cos(heading);
+			double s = Math.sin(heading);
+			boolean alongX = RANDOM.nextDouble() * (Math.abs(c) + Math.abs(s)) < Math.abs(c);
+			int dir = alongX ? (c >= 0 ? 0 : 1) : (s >= 0 ? 2 : 3);
+			if (last >= 0 && dir == (last ^ 1)) {
+				dir = last;
+			}
+			int run = 2 + RANDOM.nextInt(3);
+			for (int k = 0; k < run && walked < veins.length; k++) {
+				int nx = cx + VEIN_DX[dir];
+				int nz = cz + VEIN_DZ[dir];
+				veinLink(cx, cz, dir, walked);
+				veinLink(nx, nz, dir ^ 1, walked + 1);
+				cx = nx;
+				cz = nz;
+				walked++;
+			}
+			last = dir;
 		}
 	}
 
+	private static void veinLink(int x, int z, int side, int walked) {
+		int[] cell = VEINS.computeIfAbsent(((long) x << 32) | (z & 0xFFFFFFFFL), key -> new int[] {0, walked});
+		cell[0] |= 1 << side;
+		cell[1] = Math.min(cell[1], walked);
+	}
+
+	/**
+	 * The veins, block by block (cells counted from the block the centre stands in): a glowing strip on each block's top
+	 * from its middle out to the sides it runs to, and down the side of a step to the block below; a thin hot core
+	 * inside. No two pieces overlap, so the glow is even along a vein.
+	 */
 	private static void drawVeins(PoseStack pose, MultiBufferSource buffers, Ambiance.Veins veins, float time) {
 		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(veins.color, 0xFF2A8A);
 		int core = veins.core != null ? Ambiance.color(veins.core, 0xFFD060) : -1;
 		double t = time / 20.0 * veins.pulse;
-		for (double[] v : VEINS) {
-			float taper = (float) Mth.clamp(1 - v[4] / veins.length, 0.15, 1);
-			float pulse = (float) (0.45 + 0.55 * Math.max(0, Math.sin(v[4] * 0.9 - t * 3)));
+		int bx0 = Mth.floor(center.x);
+		int bz0 = Mth.floor(center.z);
+		for (var entry : VEINS.entrySet()) {
+			int dx = (int) (entry.getKey() >> 32);
+			int dz = (int) (long) entry.getKey();
+			int arms = entry.getValue()[0];
+			int walked = entry.getValue()[1];
+			double x = bx0 + dx + 0.5 - center.x;
+			double z = bz0 + dz + 0.5 - center.z;
+			if (hole(x, z)) {
+				continue;
+			}
+			float taper = (float) Mth.clamp(1 - walked / veins.length, 0.15, 1);
+			float pulse = (float) (0.45 + 0.55 * Math.max(0, Math.sin(walked * 0.9 - t * 3)));
 			int alpha = Math.round(veins.alpha * taper * pulse);
-			groundLine(out, m, v[0], v[1], v[2], v[3], 0.08 + 0.12 * taper, color, alpha, alpha);
+			if (alpha < 3) {
+				continue;
+			}
+			double top = veinTop(x, z);
+			double[] below = new double[4];
+			for (int side = 0; side < 4; side++) {
+				below[side] = (arms & 1 << side) != 0 ? veinTop(x + VEIN_DX[side], z + VEIN_DZ[side]) : top;
+			}
+			veinBlock(out, m, x, top, z, arms, below, 0.09 + 0.05 * taper, color, alpha);
 			if (core >= 0) {
-				groundLine(out, m, v[0], v[1], v[2], v[3], 0.03 + 0.04 * taper, core, Math.round(alpha * 0.9f), Math.round(alpha * 0.9f));
+				veinBlock(out, m, x, top, z, arms, below, 0.035, core, Math.round(alpha * 0.9f));
 			}
 		}
+	}
+
+	/** The top of the block a vein runs over: the real ground's, snapped to its block where the stadium is blocks. */
+	private static double veinTop(double x, double z) {
+		double ground = groundAt(x, z);
+		boolean smoothStadium = !blocky() && (active.land != null || active.sea != null || active.hall != null || active.cavern != null);
+		return smoothStadium ? ground : Math.floor(center.y + ground + 0.25) - center.y;
+	}
+
+	/** One block of vein, half-width {@code w}: the middle square, an arm to each side it runs to, a drop down each step. */
+	private static void veinBlock(VertexConsumer out, Matrix4f m, double x, double top, double z, int arms, double[] below,
+			double w, int color, int alpha) {
+		double y = top + 0.03;
+		veinQuad(out, m, x - w, y, z - w, x + w, z + w, color, alpha);
+		for (int side = 0; side < 4; side++) {
+			if ((arms & 1 << side) == 0) {
+				continue;
+			}
+			int sx = VEIN_DX[side];
+			int sz = VEIN_DZ[side];
+			// The arm, from the middle square's edge to the block's side.
+			double ax0 = sx == 0 ? x - w : x + sx * w;
+			double ax1 = sx == 0 ? x + w : x + sx * 0.5;
+			double az0 = sz == 0 ? z - w : z + sz * w;
+			double az1 = sz == 0 ? z + w : z + sz * 0.5;
+			veinQuad(out, m, ax0, y, az0, ax1, az1, color, alpha);
+			double drop = below[side] + 0.03;
+			if (drop < y - 0.05) {
+				// Down the side of the step, just off its face.
+				double fx = x + sx * 0.53;
+				double fz = z + sz * 0.53;
+				Vec3 a = new Vec3(sx == 0 ? x - w : fx, y, sz == 0 ? z - w : fz);
+				Vec3 b = new Vec3(sx == 0 ? x + w : fx, y, sz == 0 ? z + w : fz);
+				vertex(out, m, a, color, alpha);
+				vertex(out, m, b, color, alpha);
+				vertex(out, m, new Vec3(b.x, drop, b.z), color, alpha);
+				vertex(out, m, new Vec3(a.x, drop, a.z), color, alpha);
+			}
+		}
+	}
+
+	private static void veinQuad(VertexConsumer out, Matrix4f m, double x0, double y, double z0, double x1, double z1, int color,
+			int alpha) {
+		vertex(out, m, new Vec3(Math.min(x0, x1), y, Math.min(z0, z1)), color, alpha);
+		vertex(out, m, new Vec3(Math.max(x0, x1), y, Math.min(z0, z1)), color, alpha);
+		vertex(out, m, new Vec3(Math.max(x0, x1), y, Math.max(z0, z1)), color, alpha);
+		vertex(out, m, new Vec3(Math.min(x0, x1), y, Math.max(z0, z1)), color, alpha);
 	}
 
 	/** Cracks in the sky: jagged lines on the sky's sphere, a thin hot core in a wide soft glow, pulsing. */

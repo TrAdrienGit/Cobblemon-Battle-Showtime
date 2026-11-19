@@ -113,7 +113,8 @@ remove it from roadmap.md.
   floor lights, floating blocks (they shrink away near the camera), lightning, auroras, shooting stars, rifts, strobe,
   ambient sound and occasional sounds, screen filters (black and white, pixels, glitch, ripple, old TV, old film);
   since the 2026-11-10 quality pass also a mirror ball and dance floor, a neon grid, 8-bit sprites, butterflies,
-  nebulae, a galaxy band, detailed planets, ground mist, veins, sky cracks, glitch cubes, will-o'-wisps and fireflies,
+  nebulae, a galaxy band, detailed planets, ground mist, veins (the veins and the neon grid follow the block
+  grid since 2026-11-20: strips through the blocks' middles, laid on each top, down each step), sky cracks, glitch cubes, will-o'-wisps and fireflies,
   ghosts, a moon, darkness flickers, soap bubbles, glowing mushrooms, a double rainbow, film scratches and dust,
   embers, a volcano, lava cracks, sea-floor caustics, light shafts, kelp, rising paper lanterns, real fireworks,
   ice glints, a fog wall, a horizon mirage, circling birds, a striped 80s sun, palm silhouettes, wormholes, floating
