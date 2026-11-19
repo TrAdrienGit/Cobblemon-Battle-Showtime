@@ -106,8 +106,10 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   stadium's), ice when `frozen`, with snow and floes. A cavern's `blocks` (`surface` the floor, `rock` or `bands` the
   walls and vault), `pillar` (the pillars' block), `dripstone` (pointed dripstone hanging and rising, default true),
   `plants`; its lava lake is lava over magma, its field lit by hidden light blocks (as bright as its `light_strength`),
-  the rest by little sky light (its `ambient`). The hoard, the falls' glow and the ambiance's props stay drawn as
-  before.
+  the rest by little sky light (its `ambient`). Its `hoard` is blocks too (2026-11-20: piles of gold and raw gold
+  blocks, gold plates for coins, the skeleton a fossil of bone blocks, sunk in the lava), and so are the ambiance's
+  `stalactite` and `stalagmite` props on its vault and floor (pointed dripstone, long ones on dripstone blocks). The
+  hoard's glints, the falls' glow and the ambiance's crystals stay drawn as before.
 - `hall` (2026-11-19): a room `margin` blocks past the field, `height` high. `shape` `box` (walls, pilasters, beams,
   hanging lamps) or `tent` (round wall and cone in `stripes`). `floor`, `checker` + `tile` (a checkerboard), `wall`,
   `ceiling`, `lamp`, `mirrors`, `machines` (`metal`, `belt`, `crates`, `warning`, `gears`, `presses`, `speed`: a

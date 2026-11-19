@@ -162,7 +162,8 @@ remove it from roadmap.md.
   coloured by the ambiance out to the horizon, rocks on the shore, ice, snow and floes when frozen), Seabed (sand and
   gravel, seagrass, kelp, sea pickles, coral, the water overhead), Cave and Volcanic Den (the vault's inner skin of
   rock in strata, pillars, pointed dripstone, a lava lake over magma; lit by hidden light blocks and the lava, so dark
-  where no light reaches; a camera outside the vault sees through it).
+  where no light reaches; a camera outside the vault sees through it). The Volcanic Den's hoard (gold blocks, a bone
+  fossil in the lava) and the cave ambiances' stalactites and stalagmites (pointed dripstone) are blocks too.
 - Halls built of blocks (2026-11-19): Factory Hall (concrete walls, iron pilasters and beams, lanterns on chains),
   Big Top (a tent of red and white wool, a stepped cone, a sandstone ring), Chessboard (quartz and blackstone tiles,
   obsidian walls, froglights), Mirror Hall (a deepslate checkerboard, glass mirrors with the room and everyone in it

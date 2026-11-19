@@ -40,15 +40,19 @@ final class CaveScene {
 	private final double lavaIn;
 	private final double lavaOut;
 	private final float lightStrength;
+	/** The ambiance's stalactites and stalagmites: x, z (from the centre), length, 1 hanging / 0 rising, in fours. */
+	private final List<Float> stalks;
 	private final BlockState[] floor;
 	private final BlockState[] rock;
 	private final BlockState[] bands;
 	private final Long2IntOpenHashMap floors = new Long2IntOpenHashMap();
 	private final Long2IntOpenHashMap ceilings = new Long2IntOpenHashMap();
 
-	private CaveScene(Ambiance.Cavern cavern, float lightStrength, Vec3 center, float fieldRadius, DoubleBinaryOperator ground) {
+	private CaveScene(Ambiance.Cavern cavern, float lightStrength, List<Float> stalks, Vec3 center, float fieldRadius,
+			DoubleBinaryOperator ground) {
 		this.cavern = cavern;
 		this.lightStrength = lightStrength;
+		this.stalks = stalks;
 		this.radius = fieldRadius + cavern.margin;
 		this.g = new FieldGround(center, fieldRadius, radius + 3, ground);
 		this.biome = g.biome("minecraft:dripstone_caves");
@@ -64,9 +68,9 @@ final class CaveScene {
 		ceilings.defaultReturnValue(Integer.MIN_VALUE);
 	}
 
-	static Supplier<SceneMesh> recipe(Ambiance.Cavern cavern, float lightStrength, Vec3 center, float fieldRadius,
-			DoubleBinaryOperator ground) {
-		CaveScene scene = new CaveScene(cavern, lightStrength, center, fieldRadius, ground);
+	static Supplier<SceneMesh> recipe(Ambiance.Cavern cavern, float lightStrength, List<Float> stalks, Vec3 center,
+			float fieldRadius, DoubleBinaryOperator ground) {
+		CaveScene scene = new CaveScene(cavern, lightStrength, stalks, center, fieldRadius, ground);
 		return scene::build;
 	}
 
@@ -194,6 +198,10 @@ final class CaveScene {
 		if (cavern.dripstone) {
 			dripstone(objects);
 		}
+		stalks(objects);
+		if (cavern.hoard != null) {
+			hoard(objects);
+		}
 		parts.add(objects);
 		return SceneBuilder.compile(parts, Mth.floor(g.cx), Mth.floor(g.cz));
 	}
@@ -268,6 +276,158 @@ final class CaveScene {
 				}
 			}
 			add(part, pillar);
+		}
+	}
+
+	/**
+	 * The ambiance's stalactites and stalagmites where it places them (its water drips from their tips): pointed
+	 * dripstone, the long ones on a dripstone block base, the longest widened at the root.
+	 */
+	private void stalks(SceneBuilder.Part part) {
+		BlockState block = Blocks.DRIPSTONE_BLOCK.defaultBlockState();
+		for (int i = 0; i + 3 < stalks.size(); i += 4) {
+			int bx = Mth.floor(g.cx + stalks.get(i));
+			int bz = Mth.floor(g.cz + stalks.get(i + 1));
+			boolean down = stalks.get(i + 3) > 0.5f;
+			int f = floorTop(bx, bz);
+			if (f == Integer.MIN_VALUE) {
+				continue;
+			}
+			int c = ceiling(bx, bz);
+			int length = Mth.clamp(Math.round(stalks.get(i + 2)), 1, Math.max(1, (c - f) / 2));
+			int start = down ? c - 1 : f;
+			int step = down ? -1 : 1;
+			int base = length >= 3 ? length / 3 : 0;
+			Long2ObjectOpenHashMap<BlockState> stalk = new Long2ObjectOpenHashMap<>();
+			for (int k = 0; k < length; k++) {
+				int y = start + step * k;
+				if (k < base) {
+					stalk.put(BlockPos.asLong(bx, y, bz), block);
+					if (k == 0 && length >= 4) {
+						for (Direction d : Direction.Plane.HORIZONTAL) {
+							stalk.put(BlockPos.asLong(bx + d.getStepX(), y, bz + d.getStepZ()), block);
+						}
+					}
+					continue;
+				}
+				int fromTip = length - 1 - k;
+				DripstoneThickness thickness = fromTip == 0 ? DripstoneThickness.TIP
+						: fromTip == 1 ? DripstoneThickness.FRUSTUM : k == base ? DripstoneThickness.BASE : DripstoneThickness.MIDDLE;
+				stalk.put(BlockPos.asLong(bx, y, bz), Blocks.POINTED_DRIPSTONE.defaultBlockState()
+						.setValue(PointedDripstoneBlock.TIP_DIRECTION, down ? Direction.DOWN : Direction.UP)
+						.setValue(PointedDripstoneBlock.THICKNESS, thickness));
+			}
+			add(part, stalk);
+		}
+	}
+
+	/**
+	 * A dragon's hoard (as the smooth one, same places): piles of gold blocks with gold plates for coins round them, and
+	 * the skeleton along the ring, a fossil of bone blocks, sunk in the lava when there is some.
+	 */
+	private void hoard(SceneBuilder.Part part) {
+		Ambiance.Hoard hoard = cavern.hoard;
+		BlockState gold = Blocks.GOLD_BLOCK.defaultBlockState();
+		BlockState raw = Blocks.RAW_GOLD_BLOCK.defaultBlockState();
+		BlockState coins = Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE.defaultBlockState();
+		double from = g.field + 0.5;
+		double to = lavaIn == Double.MAX_VALUE ? radius - 2 : lavaIn - 0.4;
+		for (int i = 0; i < hoard.piles; i++) {
+			double a = Math.PI * 2 * (i + 0.6 * Noise.hash(i * 61 + 1)) / Math.max(1, hoard.piles) + 1.1;
+			double r = Mth.lerp(Noise.hash(i * 61 + 2), from, Math.max(from, to));
+			int bx = Mth.floor(g.cx + Math.cos(a) * r);
+			int bz = Mth.floor(g.cz + Math.sin(a) * r);
+			double h = 0.45 + 0.6 * Noise.hash(i * 61 + 3);
+			double width = 0.7 + 0.8 * Noise.hash(i * 61 + 4);
+			int f = floorTop(bx, bz);
+			if (f == Integer.MIN_VALUE) {
+				continue;
+			}
+			Long2ObjectOpenHashMap<BlockState> pile = new Long2ObjectOpenHashMap<>();
+			pile.put(BlockPos.asLong(bx, f, bz), gold);
+			if (h > 0.8) {
+				pile.put(BlockPos.asLong(bx, f + 1, bz), Noise.hash(i * 61 + 5) < 0.5 ? gold : raw);
+			}
+			int reach = (int) Math.ceil(width + 1);
+			for (int dx = -reach; dx <= reach; dx++) {
+				for (int dz = -reach; dz <= reach; dz++) {
+					int d2 = dx * dx + dz * dz;
+					if (d2 == 0 || floorTop(bx + dx, bz + dz) != f) {
+						continue;
+					}
+					float roll = Noise.at(bx + dx, f, bz + dz, 61 + i);
+					if (d2 <= width * width && roll < 0.75f) {
+						pile.put(BlockPos.asLong(bx + dx, f, bz + dz), roll < 0.4f ? gold : raw);
+					} else if (d2 <= (width + 1) * (width + 1) && roll < 0.45f) {
+						pile.put(BlockPos.asLong(bx + dx, f, bz + dz), coins);
+					}
+				}
+			}
+			add(part, pile);
+		}
+		if (hoard.bones) {
+			bones(part);
+		}
+	}
+
+	/** The skeleton: spine, ribs arching up, a skull with a snout and two horns, as the smooth one lies. */
+	private void bones(SceneBuilder.Part part) {
+		double rs = lavaIn == Double.MAX_VALUE ? (g.field + radius) / 2 : (lavaIn + lavaOut) / 2;
+		boolean sunk = lavaIn != Double.MAX_VALUE;
+		int vertebrae = 18;
+		double span = 13 / rs;
+		Vec3[] spine = new Vec3[vertebrae];
+		for (int k = 0; k < vertebrae; k++) {
+			double a = 2.3 + span * k / (vertebrae - 1);
+			double r = rs + Math.sin(k * 0.5) * 0.6;
+			double x = Math.cos(a) * r;
+			double z = Math.sin(a) * r;
+			int f = floorTop(Mth.floor(g.cx + x), Mth.floor(g.cz + z));
+			double floorY = f == Integer.MIN_VALUE ? g.baseFace : f;
+			spine[k] = new Vec3(x, floorY + (sunk ? -0.5 : 0.5) + 0.15 * Math.sin(k * 0.8), z);
+		}
+		Long2ObjectOpenHashMap<BlockState> bone = new Long2ObjectOpenHashMap<>();
+		for (int k = 0; k + 1 < vertebrae; k++) {
+			line(bone, spine[k], spine[k + 1]);
+		}
+		for (int k = 3; k < 11; k++) {
+			Vec3 tangent = spine[k + 1].subtract(spine[k - 1]).normalize();
+			Vec3 side = tangent.cross(new Vec3(0, 1, 0)).normalize();
+			double reach = 1.6 + 1.2 * Math.sin(Math.PI * (k - 3) / 8.0);
+			for (int s = -1; s <= 1; s += 2) {
+				Vec3 prev = spine[k];
+				for (int q = 1; q <= 7; q++) {
+					double t = q / 7.0;
+					Vec3 p = spine[k].add(side.scale(s * reach * t)).add(0, reach * 1.3 * Math.sin(Math.PI * t * 0.95), 0)
+							.add(tangent.scale(-0.4 * t));
+					line(bone, prev, p);
+					prev = p;
+				}
+			}
+		}
+		Vec3 head = spine[0];
+		Vec3 along = spine[0].subtract(spine[1]).normalize();
+		Vec3 outward = new Vec3(head.x, 0, head.z).normalize();
+		Vec3 cranium = head.add(0, 0.7, 0);
+		line(bone, cranium.add(0, -0.5, 0), cranium.add(0, 0.5, 0));
+		line(bone, cranium.add(along.scale(0.4)), cranium.add(along.scale(2.1)).add(0, -0.35, 0));
+		for (int s = -1; s <= 1; s += 2) {
+			Vec3 root = cranium.add(outward.scale(0.35 * s)).add(0, 0.35, 0);
+			line(bone, root, root.add(along.scale(-1.9)).add(0, 1.1, 0).add(outward.scale(0.5 * s)));
+		}
+		add(part, bone);
+	}
+
+	/** Bone blocks along a segment (from the centre, y absolute), each turned along it. */
+	private void line(Long2ObjectOpenHashMap<BlockState> into, Vec3 a, Vec3 b) {
+		Vec3 d = b.subtract(a);
+		Direction.Axis axis = Math.abs(d.y) >= Math.max(Math.abs(d.x), Math.abs(d.z)) ? Direction.Axis.Y
+				: Math.abs(d.x) >= Math.abs(d.z) ? Direction.Axis.X : Direction.Axis.Z;
+		BlockState state = Blocks.BONE_BLOCK.defaultBlockState().setValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS, axis);
+		int steps = (int) Math.ceil(d.length() * 2) + 1;
+		for (int i = 0; i <= steps; i++) {
+			Vec3 p = a.add(d.scale(i / (double) steps));
+			into.putIfAbsent(BlockPos.asLong(Mth.floor(g.cx + p.x), Mth.floor(p.y), Mth.floor(g.cz + p.z)), state);
 		}
 	}
 

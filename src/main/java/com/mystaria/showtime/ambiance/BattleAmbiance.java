@@ -3952,9 +3952,10 @@ private static boolean irisChecked;
 	 */
 	private static void drawCavern(PoseStack pose, MultiBufferSource buffers, Ambiance.Cavern cavern, float time, boolean glow) {
 		if (!glow && blocky()) {
-			// Built of blocks (2026-11-19): the floor, the vault, pillars, dripstone and lava. Asked before any buffer.
+			// Built of blocks (2026-11-19): the floor, the vault, pillars, dripstone, lava, the hoard, and the ambiance's
+			// stalactites and stalagmites (2026-11-20). Asked before any buffer.
 			caveInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawCave(pose, buffers, center, cameraWorld, frustum,
-					cavern, lightStrength(cavern), fieldRadius, BattleAmbiance::groundAt);
+					cavern, lightStrength(cavern), stalks(), fieldRadius, BattleAmbiance::groundAt);
 		}
 		VertexConsumer out = ambianceBuffer(buffers, glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
@@ -4064,7 +4065,7 @@ private static boolean irisChecked;
 					drawLavaLake(out, m, cavern, lava, lavaIn, lavaOut, time, false);
 				}
 			}
-			if (cavern.hoard != null) {
+			if (cavern.hoard != null && !caveInBlocks) {
 				drawHoard(out, m, cavern, cavern.hoard, lavaIn, lavaOut, time, false);
 			}
 		} else {
@@ -6424,6 +6425,21 @@ for (int fx = -1; fx <= 1; fx++) {
 		return new Placed(prop, on, anchor.at(), dir, length, anchor.light(), index);
 	}
 
+	/** The ambiance's stalactites and stalagmites for a cave built of blocks: x, z, length, 1 hanging / 0 rising. */
+	private static List<Float> stalks() {
+		List<Float> out = new ArrayList<>();
+		for (Placed placed : PLACED) {
+			String kind = placed.prop().kind;
+			if (("stalactite".equals(kind) || "stalagmite".equals(kind)) && placed.on() != Anchors.Kind.WALL) {
+				out.add((float) placed.base().x);
+				out.add((float) placed.base().z);
+				out.add((float) placed.length());
+				out.add(placed.on() == Anchors.Kind.CEILING ? 1f : 0f);
+			}
+		}
+		return out;
+	}
+
 	/** A prop's rock colour: the stadium's light when there is one, else the world's light where it stands. */
 	private static int propLit(Placed placed, int color, Vec3 p, Vec3 normal) {
 		if (active.cavern != null) {
@@ -6453,7 +6469,9 @@ for (int fx = -1; fx <= 1; fx++) {
 						tip = tip.add(Math.sin(time * 1.9 + placed.index()) * shake, 0, Math.cos(time * 2.3 + placed.index() * 0.7) * shake);
 					}
 					int rock = Ambiance.color(prop.color, 0x5A4E42);
-					if (!glow) {
+					// In a cave built of blocks, they are built with it (stalks()).
+					boolean inBlocks = caveInBlocks && placed.on() != Anchors.Kind.WALL;
+					if (!glow && !inBlocks) {
 						Vec3 toward = new Vec3(-base.x, 0, -base.z).normalize();
 						float width = (float) (0.2 + 0.18 * placed.length());
 						cone(out, m, base.subtract(placed.dir().scale(0.3)), tip, width, propLit(placed, rock, base, toward),

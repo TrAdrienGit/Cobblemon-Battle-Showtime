@@ -69,12 +69,16 @@ public final class BlockScenery {
 				frustum);
 	}
 
-	/** Draws a cave stadium in blocks; {@code lightStrength}: how bright its light on the field is. As {@link #drawLand}. */
+	/**
+	 * Draws a cave stadium in blocks; {@code lightStrength}: how bright its light on the field is; {@code stalks}: the
+	 * ambiance's stalactites and stalagmites (x, z from the centre, length, 1 hanging / 0 rising, in fours). As
+	 * {@link #drawLand}.
+	 */
 	public static boolean drawCave(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
-			Ambiance.Cavern cavern, float lightStrength, float fieldRadius, DoubleBinaryOperator ground) {
-		Key wanted = new Key(cavern, lightStrength, center, fieldRadius);
-		return draw(wanted, () -> CaveScene.recipe(cavern, lightStrength, center, fieldRadius, ground), pose, buffers, center,
-				camera, frustum);
+			Ambiance.Cavern cavern, float lightStrength, java.util.List<Float> stalks, float fieldRadius, DoubleBinaryOperator ground) {
+		Key wanted = new Key(cavern, java.util.Arrays.asList(lightStrength, stalks), center, fieldRadius);
+		return draw(wanted, () -> CaveScene.recipe(cavern, lightStrength, stalks, center, fieldRadius, ground), pose, buffers,
+				center, camera, frustum);
 	}
 
 	/**
