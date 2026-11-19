@@ -398,6 +398,82 @@ public final class Ambiance {
 		public float pulse = 1f;
 	}
 
+	/**
+	 * A cave stadium closed round the field (2026-11-19): its own floor, an uneven rock vault, pillars, and as the cave
+	 * asks a lava lake and a dragon's hoard. Its vault gives the ambiance's props their anchors (ceiling, walls, floor).
+	 * The rock takes the ambiance's {@link Light} when it has one.
+	 */
+	public static final class Cavern {
+		public String rock = "#3a332c";
+		public String floor = "#2e2924";
+		/** The light from the field warming the rock nearest it, when the ambiance gives none. */
+		public String light = "#ffd9a0";
+		public float lightStrength = 0.35f;
+		/** How dark the rock is where no light reaches (0..1). */
+		public float ambient = 0.3f;
+		/** The walls' distance beyond the field's edge, and the vault's height, in blocks. */
+		public float margin = 12f;
+		public float height = 16f;
+		public int pillars = 5;
+		public LavaLake lava;
+		public Hoard hoard;
+	}
+
+	/** The light an ambiance casts (2026-11-19): a stadium's materials take it (cave rock tinted by crystals, lava). */
+	public static final class Light {
+		public String color = "#ffd9a0";
+		public float strength = 0.4f;
+		/** Optional: the stone a stadium is built of, as this ambiance sees it (crystal violet, burnt black...). */
+		public String rock;
+		public String floor;
+	}
+
+	/**
+	 * Props (2026-11-19): things an ambiance adds on the surfaces round the field, never replacing a block. Each takes
+	 * the first of its {@code anchors} kinds that has room ({@code ceiling}, {@code wall}, {@code floor}, {@code float}),
+	 * the rest going to the next; a prop whose kinds are all missing is left out (no stalactite under open sky).
+	 * Kinds: {@code crystal} (clusters, glowing; beams falling from those on a ceiling or floating), {@code stalactite}
+	 * (water dripping from them when {@code drips} > 0), {@code stalagmite}.
+	 */
+	public static final class Prop {
+		public String kind = "crystal";
+		public List<String> anchors = List.of("ceiling", "wall", "floor", "float");
+		public int count = 30;
+		/** Length: [min, max], in blocks. */
+		public List<Float> size = List.of(1.2f, 3.6f);
+		/** Rock props' colour; crystals' colours (one per cluster, the next as an accent). */
+		public String color = "#5a4e42";
+		public List<String> colors = List.of("#8ad8ff", "#ff9af0", "#b0ff9a", "#fff08a", "#c0a0ff");
+		public float glow = 1f;
+		public float pulse = 1f;
+		/** The light runs round the field in a slow wave, dying between (dark crystals). */
+		public boolean wave;
+		public int beams;
+		/** Ticks they take to grow in when the ambiance starts. */
+		public int grow = 50;
+		public float drips;
+		public String drip = "#a8d8ff";
+	}
+
+	/** A ring of lava round the field, crust plates drifting on it, lavafalls pouring from the walls. */
+	public static final class LavaLake {
+		public String color = "#ff4a08";
+		public String core = "#ffd060";
+		public String crust = "#2a0e06";
+		/** Gap between the field's edge and the lava, then the lava's width, in blocks. */
+		public float gap = 1.5f;
+		public float width = 4f;
+		public int falls = 5;
+	}
+
+	/** A dragon's hoard: gold heaps glinting, and a great skeleton half buried, between the field and the walls. */
+	public static final class Hoard {
+		public String gold = "#ffcf4a";
+		public int piles = 9;
+		public boolean bones = true;
+		public String bone = "#e4d8bc";
+	}
+
 	/** Court markings on the floor along the trainers' axis: the border, a centre line and circle (Champion's Stage). */
 	public static final class Court {
 		public String color = "#f4f0e0";
@@ -644,6 +720,8 @@ public final class Ambiance {
 		public boolean wormhole;
 		/** Confetti: that many pieces, half falling from above, half shot up from the court's corners. */
 		public int confetti;
+		/** Rocks coming down from a cave's vault (with a cavern): that many, the vault shaking meanwhile. */
+		public int rockfall;
 		/** Flame and spark fountains at the court's corners. */
 		public boolean pyro;
 		/** The crowd cheers (lights up, arms up, jumping) for a few seconds, the LED ribbon flashing. */
@@ -668,6 +746,8 @@ public final class Ambiance {
 		public Moment victory;
 		/** This player lost (falls back to {@code victory} when an ambiance has no defeat of its own). */
 		public Moment defeat;
+		/** (2026-11-18) Moments another mod names and plays ({@code BattleAmbiance.moment(name)}): a cave collapsing. */
+		public java.util.Map<String, Moment> named = java.util.Map.of();
 	}
 
 	public Time time;
@@ -713,6 +793,11 @@ public final class Ambiance {
 	public List<Wormhole> wormholes = List.of();
 	public Islands islands;
 	public Island island;
+	public Cavern cavern;
+	public Light light;
+	public List<Prop> props = List.of();
+	/** How high above the field a real ceiling still counts for props (default 14, at most 32). */
+	public Integer ceilingReach;
 	public Court court;
 	public LightTowers lightTowers;
 	public Crowd crowd;

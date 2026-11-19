@@ -1,0 +1,149 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/haze.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 6000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#2aa0d8",
+		"fog_color": "#1f86b8",
+		"strength": 1.0,
+		"fog_start": 4,
+		"fog_end": 60,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"caustics": {
+		"color": "#d8fcff",
+		"alpha": 85,
+		"scale": 1,
+		"speed": 0.9
+	},
+	"shafts": {
+		"color": "#e0fbff",
+		"count": 10,
+		"alpha": 34,
+		"width": 2,
+		"height": 30,
+		"tilt": 10,
+		"ring": [
+			2,
+			18
+		]
+	},
+	"kelp": {
+		"color": "#3a9a5a",
+		"count": 22,
+		"ring": [
+			1.5,
+			8
+		],
+		"height": [
+			2,
+			6
+		]
+	},
+	"bubbles": {
+		"color": "#e8fdff",
+		"count": 24,
+		"radius": [
+			2,
+			14
+		],
+		"height": 14,
+		"size": [
+			0.08,
+			0.3
+		]
+	},
+	"embers": {
+		"color": "#e8ffff",
+		"accent": "#9fe8ff",
+		"count": 26,
+		"radius": [
+			2,
+			14
+		],
+		"height": 9,
+		"size": 0.04,
+		"rise": 0.12
+	},
+	"particles": [
+		{
+			"type": "minecraft:bubble_column_up",
+			"rate": 0.6,
+			"area": "ring"
+		}
+	],
+	"sound": {
+		"id": "minecraft:ambient.underwater.loop",
+		"volume": 0.6
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:ambient.underwater.loop.additions",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.6,
+			"pitch": [
+				1.0,
+				1.2
+			]
+		},
+		{
+			"id": "minecraft:entity.dolphin.ambient_water",
+			"every": [
+				300,
+				700
+			],
+			"volume": 0.3
+		}
+	],
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:bubble",
+			"count": 40,
+			"sound": "minecraft:block.bubble_column.upwards_inside",
+			"volume": 0.6
+		},
+		"attack": {
+			"particle": "minecraft:bubble_pop",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:bubble",
+			"count": 60,
+			"flash": "#bffcff",
+			"sound": "minecraft:block.conduit.attack.target",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:bubble_column_up",
+			"count": 40,
+			"sound": "minecraft:entity.player.hurt_drown"
+		},
+		"victory": {
+			"particle": "minecraft:nautilus",
+			"count": 80,
+			"sound": "minecraft:block.conduit.activate"
+		},
+		"named": {
+			"water_struggle": {
+				"particle": "minecraft:bubble",
+				"count": 40,
+				"sound": "minecraft:entity.player.hurt_drown",
+				"volume": 0.5
+			},
+			"water_polluted": {
+				"particle": "minecraft:squid_ink",
+				"count": 60,
+				"flash": "#3a4a2a",
+				"sound": "minecraft:entity.slime.squish",
+				"pitch": 0.6
+			}
+		}
+	}
+}

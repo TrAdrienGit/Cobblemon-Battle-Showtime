@@ -1,0 +1,48 @@
+{
+	"hide_world": true,
+	"backdrop": {
+		"box": false,
+		"radius": 60,
+		"stars": 1200,
+		"spin": 0.15,
+		"stars_around": true,
+		"star_size": 0.7,
+		"star_colors": [
+			"#ffffff",
+			"#bff8ff",
+			"#ffc8f4",
+			"#fff4b0",
+			"#c8b8ff"
+		]
+	},
+	"islands": {
+		"rock": "#2a1f4a",
+		"top": "#5a3f9a",
+		"crystal": "#7ff8ff",
+		"accent": "#ff7ae8",
+		"count": 8,
+		"distance": [
+			22,
+			40
+		],
+		"height": [
+			-16,
+			16
+		],
+		"size": [
+			2.5,
+			6
+		]
+	},
+	"island": {
+		"top": "#241a52",
+		"line": "#7ff8ff",
+		"rock": "#1a1238",
+		"crystal": "#7ff8ff",
+		"accent": "#ff7ae8",
+		"margin": 3,
+		"crystals": 14,
+		"hex": 1.6,
+		"pulse": 1
+	}
+}

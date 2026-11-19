@@ -53,6 +53,11 @@ public final class ShowtimeConfig {
 		Map<String, String> trainerProfile = new HashMap<>();
 		/** The battle ambiance chosen (phase A1), an id {@code namespace:name}, or "none". */
 		String ambiance = "none";
+		/**
+		 * The stadium chosen (2026-11-19): an id, "none" (the world as it is), or null, never chosen: the stadium of the
+		 * preset {@link #ambiance} names, if it names one (so Cosmos, Ultra Space and Champion's Stage look as before).
+		 */
+		String stadium;
 		/** Whether a newer version is looked up on Modrinth at launch (2026-11-09). */
 		boolean checkUpdates = true;
 		/**
@@ -131,6 +136,15 @@ public final class ShowtimeConfig {
 
 	public static void setAmbiance(String id) {
 		get().ambiance = id;
+	}
+
+	/** The stadium chosen: an id, "none", or null (the chosen preset's own). */
+	public static String stadium() {
+		return get().stadium;
+	}
+
+	public static void setStadium(String id) {
+		get().stadium = id;
 	}
 
 	/** A copy of the whole profile. */

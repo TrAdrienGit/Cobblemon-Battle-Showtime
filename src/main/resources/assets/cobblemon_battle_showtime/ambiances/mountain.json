@@ -1,0 +1,123 @@
+{
+	"time": {
+		"at": 5000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#4a90e0",
+		"fog_color": "#c8dcf0",
+		"strength": 0.6,
+		"fog_start": 30,
+		"fog_end": 140,
+		"cloud_color": "#ffffff"
+	},
+	"birds": {
+		"color": "#2a2420",
+		"count": 3,
+		"radius": [
+			12,
+			24
+		],
+		"height": [
+			16,
+			26
+		],
+		"size": 1.2
+	},
+	"wind": [
+		0.12,
+		0.04
+	],
+	"particles": [
+		{
+			"type": "minecraft:small_gust",
+			"rate": 0.3,
+			"area": "ring"
+		},
+		{
+			"type": "minecraft:dust_plume",
+			"rate": 0.4,
+			"area": "field",
+			"motion": [
+				0.25,
+				0.02,
+				0.08
+			],
+			"spread": 0.04
+		},
+		{
+			"type": "minecraft:white_ash",
+			"rate": 1.5,
+			"area": "air",
+			"motion": [
+				0.1,
+				0,
+				0.03
+			]
+		}
+	],
+	"sound": {
+		"id": "minecraft:item.elytra.flying",
+		"volume": 0.18,
+		"pitch": 0.6
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.goat.ambient",
+			"every": [
+				300,
+				700
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.8,
+				1.0
+			]
+		},
+		{
+			"id": "minecraft:entity.breeze.idle_air",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.6,
+				0.8
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:dust_plume",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:gust",
+			"count": 3,
+			"flash": "#e8f0ff",
+			"sound": "minecraft:entity.breeze.shoot",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:poof",
+			"count": 30,
+			"sound": "minecraft:block.stone.break"
+		},
+		"victory": {
+			"particle": "minecraft:cloud",
+			"count": 60,
+			"sound": "minecraft:entity.goat.screaming.ambient",
+			"volume": 0.4
+		},
+		"named": {
+			"mountain_snow": {
+				"particle": "minecraft:snowflake",
+				"count": 120,
+				"flash": "#ffffff",
+				"sound": "minecraft:block.powder_snow.break",
+				"volume": 0.9
+			}
+		}
+	}
+}

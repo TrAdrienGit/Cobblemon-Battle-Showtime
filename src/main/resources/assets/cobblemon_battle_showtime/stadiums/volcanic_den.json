@@ -1,0 +1,26 @@
+{
+	"hide_world": true,
+	"cavern": {
+		"rock": "#4a2418",
+		"floor": "#3a1c12",
+		"light": "#ff7a30",
+		"light_strength": 0.6,
+		"ambient": 0.3,
+		"margin": 14,
+		"height": 18,
+		"pillars": 4,
+		"lava": {
+			"color": "#ff4a08",
+			"core": "#ffd060",
+			"crust": "#2a0e06",
+			"gap": 3,
+			"width": 30,
+			"falls": 6
+		},
+		"hoard": {
+			"gold": "#ffcf4a",
+			"piles": 10,
+			"bones": true
+		}
+	}
+}

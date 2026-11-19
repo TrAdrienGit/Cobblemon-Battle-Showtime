@@ -1,0 +1,138 @@
+{
+	"time": {
+		"at": 4500,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#bcd8ec",
+		"fog_color": "#dceaf6",
+		"strength": 0.75,
+		"fog_start": 10,
+		"fog_end": 80,
+		"cloud_color": "#e8f0f8"
+	},
+	"floating_blocks": {
+		"block": "minecraft:packed_ice",
+		"count": 9,
+		"radius": [
+			9,
+			17
+		],
+		"height": [
+			0.2,
+			1.5
+		],
+		"bob": 0.1,
+		"orbit": 0,
+		"sparkle": "minecraft:wax_off"
+	},
+	"glints": {
+		"color": "#f0fcff",
+		"count": 30,
+		"radius": [
+			2,
+			15
+		],
+		"height": [
+			0.05,
+			1.5
+		],
+		"size": 0.3
+	},
+	"mist": {
+		"color": "#eef8ff",
+		"alpha": 45,
+		"height": 0.6,
+		"layers": 2,
+		"scale": 5,
+		"speed": 0.6
+	},
+	"wind": [
+		0.05,
+		0.015
+	],
+	"particles": [
+		{
+			"type": "minecraft:snowflake",
+			"rate": 1.2,
+			"area": "air",
+			"motion": [
+				0.05,
+				-0.02,
+				0.02
+			]
+		}
+	],
+	"sound": {
+		"id": "minecraft:item.elytra.flying",
+		"volume": 0.1,
+		"pitch": 0.6
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.amethyst_block.chime",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.4,
+			"pitch": [
+				1.4,
+				1.9
+			]
+		},
+		{
+			"id": "minecraft:block.glass.step",
+			"every": [
+				160,
+				360
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:snowflake",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:item_snowball",
+			"count": 40,
+			"flash": "#e8f8ff",
+			"sound": "minecraft:block.glass.break",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:snowflake",
+			"count": 40,
+			"sound": "minecraft:block.powder_snow.break"
+		},
+		"victory": {
+			"particle": "minecraft:snowflake",
+			"count": 100,
+			"sound": "minecraft:block.amethyst_block.resonate",
+			"pitch": 1.4
+		},
+		"named": {
+			"ice_spikes": {
+				"particle": "minecraft:item_snowball",
+				"count": 70,
+				"flash": "#dff6ff",
+				"sound": "minecraft:block.glass.break",
+				"volume": 0.9,
+				"pitch": 0.7
+			},
+			"steam": {
+				"particle": "minecraft:cloud",
+				"count": 60,
+				"flash": "#ffffff",
+				"sound": "minecraft:block.fire.extinguish",
+				"volume": 0.7
+			}
+		}
+	}
+}

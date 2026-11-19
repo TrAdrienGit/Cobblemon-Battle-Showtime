@@ -128,6 +128,13 @@ remove it from roadmap.md.
 - Seen from afar: a player near a battle's field sees its decorations; the world-wide parts (time, sky, weather,
   filter, sound) apply once inside the field's circle.
 - Resource packs can add ambiances. Another mod can force one for a battle (`ShowtimeHooks.setAmbianceOverride`).
+- Stadiums and ambiances split (2026-11-19, [stadiums.md](stadiums.md)): a **stadium** is the place (the void, Ultra
+  Island, the arena, a cave vault, a volcanic den), an **ambiance** what is added on top; any of one goes with any of
+  the other, and "None" keeps a player's own arena. Presets pair them under one name (Cosmos, Ultra Space,
+  Champion's Stage unchanged; Grotto, Crystal Grotto, Dark Crystal Grotto, Dragon's Lair). Ambiances bring props that
+  find their own surfaces (stalactites under a ceiling, crystals on walls or floors, else floating round the field),
+  from the stadium's vault or a scan of the real blocks. The menu's Scene page has three tabs: Ambiances (only those
+  without a place), Stadiums (previewed alone when no ambiance is chosen), Presets.
 
 ## Trainers (`emote/`, needs Player Animation Library)
 

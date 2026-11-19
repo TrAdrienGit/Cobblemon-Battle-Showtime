@@ -1,0 +1,139 @@
+{
+	"time": {
+		"at": 5000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#7cc4ff",
+		"fog_color": "#bfe6ff",
+		"strength": 0.7,
+		"fog_start": 16,
+		"fog_end": 110,
+		"cloud_color": "#ffffff"
+	},
+	"caustics": {
+		"color": "#e8fbff",
+		"alpha": 55,
+		"scale": 1.4,
+		"speed": 0.6
+	},
+	"mist": {
+		"color": "#e8f6ff",
+		"alpha": 30,
+		"height": 0.6,
+		"layers": 2,
+		"scale": 6,
+		"speed": 1.2
+	},
+	"glints": {
+		"color": "#ffffff",
+		"count": 22,
+		"radius": [
+			3,
+			16
+		],
+		"height": [
+			0.1,
+			0.4
+		],
+		"size": 0.3
+	},
+	"birds": {
+		"color": "#f4f4f0",
+		"count": 5,
+		"radius": [
+			10,
+			22
+		],
+		"height": [
+			12,
+			22
+		],
+		"size": 0.8
+	},
+	"wind": [
+		0.06,
+		0.02
+	],
+	"particles": [
+		{
+			"type": "minecraft:splash",
+			"rate": 2.5,
+			"area": "ring"
+		},
+		{
+			"type": "minecraft:bubble_pop",
+			"rate": 0.6,
+			"area": "field"
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.water.ambient",
+		"volume": 0.5,
+		"pitch": 0.8
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.generic.splash",
+			"every": [
+				60,
+				160
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.6,
+				0.9
+			]
+		},
+		{
+			"id": "minecraft:entity.dolphin.ambient_water",
+			"every": [
+				400,
+				900
+			],
+			"volume": 0.3
+		}
+	],
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:splash",
+			"count": 40,
+			"sound": "minecraft:entity.player.splash",
+			"volume": 0.5
+		},
+		"attack": {
+			"particle": "minecraft:splash",
+			"count": 25
+		},
+		"crit": {
+			"particle": "minecraft:bubble_pop",
+			"count": 50,
+			"flash": "#bff0ff",
+			"sound": "minecraft:entity.player.splash.high_speed",
+			"volume": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:bubble",
+			"count": 40,
+			"sound": "minecraft:entity.generic.splash"
+		},
+		"victory": {
+			"particle": "minecraft:splash",
+			"count": 120,
+			"sound": "minecraft:entity.dolphin.play"
+		},
+		"named": {
+			"water_polluted": {
+				"particle": "minecraft:squid_ink",
+				"count": 60,
+				"flash": "#4a5a2a",
+				"sound": "minecraft:entity.slime.squish",
+				"pitch": 0.6
+			},
+			"water_absorbed": {
+				"particle": "minecraft:splash",
+				"count": 30
+			}
+		}
+	}
+}

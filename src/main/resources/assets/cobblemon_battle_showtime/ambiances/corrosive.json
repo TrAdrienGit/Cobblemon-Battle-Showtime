@@ -1,0 +1,127 @@
+{
+	"time": {
+		"at": 12500,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#4a2a5a",
+		"fog_color": "#3a2a40",
+		"strength": 0.85,
+		"fog_start": 8,
+		"fog_end": 64,
+		"stars": 0,
+		"cloud_color": "#5a3a6a"
+	},
+	"veins": {
+		"color": "#8a2aff",
+		"core": "#b8ff40",
+		"alpha": 160,
+		"branches": 3,
+		"length": 9,
+		"pulse": 0.5,
+		"scatter": 10
+	},
+	"bubbles": {
+		"color": "#b8ff60",
+		"count": 18,
+		"radius": [
+			2,
+			15
+		],
+		"height": 2,
+		"size": [
+			0.15,
+			0.4
+		]
+	},
+	"mist": {
+		"color": "#6a4a8a",
+		"alpha": 45,
+		"height": 0.6,
+		"layers": 2,
+		"scale": 6,
+		"speed": 0.4
+	},
+	"particles": [
+		{
+			"type": "minecraft:item_slime",
+			"rate": 0.4,
+			"area": "field"
+		},
+		{
+			"type": "minecraft:witch",
+			"rate": 0.4,
+			"area": "field"
+		}
+	],
+	"sound": {
+		"id": "minecraft:ambient.crimson_forest.loop",
+		"volume": 0.3,
+		"pitch": 0.8
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.bubble_column.bubble_pop",
+			"every": [
+				40,
+				100
+			],
+			"volume": 0.5,
+			"pitch": [
+				0.6,
+				0.9
+			]
+		},
+		{
+			"id": "minecraft:block.brewing_stand.brew",
+			"every": [
+				200,
+				420
+			],
+			"volume": 0.4
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:witch",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:item_slime",
+			"count": 40,
+			"flash": "#b8ff40",
+			"sound": "minecraft:entity.slime.squish",
+			"volume": 0.8
+		},
+		"faint": {
+			"particle": "minecraft:witch",
+			"count": 40,
+			"sound": "minecraft:entity.witch.drink"
+		},
+		"victory": {
+			"particle": "minecraft:witch",
+			"count": 100,
+			"sound": "minecraft:block.brewing_stand.brew"
+		},
+		"named": {
+			"corrosion_seared": {
+				"particle": "minecraft:item_slime",
+				"count": 30,
+				"flash": "#8a2aff",
+				"sound": "minecraft:block.fire.extinguish",
+				"pitch": 0.6
+			},
+			"pelt_corroded": {
+				"particle": "minecraft:item_slime",
+				"count": 30,
+				"sound": "minecraft:block.fire.extinguish",
+				"pitch": 0.6
+			},
+			"foul_roots": {
+				"particle": "minecraft:witch",
+				"count": 30,
+				"sound": "minecraft:entity.generic.drink"
+			}
+		}
+	}
+}

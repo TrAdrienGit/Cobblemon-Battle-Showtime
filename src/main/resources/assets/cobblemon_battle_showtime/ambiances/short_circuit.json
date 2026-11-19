@@ -1,0 +1,172 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/glitch_soft.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#0a0c12",
+		"fog_color": "#12161e",
+		"strength": 1.0,
+		"fog_start": 4,
+		"fog_end": 40,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"floating_blocks": {
+		"block": "minecraft:redstone_lamp[lit=true]",
+		"count": 6,
+		"radius": [
+			7,
+			15
+		],
+		"height": [
+			7,
+			8
+		],
+		"bob": 0,
+		"orbit": 0
+	},
+	"flicker": {
+		"every": [
+			40,
+			120
+		],
+		"alpha": 0.6,
+		"ticks": 4
+	},
+	"strobe": {
+		"colors": [
+			"#8ad8ff",
+			"#ffffff"
+		],
+		"every": 70,
+		"alpha": 0.08
+	},
+	"veins": {
+		"color": "#3a8aff",
+		"core": "#e0f4ff",
+		"alpha": 140,
+		"branches": 3,
+		"length": 8,
+		"pulse": 2,
+		"scatter": 9
+	},
+	"particles": [
+		{
+			"type": "minecraft:electric_spark",
+			"rate": 2.5,
+			"area": "air",
+			"motion": [
+				0,
+				-0.1,
+				0
+			]
+		},
+		{
+			"type": "minecraft:smoke",
+			"rate": 0.5,
+			"area": "ring",
+			"motion": [
+				0,
+				0.04,
+				0
+			]
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.beacon.ambient",
+		"volume": 0.3,
+		"pitch": 0.35
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.redstone_torch.burnout",
+			"every": [
+				40,
+				120
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.8,
+				1.2
+			]
+		},
+		{
+			"id": "minecraft:block.copper_bulb.turn_off",
+			"every": [
+				60,
+				160
+			],
+			"volume": 0.4
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:electric_spark",
+			"count": 25
+		},
+		"crit": {
+			"particle": "minecraft:electric_spark",
+			"count": 60,
+			"flash": "#8ad8ff",
+			"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
+			"filter_ticks": 8,
+			"sound": "minecraft:entity.lightning_bolt.impact",
+			"volume": 0.4
+		},
+		"faint": {
+			"particle": "minecraft:large_smoke",
+			"count": 30,
+			"sound": "minecraft:block.beacon.deactivate"
+		},
+		"victory": {
+			"particle": "minecraft:electric_spark",
+			"count": 120,
+			"sound": "minecraft:block.beacon.activate"
+		},
+		"named": {
+			"bzzt0": {
+				"particle": "minecraft:electric_spark",
+				"count": 15,
+				"sound": "minecraft:block.redstone_torch.burnout",
+				"volume": 0.5
+			},
+			"bzzt1": {
+				"particle": "minecraft:electric_spark",
+				"count": 30,
+				"sound": "minecraft:block.redstone_torch.burnout",
+				"volume": 0.7
+			},
+			"bzzt2": {
+				"particle": "minecraft:electric_spark",
+				"count": 20,
+				"sound": "minecraft:block.redstone_torch.burnout",
+				"volume": 0.5,
+				"pitch": 0.7
+			},
+			"bzzt3": {
+				"particle": "minecraft:electric_spark",
+				"count": 45,
+				"flash": "#8ad8ff",
+				"sound": "minecraft:entity.lightning_bolt.impact",
+				"volume": 0.3
+			},
+			"bzzt4": {
+				"particle": "minecraft:electric_spark",
+				"count": 90,
+				"flash": "#ffffff",
+				"filter": "cobblemon_battle_showtime:shaders/post/glitch.json",
+				"filter_ticks": 12,
+				"sound": "minecraft:entity.lightning_bolt.impact",
+				"volume": 0.6
+			},
+			"stray_electricity": {
+				"particle": "minecraft:electric_spark",
+				"count": 30,
+				"sound": "minecraft:block.copper_bulb.turn_on"
+			}
+		}
+	}
+}

@@ -1,0 +1,109 @@
+{
+	"time": {
+		"at": 23500,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#e0c8f0",
+		"fog_color": "#f4d8ec",
+		"strength": 0.85,
+		"fog_start": 4,
+		"fog_end": 50,
+		"cloud_color": "#fff0f8"
+	},
+	"mist": {
+		"color": "#ffd8f0",
+		"alpha": 75,
+		"height": 1.8,
+		"layers": 4,
+		"scale": 5,
+		"speed": 0.35
+	},
+	"glints": {
+		"color": "#fff0ff",
+		"count": 26,
+		"radius": [
+			2,
+			14
+		],
+		"height": [
+			0.3,
+			4
+		],
+		"size": 0.3
+	},
+	"wisps": {
+		"color": "#ffc8f0",
+		"accent": "#d8c8ff",
+		"count": 12,
+		"radius": [
+			3,
+			13
+		],
+		"height": [
+			0.5,
+			3
+		],
+		"size": 0.3,
+		"blink": true
+	},
+	"particles": [
+		{
+			"type": "minecraft:white_ash",
+			"rate": 1.5,
+			"area": "air"
+		},
+		{
+			"type": "minecraft:wax_off",
+			"rate": 0.4,
+			"area": "field"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.amethyst_block.chime",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.35,
+			"pitch": [
+				1.1,
+				1.6
+			]
+		}
+	],
+	"moments": {
+		"send_out": {
+			"particle": "minecraft:wax_off",
+			"count": 30
+		},
+		"attack": {
+			"particle": "minecraft:wax_off",
+			"count": 12
+		},
+		"crit": {
+			"particle": "minecraft:end_rod",
+			"count": 40,
+			"flash": "#ffd8f4",
+			"sound": "minecraft:block.amethyst_cluster.break"
+		},
+		"faint": {
+			"particle": "minecraft:cloud",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:end_rod",
+			"count": 80,
+			"sound": "minecraft:block.amethyst_block.resonate"
+		},
+		"named": {
+			"misty_status": {
+				"particle": "minecraft:wax_off",
+				"count": 30,
+				"sound": "minecraft:block.amethyst_block.chime",
+				"pitch": 1.5
+			}
+		}
+	}
+}

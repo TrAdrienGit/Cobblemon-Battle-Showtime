@@ -74,6 +74,10 @@ public final class BattleAmbiance {
 	private static int previewLeft;
 	private static int nextStrike;
 	private static int flashColor;
+	/** This player's own battle: its trainers and the ambiance id it shows, kept across a change of ambiance. */
+	private static List<UUID> followed;
+	private static String followedId;
+	private static int followTicks;
 	private static int flashLeft;
 	private static int nextBoltId = -2_000_000;
 	private static final Random RANDOM = new Random();
@@ -176,11 +180,93 @@ public final class BattleAmbiance {
 
 	/** A battle with these player trainers starts: the ambiance chosen (or imposed) plays around them. */
 	public static void start(Collection<UUID> battleTrainers) {
-		String id = ShowtimeHooks.ambianceOverride();
-		if (id == null) {
-			id = ownChoice();
+		String[] want = wanted();
+		begin(Ambiances.resolve(want[1], want[0]), battleTrainers, 0);
+		followed = List.copyOf(battleTrainers);
+		followedId = want[0] + "|" + want[1];
+	}
+
+	/**
+	 * The stadium and the ambiance this player's battle should show now ({@code [stadium, ambiance]}, 2026-11-19). The
+	 * ambiance: the one imposed, else their own. The stadium: the one imposed; else the one a preset imposed as the
+	 * ambiance brings (the layer first, then the battle's own); else the player's own.
+	 */
+	private static String[] wanted() {
+		return scene(ShowtimeHooks.ambianceOverride(), ShowtimeHooks.baseAmbianceOverride());
+	}
+
+	/**
+	 * A scene imposed ({@code imposed}, see {@link Ambiances#scene}; null: none), over the battle's own ({@code base}).
+	 * The stadium: the one a mod imposes alone; else the imposed scene's, or the stadium its preset brings; else the
+	 * base scene's, or its preset's; else the player's own.
+	 */
+	private static String[] scene(String imposed, String base) {
+		String imposedAmbiance = imposed == null ? "" : Ambiances.sceneAmbiance(imposed);
+		String ambiance = imposedAmbiance.isEmpty() ? ownChoice() : imposedAmbiance;
+		String stadium = ShowtimeHooks.stadiumOverride();
+		if (stadium == null) {
+			stadium = Ambiances.sceneStadium(imposed);
 		}
-		begin(Ambiances.get(id), battleTrainers, 0);
+		if (stadium == null) {
+			stadium = Ambiances.presetStadium(imposedAmbiance);
+		}
+		if (stadium == null && base != null) {
+			stadium = Ambiances.sceneStadium(base);
+			if (stadium == null) {
+				stadium = Ambiances.presetStadium(Ambiances.sceneAmbiance(base));
+			}
+		}
+		if (stadium == null) {
+			stadium = Ambiances.isPreset(imposedAmbiance) ? null : ownStadium();
+		}
+		if (Ambiances.FIELD_STADIUM.equals(stadium)) {
+			String suggested = ShowtimeHooks.fieldStadium();
+			stadium = suggested == null ? NONE : suggested;
+		}
+		return new String[] {stadium, ambiance};
+	}
+
+	/** The player's own stadium: the one chosen, else (never chosen) the one their preset brings, else none. */
+	/** Whether the player's own choice shows anything (an ambiance, or a stadium alone). */
+	public static boolean ownSceneShows() {
+		return Ambiances.resolve(ownChoice(), ownStadium()) != null;
+	}
+
+	public static String ownStadiumChoice() {
+		return ownStadium();
+	}
+
+	private static String ownStadium() {
+		String chosen = ShowtimeConfig.stadium();
+		if (chosen == null) {
+			String preset = Ambiances.presetStadium(ownChoice());
+			return preset != null ? preset : NONE;
+		}
+		return NONE.equals(chosen) || Ambiances.isStadium(chosen) ? chosen : NONE;
+	}
+
+	/**
+	 * The ambiance imposed may change during the battle (2026-11-18: a Pokémon Reborn field changing, or gone and the
+	 * battle's own coming back): checked twice a second, the new one replaces the old behind a flash of its colour.
+	 */
+	private static void followOverride() {
+		if (followed == null || ++followTicks % 10 != 0) {
+			return;
+		}
+		String[] want = wanted();
+		String id = want[0] + "|" + want[1];
+		if (java.util.Objects.equals(id, followedId)) {
+			return;
+		}
+		List<UUID> keep = followed;
+		Ambiance next = Ambiances.resolve(want[1], want[0]);
+		begin(next, keep, 0); // ends the old one (and forgets what is followed): set again below
+		followed = keep;
+		followedId = id;
+		if (active != null && next != null) {
+			flashColor = Ambiance.color(next.sky != null ? next.sky.fogColor : null, 0xFFFFFF);
+			flashLeft = FLASH_TICKS;
+		}
 	}
 
 	/**
@@ -191,7 +277,8 @@ public final class BattleAmbiance {
 		if (active() && !distant) {
 			return;
 		}
-		begin(Ambiances.get(id == null || id.isEmpty() ? ownChoice() : id), List.of(), 0);
+		String[] want = scene(id == null || id.isEmpty() ? null : id, null);
+		begin(Ambiances.resolve(want[1], want[0]), List.of(), 0);
 		if (active == null) {
 			return;
 		}
@@ -199,6 +286,7 @@ public final class BattleAmbiance {
 		distantSpots = spots;
 		inside = true; // corrected at the first tick: off if the player stands outside
 		updateField(Minecraft.getInstance().level);
+		placeProps(Minecraft.getInstance().level, active); // the field is only known now
 	}
 
 	/** The player's own ambiance, or none once it is reserved and no longer unlocked for them. */
@@ -222,7 +310,7 @@ public final class BattleAmbiance {
 	/** The menu's preview: around the player for 30 s ({@code none} stops it). */
 	public static void preview(String id) {
 		Minecraft mc = Minecraft.getInstance();
-		begin(Ambiances.get(id), mc.player == null ? List.of() : List.of(mc.player.getUUID()), PREVIEW_TICKS);
+		begin(Ambiances.resolve(id, ownStadium()), mc.player == null ? List.of() : List.of(mc.player.getUUID()), PREVIEW_TICKS);
 	}
 
 	/** The menu's preview is over: ended, but never a battle's ambiance (one seen from afar included). */
@@ -233,6 +321,8 @@ public final class BattleAmbiance {
 	}
 
 	public static void end() {
+		followed = null;
+		followedId = null;
 		stopSound();
 		if (filterOn) {
 			Minecraft.getInstance().gameRenderer.shutdownEffect();
@@ -249,6 +339,10 @@ public final class BattleAmbiance {
 		flashLeft = 0;
 		FLOATING.clear();
 		FIREWORKS.clear();
+		ROCKS.clear();
+		quakeUntil = 0;
+		PLACED.clear();
+		anchors = null;
 		NOTES.clear();
 		CONFETTI.clear();
 		CAMERA_FLASHES.clear();
@@ -279,6 +373,7 @@ public final class BattleAmbiance {
 		startDayTime = ambiance.time != null && ambiance.time.at != null ? ambiance.time.at : mc.level.getDayTime();
 		nextStrike = ambiance.lightning != null ? strikeDelay(ambiance.lightning) : -1;
 		updateField(mc.level);
+		placeProps(mc.level, ambiance);
 		if (mc.player != null && center != null) {
 			Vec3 away = new Vec3(center.x - mc.player.getX(), 0, center.z - mc.player.getZ());
 			rainbowBack = away.lengthSqr() < 1.0E-4 ? new Vec3(0, 0, -1) : away.normalize();
@@ -341,6 +436,9 @@ public final class BattleAmbiance {
 	public static void tick() {
 		GROUND.clear(); // ground heights are relative to the field's centre, which moves
 		Minecraft mc = Minecraft.getInstance();
+		if (mc.level != null && !mc.isPaused()) {
+			followOverride();
+		}
 		if (active == null || mc.level == null || mc.isPaused()) {
 			if (active != null && mc.level == null) {
 				end();
@@ -439,6 +537,9 @@ public final class BattleAmbiance {
 				burst(mc.level, FIREWORKS.remove(i).where());
 			}
 		}
+		if (!ROCKS.isEmpty() || ticks < quakeUntil) {
+			landRocks(mc);
+		}
 		if (!distant || inside) {
 			for (int i = 0; i < nextAmbientSound.length && i < active.ambientSounds.size(); i++) {
 				if (ticks >= nextAmbientSound[i]) {
@@ -499,7 +600,10 @@ public final class BattleAmbiance {
 		}
 	}
 
-	/** A moment of the battle: {@code send_out}, {@code attack}, {@code crit}, {@code faint} or {@code victory}. */
+	/**
+	 * A moment of the battle: {@code send_out}, {@code attack}, {@code crit}, {@code faint} or {@code victory}, or one
+	 * of the ambiance's {@code named} moments (another mod's: Phantasmon Events' {@code cave_collapse}).
+	 */
 	public static void moment(String kind) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!active() || active.moments == null || mc.level == null) {
@@ -512,7 +616,7 @@ public final class BattleAmbiance {
 			case "crit" -> active.moments.crit;
 			case "victory" -> active.moments.victory;
 			case "defeat" -> active.moments.defeat != null ? active.moments.defeat : noCelebration(active.moments.victory);
-			default -> null;
+			default -> active.moments.named == null ? null : active.moments.named.get(kind);
 		};
 		if (moment == null) {
 			return;
@@ -552,6 +656,9 @@ public final class BattleAmbiance {
 		}
 		if (moment.confetti > 0) {
 			launchConfetti(moment.confetti);
+		}
+		if (moment.rockfall > 0) {
+			rockfall(calm() ? Math.max(1, moment.rockfall / 2) : moment.rockfall);
 		}
 		for (int i = 0; i < moment.fireworks; i++) {
 			double angle = RANDOM.nextDouble() * Math.PI * 2;
@@ -824,9 +931,14 @@ public final class BattleAmbiance {
 			buffers.endBatch();
 			com.mojang.blaze3d.systems.RenderSystem.setShaderFogStart(fogStart);
 		}
-		if (active.islands != null || active.island != null || active.crowd != null || active.lightTowers != null) {
+		if (active.islands != null || active.island != null || active.crowd != null || active.lightTowers != null
+				|| active.cavern != null || !PLACED.isEmpty() || !ROCKS.isEmpty()) {
 			// Solid scenery first, writing depth: the glows drawn after are hidden behind it where they should be.
 			buffers.endBatch();
+			if (active.cavern != null) {
+				drawCavern(pose, buffers, active.cavern, time, false);
+			}
+			drawProps(pose, buffers, time, false);
 			if (active.islands != null) {
 				drawIslands(pose, buffers, active.islands, time, false);
 			}
@@ -894,6 +1006,12 @@ public final class BattleAmbiance {
 		}
 		if (active.island != null) {
 			drawFieldIsland(pose, buffers, active.island, time, true);
+		}
+		if (active.cavern != null) {
+			drawCavern(pose, buffers, active.cavern, time, true);
+		}
+		if (!PLACED.isEmpty()) {
+			drawProps(pose, buffers, time, true);
 		}
 		if (wormholeBurst >= 0 && !active.wormholes.isEmpty()) {
 			drawWormholeBurst(pose, buffers, time, partialTick, true);
@@ -3110,6 +3228,745 @@ public final class BattleAmbiance {
 			double e0 = islandEdge(island, a0) - 0.2;
 			double e1 = islandEdge(island, a1) - 0.2;
 			groundLine(out, m, Math.cos(a0) * e0, Math.sin(a0) * e0, Math.cos(a1) * e1, Math.sin(a1) * e1, 0.35, line, 70, 70);
+		}
+	}
+
+	// ---------------------------------------------------------------- Caves (2026-11-19)
+
+	/** A rock coming down from the vault: where it starts, when, when it lands, the floor under it, its size and spin. */
+	private record Rock(Vec3 from, long at, long landAt, double floor, float size, float spin) {
+	}
+
+	private static final List<Rock> ROCKS = new ArrayList<>();
+	private static final double FALL_GRAVITY = 0.035;
+	/** The vault shakes until then (a rockfall). */
+	private static long quakeUntil;
+
+	private static double cavernRadius(Ambiance.Cavern cavern) {
+		return fieldRadius + cavern.margin;
+	}
+
+	/** The light on a stadium's materials: the ambiance's when it casts one, else the stadium's own. */
+	private static int lightColor(Ambiance.Cavern cavern) {
+		return Ambiance.color(active.light != null ? active.light.color : cavern.light, 0xFFD9A0);
+	}
+
+	private static float lightStrength(Ambiance.Cavern cavern) {
+		return active.light != null ? active.light.strength : cavern.lightStrength;
+	}
+
+	/** The vault at {@code angle}, {@code v} from its foot (0) to its top (1): uneven, so it reads as rock. */
+	private static Vec3 vaultPoint(Ambiance.Cavern cavern, double angle, double v) {
+		double phi = v * Math.PI / 2;
+		double bump = 1 + 0.09 * Math.sin(3 * angle + 1.3) * Math.cos(5 * angle + 2 * v) + 0.05 * Math.sin(11 * angle + 7 * v)
+				+ 0.04 * Math.sin(17 * angle - 9 * v + 0.5);
+		double across = cavernRadius(cavern) * Math.pow(Math.cos(phi), 0.55) * bump;
+		double y = -3 + (cavern.height + 3) * Math.sin(phi) * (1 + 0.05 * Math.sin(7 * angle + 3 * v));
+		return new Vec3(Math.cos(angle) * across, y, Math.sin(angle) * across);
+	}
+
+	/** The vault's height above a point {@code r} blocks from the field's centre. */
+	private static double vaultHeightAt(Ambiance.Cavern cavern, double r) {
+		double c = Math.pow(Mth.clamp(r / cavernRadius(cavern), 0, 1), 1 / 0.55);
+		return -3 + (cavern.height + 3) * Math.sin(Math.acos(c));
+	}
+
+	/** The rock's colour at {@code p} facing {@code normal}: dark far from the field, warmed by its light near it. */
+	private static int caveLit(Ambiance.Cavern cavern, int color, Vec3 p, Vec3 normal) {
+		Vec3 toLight = new Vec3(0, 3, 0).subtract(p);
+		double distance = Math.max(1.0E-6, toLight.length());
+		double facing = Math.max(0, normal.dot(toLight.scale(1 / distance)));
+		float lit = (float) (facing * Mth.clamp(1 - distance / (cavernRadius(cavern) * 1.4), 0, 1));
+		int base = lerpColor(0x000000, color, cavern.ambient + (1 - cavern.ambient) * lit);
+		return lerpColor(base, lightColor(cavern), lightStrength(cavern) * lit);
+	}
+
+	/** A rough cone of rock: six faces of uneven width, darker at the root, lighter (wet) at the point. */
+	private static void cone(VertexConsumer out, Matrix4f m, Vec3 base, Vec3 tip, float width, int root, int point, int seed) {
+		Vec3[] frame = crystalFrame(base, tip);
+		int sides = 6;
+		Vec3[] rim = new Vec3[sides];
+		for (int k = 0; k < sides; k++) {
+			double a = Math.PI * 2 * k / sides + seed;
+			double r = width * (0.75 + 0.5 * hashFloat(seed * 7 + k));
+			rim[k] = base.add(frame[0].scale(Math.cos(a) * r)).add(frame[1].scale(Math.sin(a) * r));
+		}
+		for (int k = 0; k < sides; k++) {
+			float facet = k % 2 == 0 ? 1f : 0.82f;
+			int lo = lerpColor(0x000000, root, facet);
+			int hi = lerpColor(0x000000, point, facet);
+			vertex(out, m, rim[k], lo, 255);
+			vertex(out, m, rim[(k + 1) % sides], lo, 255);
+			vertex(out, m, tip, hi, 255);
+			vertex(out, m, tip, hi, 255);
+		}
+	}
+
+	/** A tube of {@code sides} faces from {@code a} to {@code b} (bones, pillars' rings). */
+	private static void tube(VertexConsumer out, Matrix4f m, Vec3 a, Vec3 b, double ra, double rb, int color) {
+		Vec3[] frame = crystalFrame(a, b);
+		int sides = 6;
+		for (int k = 0; k < sides; k++) {
+			double a0 = Math.PI * 2 * k / sides;
+			double a1 = Math.PI * 2 * (k + 1) / sides;
+			Vec3 d0 = frame[0].scale(Math.cos(a0)).add(frame[1].scale(Math.sin(a0)));
+			Vec3 d1 = frame[0].scale(Math.cos(a1)).add(frame[1].scale(Math.sin(a1)));
+			int c = shade(color, d0.add(d1).normalize(), 0.55f);
+			quad(out, m, a.add(d0.scale(ra)), a.add(d1.scale(ra)), b.add(d1.scale(rb)), b.add(d0.scale(rb)), c);
+		}
+	}
+
+	/** A boulder: a rough octahedron turned by {@code spin}. */
+	private static void boulder(VertexConsumer out, Matrix4f m, Vec3 c, float size, double spin, int color, int seed) {
+		Vec3[] p = new Vec3[6];
+		double[][] axes = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+		for (int k = 0; k < 6; k++) {
+			double r = size * (0.7 + 0.6 * hashFloat(seed * 11 + k));
+			p[k] = c.add(rotateY(new Vec3(axes[k][0] * r, axes[k][1] * r * 0.8, axes[k][2] * r), spin));
+		}
+		int[][] faces = {{0, 2, 4}, {4, 2, 1}, {1, 2, 5}, {5, 2, 0}, {0, 4, 3}, {4, 1, 3}, {1, 5, 3}, {5, 0, 3}};
+		for (int[] f : faces) {
+			Vec3 normal = p[f[1]].subtract(p[f[0]]).cross(p[f[2]].subtract(p[f[0]])).normalize();
+			int shaded = shade(color, normal.y < 0 ? normal.scale(-1) : normal, 0.45f);
+			vertex(out, m, p[f[0]], shaded, 255);
+			vertex(out, m, p[f[1]], shaded, 255);
+			vertex(out, m, p[f[2]], shaded, 255);
+			vertex(out, m, p[f[2]], shaded, 255);
+		}
+	}
+
+	/** A random point under the ceiling round the field (a real one, or a stadium's vault); null under open sky. */
+	private static Vec3 ceilingPoint() {
+		List<Anchors.Anchor> ceilings = anchors == null ? List.of() : anchors.all(Anchors.Kind.CEILING);
+		if (ceilings.isEmpty()) {
+			return null;
+		}
+		Anchors.Anchor a = ceilings.get(RANDOM.nextInt(ceilings.size()));
+		return a.at().add((RANDOM.nextDouble() - 0.5) * 1.2, -0.6, (RANDOM.nextDouble() - 0.5) * 1.2);
+	}
+
+	/** Rocks start coming down from the ceiling, over the field and round it; the ceiling shakes meanwhile. */
+	private static void rockfall(int count) {
+		quakeUntil = ticks + 50;
+		for (int i = 0; i < count; i++) {
+			Vec3 from = ceilingPoint();
+			if (from == null) {
+				return;
+			}
+			double floor = groundAt(from.x, from.z) + 0.12;
+			if (from.y - floor < 1) {
+				continue;
+			}
+			long at = ticks + i * 3L + RANDOM.nextInt(6);
+			long fall = (long) Math.ceil(Math.sqrt(2 * (from.y - floor) / FALL_GRAVITY));
+			ROCKS.add(new Rock(from, at, at + fall, floor, 0.25f + RANDOM.nextFloat() * 0.55f, RANDOM.nextFloat() * 6.28f));
+		}
+		while (ROCKS.size() > 90) {
+			ROCKS.remove(0);
+		}
+	}
+
+	/** Each tick: rocks landing (dust, a crack), dust sifting down while the ceiling shakes. */
+	private static void landRocks(Minecraft mc) {
+		for (Rock rock : ROCKS) {
+			if (ticks == rock.landAt()) {
+				Vec3 at = center.add(rock.from().x, rock.floor() + 0.2, rock.from().z);
+				for (int k = 0; k < 6; k++) {
+					mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.POOF, at.x, at.y, at.z,
+							(RANDOM.nextDouble() - 0.5) * 0.15, RANDOM.nextDouble() * 0.08, (RANDOM.nextDouble() - 0.5) * 0.15);
+				}
+				if (rock.size() > 0.45f || RANDOM.nextInt(3) == 0) {
+					mc.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+							SoundEvent.createVariableRangeEvent(ResourceLocation.parse("minecraft:block.stone.break")),
+							0.5f + RANDOM.nextFloat() * 0.3f, 0.5f));
+				}
+			}
+		}
+		if (ticks < quakeUntil && !calm()) {
+			for (int k = 0; k < 3; k++) {
+				Vec3 p = ceilingPoint();
+				if (p != null) {
+					mc.level.addParticle(net.minecraft.core.particles.ParticleTypes.WHITE_ASH, center.x + p.x, center.y + p.y,
+							center.z + p.z, 0, -0.05, 0);
+				}
+			}
+		}
+	}
+
+	/**
+	 * The cave. Solid pass: the floor laid on the hidden ground, the vault in rings to its top (a face the camera is
+	 * outside of is left out: a cutaway, never a wall in front of the lens), stalactites, stalagmites, pillars, the lava
+	 * lake and its falls, the hoard and the bones, falling rocks, the crystals. Light pass: water dripping and its
+	 * ripples, the crystals' glow and beams, the lava's heat, the gold glinting, a dull glow in the skull's eyes.
+	 */
+	private static void drawCavern(PoseStack pose, MultiBufferSource buffers, Ambiance.Cavern cavern, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		// The ambiance may recolour the stadium's stone (the same vault black in a dark crystal cave).
+		int rock = Ambiance.color(active.light != null && active.light.rock != null ? active.light.rock : cavern.rock, 0x3A332C);
+		int floorColor = Ambiance.color(active.light != null && active.light.floor != null ? active.light.floor : cavern.floor, 0x2E2924);
+		double radius = cavernRadius(cavern);
+		Ambiance.LavaLake lava = cavern.lava;
+		double lavaIn = lava == null ? Double.MAX_VALUE : fieldRadius + lava.gap;
+		double lavaOut = lava == null ? Double.MAX_VALUE : Math.min(radius + 2, lavaIn + lava.width);
+		Vec3 up = new Vec3(0, 1, 0);
+		if (!glow) {
+			// The floor, out to the walls (the lava's ring left for the lava).
+			int sectors = 64;
+			int rings = (int) Math.ceil(radius / 1.5);
+			for (int j = 0; j < rings; j++) {
+				double r0 = radius * j / rings;
+				double r1 = radius * (j + 1) / rings;
+				if (r0 >= lavaIn - 0.01 && r1 <= lavaOut + 0.01) {
+					continue;
+				}
+				if (r0 < lavaIn && r1 > lavaIn) {
+					r1 = lavaIn;
+				} else if (r0 < lavaOut && r1 > lavaOut) {
+					r0 = lavaOut;
+				}
+				for (int k = 0; k < sectors; k++) {
+					double a0 = Math.PI * 2 * k / sectors;
+					double a1 = Math.PI * 2 * (k + 1) / sectors;
+					Vec3 p00 = onGround(Math.cos(a0) * r0, Math.sin(a0) * r0).add(0, -0.03, 0);
+					Vec3 p01 = onGround(Math.cos(a1) * r0, Math.sin(a1) * r0).add(0, -0.03, 0);
+					Vec3 p11 = onGround(Math.cos(a1) * r1, Math.sin(a1) * r1).add(0, -0.03, 0);
+					Vec3 p10 = onGround(Math.cos(a0) * r1, Math.sin(a0) * r1).add(0, -0.03, 0);
+					int tile = lerpColor(floorColor, hashFloat(j * 131 + k * 7) > 0.5 ? 0x000000 : 0xFFFFFF,
+							0.1f * hashFloat(j * 53 + k * 29 + 5));
+					quad(out, m, p00, p01, p11, p10, caveLit(cavern, tile, p00.add(p11).scale(0.5), up));
+				}
+			}
+			// The vault.
+			int stacks = 14;
+			int around = 72;
+			Vec3[][] grid = new Vec3[stacks + 1][around];
+			for (int j = 0; j <= stacks; j++) {
+				for (int k = 0; k < around; k++) {
+					grid[j][k] = vaultPoint(cavern, Math.PI * 2 * k / around, j / (double) stacks);
+				}
+			}
+			Vec3 heart = new Vec3(0, cavern.height * 0.25, 0);
+			for (int j = 0; j < stacks; j++) {
+				for (int k = 0; k < around; k++) {
+					int n = (k + 1) % around;
+					Vec3 mid = grid[j][k].add(grid[j][n]).add(grid[j + 1][n]).add(grid[j + 1][k]).scale(0.25);
+					Vec3 inward = heart.subtract(mid).normalize();
+					if (cameraRel.subtract(mid).dot(inward) < 0 || nearFade(mid, 1.5, 2) < 0.5f) {
+						continue;
+					}
+					// Strata: bands of slightly different rock up the walls.
+					int band = lerpColor(rock, hashFloat(j * 31 + 7) > 0.5 ? 0x000000 : 0xFFFFFF,
+							0.08f + 0.1f * hashFloat(j * 131 + k / 5));
+					quad(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], caveLit(cavern, band, mid, inward));
+				}
+			}
+			// Pillars: a stalactite and a stalagmite grown into one, narrow in the middle.
+			double[] heights = {0, 0.12, 0.35, 0.5, 0.65, 0.88, 1};
+			double[] widths = {1.6, 1.05, 0.6, 0.5, 0.72, 1.25, 1.9};
+			for (int i = 0; i < cavern.pillars; i++) {
+				double a = Math.PI * 2 * (i + 0.5 * hashFloat(i * 23 + 1)) / Math.max(1, cavern.pillars) + 0.4;
+				double r = radius * (0.74 + 0.1 * hashFloat(i * 23 + 2));
+				double x = Math.cos(a) * r;
+				double z = Math.sin(a) * r;
+				double bottom = groundAt(x, z) - 0.5;
+				double top = vaultHeightAt(cavern, r) + 1;
+				for (int k = 0; k + 1 < heights.length; k++) {
+					Vec3 p0 = new Vec3(x, Mth.lerp(heights[k], bottom, top), z);
+					Vec3 p1 = new Vec3(x, Mth.lerp(heights[k + 1], bottom, top), z);
+					if (nearFade(p0.add(p1).scale(0.5), 1.5, 2.0) < 0.3f) {
+						continue;
+					}
+					int c = caveLit(cavern, lerpColor(rock, 0xFFFFFF, 0.06f * k), p0, new Vec3(-x, 0, -z).normalize());
+					tube(out, m, p0, p1, widths[k], widths[k + 1], c);
+				}
+			}
+			if (lava != null) {
+				drawLavaLake(out, m, cavern, lava, lavaIn, lavaOut, time, false);
+			}
+			if (cavern.hoard != null) {
+				drawHoard(out, m, cavern, cavern.hoard, lavaIn, lavaOut, time, false);
+			}
+		} else {
+			// A soft light on the field, where the battle stands.
+			glowDisc(out, m, onGround(0, 0).add(0, 0.04, 0), up, (float) fieldRadius, lightColor(cavern), 16);
+			if (lava != null) {
+				drawLavaLake(out, m, cavern, lava, lavaIn, lavaOut, time, true);
+			}
+			if (cavern.hoard != null) {
+				drawHoard(out, m, cavern, cavern.hoard, lavaIn, lavaOut, time, true);
+			}
+		}
+	}
+
+	// ---------------------------------------------------------------- Props on anchors (2026-11-19)
+
+	/** One prop placed: its kind, the anchor kind it took, where it grows from and which way, its size and colours. */
+	private record Placed(Ambiance.Prop prop, Anchors.Kind on, Vec3 base, Vec3 dir, double length, float light, int index) {
+	}
+
+	/** The surfaces round the field (scanned or given by the stadium), and the props placed on them. */
+	private static Anchors anchors;
+	private static final List<Placed> PLACED = new ArrayList<>();
+
+	/** At the start: the anchors (the stadium's vault, else the real blocks), then every prop on its anchors. */
+	private static void placeProps(ClientLevel level, Ambiance ambiance) {
+		PLACED.clear();
+		anchors = null;
+		boolean wantsAnchors = !ambiance.props.isEmpty() || ambiance.moments != null;
+		if (!wantsAnchors || center == null) {
+			return;
+		}
+		double ground = groundAt(0, 0);
+		if (ambiance.cavern != null) {
+			anchors = vaultAnchors(ambiance.cavern);
+		} else if (ambiance.hideWorld) {
+			// The world hidden by a stadium without surfaces of its own: only its ground (people stand on it) and the air.
+			anchors = new Anchors();
+			for (int i = 0; i < 160; i++) {
+				double a = Math.PI * 2 * hashFloat(i * 19 + 1);
+				double r = fieldRadius + 1 + 10 * hashFloat(i * 19 + 2);
+				anchors.add(Anchors.Kind.FLOOR, new Anchors.Anchor(onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.12, 0),
+						new Vec3(0, 1, 0), 1f));
+			}
+			anchors.fillFloat(fieldRadius, ground);
+		} else {
+			List<Vec3> avoid = new ArrayList<>();
+			for (UUID id : trainers) {
+				net.minecraft.world.entity.player.Player player = level.getPlayerByUUID(id);
+				if (player != null) {
+					avoid.add(player.position().subtract(center));
+				}
+			}
+			int reach = ambiance.ceilingReach != null ? ambiance.ceilingReach : Anchors.DEFAULT_REACH;
+			anchors = Anchors.scan(level, center, fieldRadius, ground, avoid, reach);
+		}
+		int index = 0;
+		for (Ambiance.Prop prop : ambiance.props) {
+			int left = prop.count;
+			for (String name : prop.anchors) {
+				Anchors.Kind kind = Anchors.kind(name);
+				while (kind != null && left > 0) {
+					Anchors.Anchor anchor = anchors.take(kind);
+					if (anchor == null) {
+						break;
+					}
+					left--;
+					PLACED.add(place(prop, kind, anchor, index++));
+				}
+			}
+		}
+	}
+
+	/** A stadium's vault as anchors: its roof (ceiling), its walls, its floor between the field (or the lava) and them. */
+	private static Anchors vaultAnchors(Ambiance.Cavern cavern) {
+		Anchors result = new Anchors();
+		Vec3 heart = new Vec3(0, cavern.height * 0.3, 0);
+		for (int i = 0; i < 420; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 29 + 1);
+			double v = hashFloat(i * 29 + 2);
+			Vec3 p = vaultPoint(cavern, a, v);
+			p = new Vec3(p.x * 0.985, p.y, p.z * 0.985);
+			if (v > 0.42) {
+				result.add(Anchors.Kind.CEILING, new Anchors.Anchor(p.add(0, 0.25, 0), new Vec3(0, -1, 0), 1f));
+			} else if (v > 0.06) {
+				result.add(Anchors.Kind.WALL, new Anchors.Anchor(p, heart.subtract(p).normalize(), 1f));
+			}
+		}
+		double from = cavern.lava == null ? fieldRadius + 1.2 : fieldRadius + cavern.lava.gap + cavern.lava.width + 0.8;
+		double to = cavernRadius(cavern) - 1.5;
+		for (int i = 0; i < 200 && from < to; i++) {
+			double a = Math.PI * 2 * hashFloat(i * 37 + 3);
+			double r = Mth.lerp(hashFloat(i * 37 + 4), from, to);
+			result.add(Anchors.Kind.FLOOR, new Anchors.Anchor(onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.12, 0),
+					new Vec3(0, 1, 0), 1f));
+		}
+		result.fillFloat(fieldRadius, groundAt(0, 0));
+		return result;
+	}
+
+	/** Where a prop grows from and which way: in from a wall and up, down from a ceiling, up from a floor. */
+	private static Placed place(Ambiance.Prop prop, Anchors.Kind on, Anchors.Anchor anchor, int index) {
+		double length = Mth.lerp(hashFloat(index * 41 + 1), prop.size.get(0), prop.size.get(prop.size.size() - 1));
+		Vec3 dir = switch (on) {
+			case CEILING -> new Vec3((hashFloat(index * 41 + 2) - 0.5) * 0.15, -1, (hashFloat(index * 41 + 3) - 0.5) * 0.15).normalize();
+			case WALL -> anchor.normal().add(0, 0.6, 0).normalize();
+			case FLOOR -> new Vec3((hashFloat(index * 41 + 2) - 0.5) * 0.4, 1, (hashFloat(index * 41 + 3) - 0.5) * 0.4).normalize();
+			case FLOAT -> new Vec3(0, 1, 0);
+		};
+		if (on == Anchors.Kind.CEILING) {
+			// A low ceiling: never more than a third of the way down to the floor.
+			double gap = anchor.at().y - (groundAt(anchor.at().x, anchor.at().z) + 0.12);
+			length = Math.min(length, Math.max(0.4, gap / 3));
+		}
+		return new Placed(prop, on, anchor.at(), dir, length, anchor.light(), index);
+	}
+
+	/** A prop's rock colour: the stadium's light when there is one, else the world's light where it stands. */
+	private static int propLit(Placed placed, int color, Vec3 p, Vec3 normal) {
+		if (active.cavern != null) {
+			return caveLit(active.cavern, color, p, normal);
+		}
+		return lerpColor(0x000000, shade(color, normal.y < -0.5 ? new Vec3(0, 1, 0) : normal, 0.6f), placed.light());
+	}
+
+	/** The props: rock and crystals (solid pass), the crystals' light, beams and dripping water (light pass); rocks falling. */
+	private static void drawProps(PoseStack pose, MultiBufferSource buffers, float time, boolean glow) {
+		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
+		Matrix4f m = pose.last().pose();
+		Vec3 up = new Vec3(0, 1, 0);
+		int beamsLeft = 0;
+		Ambiance.Prop beamProp = null;
+		for (Placed placed : PLACED) {
+			Ambiance.Prop prop = placed.prop();
+			Vec3 base = placed.base();
+			if (nearFade(base, 1.0, 1.5) < 0.2f) {
+				continue;
+			}
+			switch (prop.kind) {
+				case "stalactite", "stalagmite" -> {
+					Vec3 tip = base.add(placed.dir().scale(placed.length()));
+					if (ticks < quakeUntil && placed.on() == Anchors.Kind.CEILING) {
+						double shake = 0.12 * Math.min(1, (quakeUntil - ticks) / 20.0);
+						tip = tip.add(Math.sin(time * 1.9 + placed.index()) * shake, 0, Math.cos(time * 2.3 + placed.index() * 0.7) * shake);
+					}
+					int rock = Ambiance.color(prop.color, 0x5A4E42);
+					if (!glow) {
+						Vec3 toward = new Vec3(-base.x, 0, -base.z).normalize();
+						float width = (float) (0.2 + 0.18 * placed.length());
+						cone(out, m, base.subtract(placed.dir().scale(0.3)), tip, width, propLit(placed, rock, base, toward),
+								propLit(placed, lerpColor(rock, 0xFFFFFF, 0.28f), tip, toward), placed.index());
+					} else if (prop.drips > 0 && placed.on() == Anchors.Kind.CEILING && placed.index() % 3 == 0) {
+						drawDrip(out, m, tip, Ambiance.color(prop.drip, 0xA8D8FF), prop.drips, placed.index(), time);
+					}
+				}
+				case "crystal" -> {
+					drawCrystalCluster(out, m, placed, time, glow);
+					if (glow && prop.beams > 0 && (placed.on() == Anchors.Kind.CEILING || placed.on() == Anchors.Kind.FLOAT)) {
+						if (beamProp != prop) {
+							beamProp = prop;
+							beamsLeft = prop.beams;
+						}
+						if (beamsLeft-- > 0) {
+							drawPrismBeam(out, m, placed, time);
+						}
+					}
+				}
+				default -> {
+				}
+			}
+		}
+		if (!glow) {
+			int rockColor = 0x5A4E42;
+			for (Ambiance.Prop prop : active.props) {
+				if (!"crystal".equals(prop.kind)) {
+					rockColor = Ambiance.color(prop.color, rockColor);
+					break;
+				}
+			}
+			for (Rock r : ROCKS) {
+				if (ticks < r.at()) {
+					continue;
+				}
+				double t = Math.min(time - r.at(), r.landAt() - r.at());
+				double y = Math.max(r.floor() + r.size() * 0.5, r.from().y - 0.5 * FALL_GRAVITY * t * t);
+				Vec3 at = new Vec3(r.from().x, y, r.from().z);
+				int c = active.cavern != null ? caveLit(active.cavern, rockColor, at, up) : shade(rockColor, up, 0.6f);
+				boulder(out, m, at, r.size(), r.spin() + t * 0.15, c, (int) r.at());
+			}
+		}
+	}
+
+	/** A drop of water falling from a tip now and then, a ripple where it lands. */
+	private static void drawDrip(VertexConsumer out, Matrix4f m, Vec3 tip, int color, float rate, int index, float time) {
+		double floor = groundAt(tip.x, tip.z) + 0.12;
+		double period = (60 + 120 * hashFloat(index * 13 + 9)) / rate;
+		double t = (time + hashFloat(index * 13 + 10) * period) % period;
+		double fall = Math.sqrt(2 * Math.max(0.2, tip.y - floor) / FALL_GRAVITY);
+		if (t < fall) {
+			Vec3 drop = tip.add(0, -0.5 * FALL_GRAVITY * t * t, 0);
+			Vec3 facing = cameraRel.subtract(drop).normalize();
+			quadFacing(out, m, drop, facing, 0.035f, color, 230);
+			glowDisc(out, m, drop, facing, 0.18f, color, 50);
+		} else if (t < fall + 16) {
+			double p = (t - fall) / 16;
+			ring(out, m, new Vec3(tip.x, floor + 0.02, tip.z), 0.1 + p * 0.7, 0.05, color, (int) (140 * (1 - p)));
+		}
+	}
+
+	/** How bright a crystal prop shines now: breathing, or lit by the wave running round the field. */
+	private static float crystalStrength(Placed placed, float time) {
+		Ambiance.Prop prop = placed.prop();
+		if (prop.wave) {
+			double a = Math.atan2(placed.base().z, placed.base().x);
+			return prop.glow * (float) (0.12 + 0.88 * Math.pow(Math.max(0, Math.cos(a - time / 70.0 * prop.pulse)), 4));
+		}
+		return prop.glow * (0.7f + 0.3f * Mth.sin(time / 20f * prop.pulse + placed.index() * 1.3f));
+	}
+
+	/** A crystal cluster on its anchor (a floating one turns slowly, crystals pointing every way), growing in. */
+	private static void drawCrystalCluster(VertexConsumer out, Matrix4f m, Placed placed, float time, boolean glow) {
+		Ambiance.Prop prop = placed.prop();
+		if (prop.colors.isEmpty()) {
+			return;
+		}
+		int c = placed.index();
+		float g = Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
+		g = g * g * (3 - 2 * g);
+		boolean floating = placed.on() == Anchors.Kind.FLOAT;
+		Vec3 base = floating ? placed.base().add(0, Math.sin(time / 30.0 + c) * 0.3, 0) : placed.base();
+		double spin = floating ? time / 160.0 + c : 0;
+		int color = Ambiance.color(prop.colors.get(c % prop.colors.size()), 0x8AD8FF);
+		int accent = Ambiance.color(prop.colors.get((c + 1) % prop.colors.size()), color);
+		float strength = crystalStrength(placed, time);
+		int many = 3 + (int) (hashFloat(c * 71 + 4) * 4);
+		double big = placed.length() * (floating ? 0.6 : 1);
+		for (int k = 0; k < many; k++) {
+			Vec3 jitter = new Vec3(hashFloat(c * 71 + 10 + k) - 0.5, hashFloat(c * 71 + 20 + k) - 0.5,
+					hashFloat(c * 71 + 30 + k) - 0.5).scale(1.1);
+			double length = big * (k == 0 ? 1 : 0.45 + 0.4 * hashFloat(c * 71 + 40 + k)) * g;
+			if (length < 0.05) {
+				continue;
+			}
+			Vec3 dir = floating ? rotateY(jitter.normalize(), spin) : placed.dir().add(jitter.scale(k == 0 ? 0.2 : 0.7)).normalize();
+			Vec3 foot = floating ? base : base.add(jitter.scale(0.35));
+			Vec3 tip = foot.add(dir.scale(length));
+			float width = (float) (length * 0.16) * crystalWidth(c, k);
+			int tint = k == 1 ? accent : color;
+			if (glow) {
+				crystalGlint(out, m, foot, tip, width, tint, strength, c * 7 + k);
+			} else {
+				crystal(out, m, foot, tip, width, prop.wave ? lerpColor(tint, 0x000000, 0.35f * (1 - strength)) : tint, c * 7 + k);
+			}
+		}
+		if (glow) {
+			Vec3 normal = floating ? cameraRel.subtract(base).normalize() : placed.dir();
+			glowDisc(out, m, base.add(placed.dir().scale(0.3)), normal, (float) big * 1.4f * g, color, Math.round(40 * strength));
+		}
+	}
+
+	/** A prism beam from a crystal on a ceiling (or floating) onto the field, swaying and changing colour. */
+	private static void drawPrismBeam(VertexConsumer out, Matrix4f m, Placed placed, float time) {
+		Ambiance.Prop prop = placed.prop();
+		int n = prop.colors.size();
+		int b = placed.index();
+		double a = Math.atan2(placed.base().z, placed.base().x) + Math.PI + Math.sin(time / 110.0 + b) * 0.5;
+		double r = fieldRadius * (0.2 + 0.55 * hashFloat(b * 37 + 2));
+		Vec3 to = onGround(Math.cos(a) * r, Math.sin(a) * r);
+		double phase = time / 90.0 + b * 0.7;
+		int c0 = Ambiance.color(prop.colors.get((int) Math.floor(phase) % n), 0xFFFFFF);
+		int c1 = Ambiance.color(prop.colors.get(((int) Math.floor(phase) + 1) % n), 0xFFFFFF);
+		int color = lerpColor(c0, c1, (float) (phase - Math.floor(phase)));
+		float g = Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
+		float strength = crystalStrength(placed, time) * g;
+		beam(out, m, placed.base(), to, 0.25f, 1.6f, color, Math.round(34 * strength));
+		glowDisc(out, m, to.add(0, 0.05, 0), new Vec3(0, 1, 0), 1.4f, color, Math.round(55 * strength));
+	}
+
+	/** A thin ring lying flat (a ripple). */
+	private static void ring(VertexConsumer out, Matrix4f m, Vec3 at, double r, double width, int color, int alpha) {
+		int segments = 20;
+		for (int k = 0; k < segments; k++) {
+			double a0 = Math.PI * 2 * k / segments;
+			double a1 = Math.PI * 2 * (k + 1) / segments;
+			vertex(out, m, at.add(Math.cos(a0) * r, 0, Math.sin(a0) * r), color, alpha);
+			vertex(out, m, at.add(Math.cos(a1) * r, 0, Math.sin(a1) * r), color, alpha);
+			vertex(out, m, at.add(Math.cos(a1) * (r + width), 0, Math.sin(a1) * (r + width)), color, 0);
+			vertex(out, m, at.add(Math.cos(a0) * (r + width), 0, Math.sin(a0) * (r + width)), color, 0);
+		}
+	}
+
+	/**
+	 * The lava: a ring round the field, its surface flowing (bright veins winding through it, dark crust plates drifting),
+	 * its banks; lavafalls pouring down the walls into it. Light pass: the heat glowing over it, the falls' glare and
+	 * splash.
+	 */
+	private static void drawLavaLake(VertexConsumer out, Matrix4f m, Ambiance.Cavern cavern, Ambiance.LavaLake lava, double in,
+			double outer, float time, boolean glow) {
+		int hot = Ambiance.color(lava.color, 0xFF4A08);
+		int core = Ambiance.color(lava.core, 0xFFD060);
+		int crust = Ambiance.color(lava.crust, 0x2A0E06);
+		int sectors = 96;
+		int rings = Math.max(2, (int) Math.ceil((outer - in) / 1.2));
+		for (int j = 0; j < rings; j++) {
+			for (int k = 0; k < sectors; k++) {
+				Vec3[] p = new Vec3[4];
+				int[] colors = new int[4];
+				double[][] corners = {{j, k}, {j, k + 1}, {j + 1, k + 1}, {j + 1, k}};
+				for (int q = 0; q < 4; q++) {
+					double r = Mth.lerp(corners[q][0] / rings, in, outer);
+					double a = Math.PI * 2 * corners[q][1] / sectors;
+					p[q] = new Vec3(Math.cos(a) * r, groundAt(Math.cos(a) * r, Math.sin(a) * r) - 0.35, Math.sin(a) * r);
+					double flow = 0.5 + 0.5 * Math.sin(a * 9 + r * 1.7 - time / 14.0 + 2 * Math.sin(a * 3 + time / 50.0));
+					int color = lerpColor(hot, core, (float) (flow * flow));
+					double plate = Math.sin(a * 5 + time / 90.0) * Math.sin(r * 2.1 - time / 70.0 + a * 2);
+					if (plate > 0.5) {
+						color = lerpColor(color, crust, (float) Math.min(0.9, (plate - 0.5) * 4));
+					}
+					colors[q] = color;
+				}
+				if (glow) {
+					for (int q = 0; q < 4; q++) {
+						vertex(out, m, p[q].add(0, 0.06, 0), colors[q], 45);
+					}
+				} else {
+					for (int q = 0; q < 4; q++) {
+						vertex(out, m, p[q], colors[q], 255);
+					}
+				}
+			}
+		}
+		if (!glow) {
+			// Banks: the floor's edge dropping to the lava, dark and crusted.
+			for (int k = 0; k < sectors; k++) {
+				double a0 = Math.PI * 2 * k / sectors;
+				double a1 = Math.PI * 2 * (k + 1) / sectors;
+				for (double r : new double[] {in, outer}) {
+					Vec3 t0 = onGround(Math.cos(a0) * r, Math.sin(a0) * r);
+					Vec3 t1 = onGround(Math.cos(a1) * r, Math.sin(a1) * r);
+					quad(out, m, t0, t1, t1.add(0, -0.5, 0), t0.add(0, -0.5, 0), lerpColor(crust, hot, 0.15f));
+				}
+			}
+		}
+		// Lavafalls down the walls.
+		for (int i = 0; i < lava.falls; i++) {
+			double a = Math.PI * 2 * (i + 0.5 * hashFloat(i * 43 + 1)) / Math.max(1, lava.falls) + 0.2;
+			Vec3 side = new Vec3(-Math.sin(a), 0, Math.cos(a));
+			int steps = 10;
+			double width = 0.7 + 0.5 * hashFloat(i * 43 + 2);
+			for (int s = 0; s < steps; s++) {
+				double v0 = 0.42 * (1 - s / (double) steps);
+				double v1 = 0.42 * (1 - (s + 1) / (double) steps);
+				Vec3 p0 = vaultPoint(cavern, a, v0).multiply(0.97, 1, 0.97);
+				Vec3 p1 = vaultPoint(cavern, a, v1).multiply(0.97, 1, 0.97);
+				double f0 = 0.5 + 0.5 * Math.sin(v0 * 40 + time / 5.0 + i);
+				double f1 = 0.5 + 0.5 * Math.sin(v1 * 40 + time / 5.0 + i);
+				int c0 = lerpColor(hot, core, (float) f0);
+				int c1 = lerpColor(hot, core, (float) f1);
+				double w = glow ? width * 2.4 : width;
+				int alpha = glow ? 70 : 255;
+				vertex(out, m, p0.add(side.scale(-w)), c0, alpha);
+				vertex(out, m, p0.add(side.scale(w)), c0, alpha);
+				vertex(out, m, p1.add(side.scale(w)), c1, alpha);
+				vertex(out, m, p1.add(side.scale(-w)), c1, alpha);
+			}
+			if (glow) {
+				Vec3 foot = vaultPoint(cavern, a, 0).multiply(0.94, 0, 0.94);
+				foot = new Vec3(foot.x, groundAt(foot.x, foot.z) - 0.2, foot.z);
+				glowDisc(out, m, foot, new Vec3(0, 1, 0), 3f, core, Math.round(70 + 30 * Mth.sin(time / 6f + i)));
+			}
+		}
+	}
+
+	/**
+	 * A dragon's hoard between the field and the lava: gold heaps with coins scattered round, glinting; a great skeleton
+	 * half sunk in the lava (spine, ribs arching out, the skull with its horns), a dull ember glowing in its eyes.
+	 */
+	private static void drawHoard(VertexConsumer out, Matrix4f m, Ambiance.Cavern cavern, Ambiance.Hoard hoard, double lavaIn,
+			double lavaOut, float time, boolean glow) {
+		int gold = Ambiance.color(hoard.gold, 0xFFCF4A);
+		double from = fieldRadius + 0.5;
+		double to = lavaIn == Double.MAX_VALUE ? cavernRadius(cavern) - 2 : lavaIn - 0.4;
+		for (int i = 0; i < hoard.piles; i++) {
+			double a = Math.PI * 2 * (i + 0.6 * hashFloat(i * 61 + 1)) / Math.max(1, hoard.piles) + 1.1;
+			double r = Mth.lerp(hashFloat(i * 61 + 2), from, Math.max(from, to));
+			Vec3 foot = onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.1, 0);
+			double h = 0.45 + 0.6 * hashFloat(i * 61 + 3);
+			float width = (float) (0.7 + 0.8 * hashFloat(i * 61 + 4));
+			if (nearFade(foot, 1.0, 1.5) < 0.3f) {
+				continue;
+			}
+			if (glow) {
+				for (int s = 0; s < 3; s++) {
+					double blink = Math.pow(Math.max(0, Math.sin(time / 9.0 + hashFloat(i * 61 + 10 + s) * 40)), 10);
+					if (blink < 0.05) {
+						continue;
+					}
+					double sa = hashFloat(i * 61 + 20 + s) * Math.PI * 2;
+					double sr = width * 0.6 * hashFloat(i * 61 + 30 + s);
+					Vec3 spot = foot.add(Math.cos(sa) * sr, h * (1 - sr / width) + 0.05, Math.sin(sa) * sr);
+					Vec3 facing = cameraRel.subtract(spot).normalize();
+					quadFacing(out, m, spot, facing, 0.06f, 0xFFFFFF, (int) (230 * blink));
+					glowDisc(out, m, spot, facing, 0.35f, gold, (int) (110 * blink));
+				}
+				continue;
+			}
+			cone(out, m, foot, foot.add(0, h, 0), width, caveLit(cavern, lerpColor(gold, 0x5A3A00, 0.4f), foot, new Vec3(0, 1, 0)),
+					caveLit(cavern, lerpColor(gold, 0xFFFFFF, 0.2f), foot, new Vec3(0, 1, 0)), i + 900);
+			for (int c = 0; c < 4; c++) {
+				double ca = hashFloat(i * 61 + 40 + c) * Math.PI * 2;
+				double cr = width * (1.1 + 0.6 * hashFloat(i * 61 + 50 + c));
+				Vec3 coin = onGround(foot.x + Math.cos(ca) * cr, foot.z + Math.sin(ca) * cr).add(0, -0.06, 0);
+				cube(out, m, coin, 0.07f, caveLit(cavern, gold, coin, new Vec3(0, 1, 0)), 255);
+			}
+		}
+		if (!hoard.bones) {
+			return;
+		}
+		// The skeleton lies along the ring (in the lava when there is some), its head toward the field's side.
+		int bone = Ambiance.color(hoard.bone, 0xE4D8BC);
+		double rs = lavaIn == Double.MAX_VALUE ? (fieldRadius + cavernRadius(cavern)) / 2 : (lavaIn + lavaOut) / 2;
+		double start = 2.3;
+		double span = 13 / rs;
+		int vertebrae = 18;
+		Vec3[] spine = new Vec3[vertebrae];
+		for (int k = 0; k < vertebrae; k++) {
+			double a = start + span * k / (vertebrae - 1);
+			double r = rs + Math.sin(k * 0.5) * 0.6;
+			double ground = lavaIn == Double.MAX_VALUE ? groundAt(Math.cos(a) * r, Math.sin(a) * r) + 0.1
+					: groundAt(Math.cos(a) * r, Math.sin(a) * r) - 0.25;
+			spine[k] = new Vec3(Math.cos(a) * r, ground + 0.15 * Math.sin(k * 0.8), Math.sin(a) * r);
+		}
+		Vec3 head = spine[0];
+		Vec3 along = spine[0].subtract(spine[1]).normalize();
+		Vec3 out2 = new Vec3(head.x, 0, head.z).normalize();
+		if (glow) {
+			// Embers in the empty eyes.
+			float ember = 0.6f + 0.4f * Mth.sin(time / 13f);
+			for (int side = -1; side <= 1; side += 2) {
+				Vec3 eye = head.add(0, 0.85, 0).add(along.scale(0.35)).add(out2.scale(0.32 * side));
+				glowDisc(out, m, eye, cameraRel.subtract(eye).normalize(), 0.3f, 0xFF5A10, Math.round(150 * ember));
+			}
+			return;
+		}
+		if (nearFade(head, 2, 3) < 0.3f) {
+			return;
+		}
+		for (int k = 0; k + 1 < vertebrae; k++) {
+			double w = 0.32 * (1 - 0.6 * k / vertebrae);
+			tube(out, m, spine[k], spine[k + 1], w, w * 0.9, caveLit(cavern, bone, spine[k], new Vec3(0, 1, 0)));
+			cube(out, m, spine[k].add(0, w * 0.9, 0), (float) (w * 0.55), caveLit(cavern, lerpColor(bone, 0xFFFFFF, 0.15f),
+					spine[k], new Vec3(0, 1, 0)), 255);
+		}
+		// Ribs: pairs arching out and up from the chest, down into the floor or the lava.
+		for (int k = 3; k < 11; k++) {
+			Vec3 tangent = spine[k + 1].subtract(spine[k - 1]).normalize();
+			Vec3 side = tangent.cross(new Vec3(0, 1, 0)).normalize();
+			double reach = 1.6 + 1.2 * Math.sin(Math.PI * (k - 3) / 8.0);
+			for (int s = -1; s <= 1; s += 2) {
+				Vec3 prev = spine[k];
+				for (int q = 1; q <= 7; q++) {
+					double t = q / 7.0;
+					Vec3 p = spine[k].add(side.scale(s * reach * t)).add(0, reach * 1.3 * Math.sin(Math.PI * t * 0.95), 0)
+							.add(tangent.scale(-0.4 * t));
+					tube(out, m, prev, p, 0.13 * (1 - 0.5 * t) + 0.04, 0.13 * (1 - 0.5 * (t + 1 / 7.0)) + 0.04,
+							caveLit(cavern, bone, p, side.scale(-s)));
+					prev = p;
+				}
+			}
+		}
+		// The skull: the cranium, a long snout, two horns sweeping back.
+		Vec3 cranium = head.add(0, 0.7, 0);
+		cube(out, m, cranium, 0.55f, caveLit(cavern, bone, cranium, new Vec3(0, 1, 0)), 255);
+		tube(out, m, cranium.add(along.scale(0.4)), cranium.add(along.scale(2.1)).add(0, -0.35, 0), 0.45, 0.22,
+				caveLit(cavern, bone, cranium, new Vec3(0, 1, 0)));
+		for (int s = -1; s <= 1; s += 2) {
+			Vec3 root = cranium.add(out2.scale(0.35 * s)).add(0, 0.35, 0);
+			Vec3 tip = root.add(along.scale(-1.9)).add(0, 1.1, 0).add(out2.scale(0.5 * s));
+			cone(out, m, root, tip, 0.22f, caveLit(cavern, lerpColor(bone, 0x3A2A1A, 0.35f), root, new Vec3(0, 1, 0)),
+					caveLit(cavern, bone, tip, new Vec3(0, 1, 0)), 950 + s);
+			Vec3 eye = head.add(0, 0.85, 0).add(along.scale(0.35)).add(out2.scale(0.32 * s));
+			cube(out, m, eye, 0.13f, 0x0A0604, 255);
 		}
 	}
 

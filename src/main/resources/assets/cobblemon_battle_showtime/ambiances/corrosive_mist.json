@@ -1,0 +1,115 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/haze.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 13000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#5a3a6a",
+		"fog_color": "#6a4a78",
+		"strength": 1.0,
+		"fog_start": 2,
+		"fog_end": 26,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"fog_wall": {
+		"color": "#6a4a78",
+		"height": 10,
+		"alpha": 150,
+		"speed": 0.5
+	},
+	"mist": {
+		"color": "#8a5aa0",
+		"alpha": 80,
+		"height": 2.4,
+		"layers": 4,
+		"scale": 4,
+		"speed": 0.5
+	},
+	"embers": {
+		"color": "#d8a0ff",
+		"accent": "#b8ff60",
+		"count": 40,
+		"radius": [
+			2,
+			14
+		],
+		"height": 6,
+		"size": 0.05,
+		"rise": 0.08
+	},
+	"particles": [
+		{
+			"type": "minecraft:witch",
+			"rate": 0.6,
+			"area": "air"
+		},
+		{
+			"type": "minecraft:warped_spore",
+			"rate": 2,
+			"area": "air"
+		}
+	],
+	"sound": {
+		"id": "minecraft:ambient.warped_forest.loop",
+		"volume": 0.4,
+		"pitch": 0.8
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.witch.ambient",
+			"every": [
+				400,
+				900
+			],
+			"volume": 0.2,
+			"pitch": [
+				0.6,
+				0.8
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:witch",
+			"count": 20
+		},
+		"crit": {
+			"particle": "minecraft:witch",
+			"count": 50,
+			"flash": "#c080ff",
+			"sound": "minecraft:entity.witch.throw",
+			"volume": 0.7
+		},
+		"faint": {
+			"particle": "minecraft:large_smoke",
+			"count": 40,
+			"sound": "minecraft:entity.witch.drink"
+		},
+		"victory": {
+			"particle": "minecraft:witch",
+			"count": 100,
+			"sound": "minecraft:block.brewing_stand.brew"
+		},
+		"named": {
+			"mist_poisoned": {
+				"particle": "minecraft:witch",
+				"count": 80,
+				"flash": "#a060d0",
+				"sound": "minecraft:entity.witch.throw",
+				"volume": 0.8
+			},
+			"mist_combusted": {
+				"particle": "minecraft:explosion",
+				"count": 12,
+				"flash": "#ff8a30",
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 20,
+				"sound": "minecraft:entity.generic.explode",
+				"volume": 0.9
+			}
+		}
+	}
+}

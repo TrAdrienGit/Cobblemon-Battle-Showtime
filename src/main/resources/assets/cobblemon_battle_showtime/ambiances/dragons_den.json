@@ -1,0 +1,156 @@
+{
+	"filter": "cobblemon_battle_showtime:shaders/post/haze.json",
+	"calm_filter": "none",
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#1a0806",
+		"fog_color": "#2a0e08",
+		"strength": 1.0,
+		"fog_start": 14,
+		"fog_end": 72,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"light": {
+		"color": "#ff7a30",
+		"strength": 0.6,
+		"rock": "#4a2418",
+		"floor": "#3a1c12"
+	},
+	"props": [
+		{
+			"kind": "stalactite",
+			"anchors": [
+				"ceiling"
+			],
+			"count": 60,
+			"size": [
+				1.0,
+				4.0
+			],
+			"color": "#4a2418"
+		}
+	],
+	"embers": {
+		"color": "#ffc040",
+		"accent": "#ff3010",
+		"count": 60,
+		"radius": [
+			3,
+			18
+		],
+		"height": 12,
+		"size": 0.09,
+		"rise": 0.9
+	},
+	"particles": [
+		{
+			"type": "minecraft:lava",
+			"rate": 0.2,
+			"area": "ring"
+		},
+		{
+			"type": "minecraft:smoke",
+			"rate": 0.8,
+			"area": "ring",
+			"motion": [
+				0,
+				0.04,
+				0
+			]
+		}
+	],
+	"sound": {
+		"id": "minecraft:ambient.basalt_deltas.loop",
+		"volume": 0.5
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.lava.ambient",
+			"every": [
+				40,
+				120
+			],
+			"volume": 0.6,
+			"pitch": [
+				0.8,
+				1.1
+			]
+		},
+		{
+			"id": "minecraft:block.lava.pop",
+			"every": [
+				20,
+				60
+			],
+			"volume": 0.5,
+			"pitch": [
+				0.7,
+				1.0
+			]
+		},
+		{
+			"id": "minecraft:entity.ender_dragon.growl",
+			"every": [
+				600,
+				1200
+			],
+			"volume": 0.25,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:small_flame",
+			"count": 15
+		},
+		"crit": {
+			"rockfall": 3,
+			"particle": "minecraft:dragon_breath",
+			"count": 40,
+			"flash": "#ff7a20",
+			"sound": "minecraft:entity.ender_dragon.flap",
+			"volume": 0.7
+		},
+		"faint": {
+			"particle": "minecraft:large_smoke",
+			"count": 40,
+			"sound": "minecraft:block.fire.extinguish"
+		},
+		"victory": {
+			"particle": "minecraft:dragon_breath",
+			"count": 90,
+			"sound": "minecraft:entity.ender_dragon.growl",
+			"volume": 0.5
+		},
+		"named": {
+			"cave_rumble": {
+				"rockfall": 8,
+				"particle": "minecraft:smoke",
+				"count": 80,
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 14,
+				"sound": "minecraft:block.pointed_dripstone.fall",
+				"volume": 0.9,
+				"pitch": 0.6
+			},
+			"cave_collapse": {
+				"rockfall": 45,
+				"particle": "minecraft:large_smoke",
+				"count": 120,
+				"flash": "#ff6a2a",
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 40,
+				"sound": "minecraft:entity.generic.explode",
+				"volume": 0.8,
+				"pitch": 0.5
+			}
+		}
+	}
+}

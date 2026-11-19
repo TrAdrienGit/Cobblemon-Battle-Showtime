@@ -132,7 +132,73 @@ public final class ShowtimeHooks {
 		ambianceOverride = override;
 	}
 
+	/**
+	 * (1.2.0, 2026-11-18) Plays one of the battle ambiance's {@code named} moments now, if it has one by that name
+	 * (Phantasmon Events: {@code cave_rumble}, {@code cave_collapse}). Client thread.
+	 */
+	public static void ambianceMoment(String name) {
+		com.mystaria.showtime.ambiance.BattleAmbiance.moment(name);
+	}
+
+	private static final java.util.List<java.util.function.Supplier<String>> AMBIANCE_LAYERS = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+	/**
+	 * (1.2.0, 2026-11-18) An ambiance imposed over {@link #setAmbianceOverride}'s while it answers non-null, read again
+	 * during the battle (twice a second): the ambiance changes when the answer does, and the one below comes back when
+	 * it answers null. Phantasmon Events: the ambiance of the Pokémon Reborn field in play. First added, first asked.
+	 */
+	public static void addAmbianceOverride(java.util.function.Supplier<String> layer) {
+		AMBIANCE_LAYERS.add(layer);
+	}
+
+	/** The ambiance {@link #setAmbianceOverride} imposes, under the layers (the battle's own: a lobby's choice). */
+	public static String baseAmbianceOverride() {
+		return ambianceOverride.get();
+	}
+
+	private static final java.util.List<java.util.function.Supplier<String>> STADIUM_LAYERS = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+	/**
+	 * (1.3.0, 2026-11-19) A stadium imposed while it answers non-null (an id, or "none": the world as it is), read again
+	 * during the battle like {@link #addAmbianceOverride}. Without one, an imposed ambiance that names a preset brings
+	 * its stadium; one that names a plain ambiance keeps the player's own stadium. First added, first asked.
+	 */
+	public static void addStadiumOverride(java.util.function.Supplier<String> layer) {
+		STADIUM_LAYERS.add(layer);
+	}
+
+	private static java.util.function.Supplier<String> fieldStadium = () -> null;
+
+	/**
+	 * (1.3.0, 2026-11-19) The stadium the battle field in play suggests, read again during the battle (null: none). A
+	 * scene whose stadium is {@code "field"} ({@code Ambiances.FIELD_STADIUM}) shows it, and the world as it is while
+	 * the field suggests none. Phantasmon Events: the Pokémon Reborn cave fields give the Cave stadium.
+	 */
+	public static void setFieldStadium(java.util.function.Supplier<String> stadium) {
+		fieldStadium = stadium == null ? () -> null : stadium;
+	}
+
+	public static String fieldStadium() {
+		return fieldStadium.get();
+	}
+
+	public static String stadiumOverride() {
+		for (java.util.function.Supplier<String> layer : STADIUM_LAYERS) {
+			String id = layer.get();
+			if (id != null) {
+				return id;
+			}
+		}
+		return null;
+	}
+
 	public static String ambianceOverride() {
+		for (java.util.function.Supplier<String> layer : AMBIANCE_LAYERS) {
+			String id = layer.get();
+			if (id != null) {
+				return id;
+			}
+		}
 		return ambianceOverride.get();
 	}
 

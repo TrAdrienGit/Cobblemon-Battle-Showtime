@@ -1,0 +1,11 @@
+{
+	"hide_world": true,
+	"cavern": {
+		"rock": "#5a4e42",
+		"floor": "#463d33",
+		"light": "#ffd9a0",
+		"light_strength": 0.4,
+		"ambient": 0.32,
+		"pillars": 6
+	}
+}

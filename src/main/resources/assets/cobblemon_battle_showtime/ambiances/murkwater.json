@@ -1,0 +1,137 @@
+{
+	"time": {
+		"at": 12000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#6a7a3a",
+		"fog_color": "#4a5230",
+		"strength": 0.9,
+		"fog_start": 6,
+		"fog_end": 54,
+		"stars": 0,
+		"cloud_color": "#5a5a3a"
+	},
+	"mist": {
+		"color": "#5a6a2a",
+		"alpha": 70,
+		"height": 1.0,
+		"layers": 3,
+		"scale": 5,
+		"speed": 0.4
+	},
+	"veins": {
+		"color": "#6a2a8a",
+		"core": "#a8e040",
+		"alpha": 120,
+		"branches": 3,
+		"length": 9,
+		"pulse": 0.35,
+		"scatter": 9
+	},
+	"bubbles": {
+		"color": "#a8d860",
+		"count": 16,
+		"radius": [
+			2,
+			14
+		],
+		"height": 2.5,
+		"size": [
+			0.15,
+			0.45
+		]
+	},
+	"particles": [
+		{
+			"type": "minecraft:squid_ink",
+			"rate": 0.25,
+			"area": "ring",
+			"motion": [
+				0,
+				0.01,
+				0
+			]
+		},
+		{
+			"type": "minecraft:mycelium",
+			"rate": 2,
+			"area": "air"
+		}
+	],
+	"sound": {
+		"id": "minecraft:block.water.ambient",
+		"volume": 0.4,
+		"pitch": 0.55
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.bubble_column.bubble_pop",
+			"every": [
+				30,
+				90
+			],
+			"volume": 0.5,
+			"pitch": [
+				0.5,
+				0.8
+			]
+		},
+		{
+			"id": "minecraft:entity.slime.squish",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:squid_ink",
+			"count": 15
+		},
+		"crit": {
+			"particle": "minecraft:item_slime",
+			"count": 40,
+			"flash": "#a8e040",
+			"sound": "minecraft:entity.slime.squish",
+			"volume": 0.8,
+			"pitch": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:squid_ink",
+			"count": 40,
+			"sound": "minecraft:entity.generic.splash",
+			"pitch": 0.6
+		},
+		"victory": {
+			"particle": "minecraft:item_slime",
+			"count": 80,
+			"sound": "minecraft:block.brewing_stand.brew"
+		},
+		"named": {
+			"toxic_water": {
+				"particle": "minecraft:item_slime",
+				"count": 30,
+				"sound": "minecraft:entity.slime.squish",
+				"pitch": 0.6
+			},
+			"toxic_water_dive": {
+				"particle": "minecraft:squid_ink",
+				"count": 40,
+				"sound": "minecraft:entity.player.hurt_drown",
+				"volume": 0.5
+			},
+			"poison_water_heal": {
+				"particle": "minecraft:happy_villager",
+				"count": 20,
+				"sound": "minecraft:entity.generic.drink"
+			}
+		}
+	}
+}

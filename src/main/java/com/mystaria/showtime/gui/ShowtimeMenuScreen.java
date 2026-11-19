@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 
 import net.fabricmc.loader.api.FabricLoader;
 
+import com.mystaria.showtime.ambiance.Ambiance;
 import com.mystaria.showtime.ambiance.Ambiances;
 import com.mystaria.showtime.ambiance.BattleAmbiance;
 import com.mystaria.showtime.audio.BattleMusic;
@@ -314,19 +315,91 @@ private static final int BLACK = 0xFF1A1A1A;
 		}
 	}
 
+	/** The scene page's tabs (2026-11-19): ambiances, stadiums, presets (a stadium and an ambiance together). */
+	private enum SceneTab {
+		AMBIANCES, STADIUMS, PRESETS
+	}
+
+	private SceneTab sceneTab = SceneTab.AMBIANCES;
+
+	/**
+	 * The scene page (2026-11-19): one tab per kind. Ambiances: only those without a place. Stadiums: the place alone
+	 * ("None": the world as it is). Presets: a stadium and an ambiance under one name; picking one sets both, and
+	 * changing either afterwards keeps the other as it was.
+	 */
 	private void ambiances() {
-		List<String> ids = new ArrayList<>();
-		ids.add(BattleAmbiance.NONE);
-		ids.addAll(Ambiances.usableIds());
-		String chosen = ids.contains(ShowtimeConfig.ambiance()) ? ShowtimeConfig.ambiance() : BattleAmbiance.NONE;
-		for (String id : ids) {
-			rows.add(new Row(Style.SELECT, Ambiances.displayName(id), id.equals(chosen), 0, () -> {
-				ShowtimeConfig.setAmbiance(id);
-				ShowtimeConfig.save();
-				rebuild();
-				applyPreview();
-			}, null, null));
+		for (SceneTab each : SceneTab.values()) {
+			sections.add(new Section(Component.translatable(KEY + "scene.tab." + each.name().toLowerCase(Locale.ROOT)),
+					each == sceneTab, () -> {
+						sceneTab = each;
+						scroll = 0;
+						rebuild();
+					}));
 		}
+		String chosen = ShowtimeConfig.ambiance();
+		boolean presetWhole = ShowtimeConfig.stadium() == null && Ambiances.isPreset(chosen) || isPlaceAmbiance(chosen);
+		String stadium = BattleAmbiance.ownStadiumChoice();
+		switch (sceneTab) {
+			case PRESETS -> {
+				for (String id : Ambiances.scenePresetIds()) {
+					rows.add(new Row(Style.SELECT, Ambiances.displayName(id), presetWhole && id.equals(chosen), 0, () -> {
+						ShowtimeConfig.setAmbiance(id);
+						ShowtimeConfig.setStadium(null);
+						sceneChanged();
+					}, null, null));
+				}
+			}
+			case STADIUMS -> {
+				List<String> stadiums = new ArrayList<>();
+				stadiums.add(BattleAmbiance.NONE);
+				stadiums.addAll(Ambiances.stadiumIds());
+				for (String id : stadiums) {
+					rows.add(new Row(Style.SELECT, Ambiances.stadiumName(id), id.equals(stadium), 0, () -> {
+						keepAmbianceAlone();
+						ShowtimeConfig.setStadium(id);
+						sceneChanged();
+					}, null, null));
+				}
+			}
+			case AMBIANCES -> {
+				// A preset's ambiance shows as chosen here, the way it plays.
+				String playing = Ambiances.isPreset(chosen) ? Ambiances.presetAmbiance(chosen) : chosen;
+				List<String> ids = new ArrayList<>();
+				ids.add(BattleAmbiance.NONE);
+				ids.addAll(Ambiances.plainAmbianceIds());
+				for (String id : ids) {
+					rows.add(new Row(Style.SELECT, Ambiances.displayName(id), id.equals(playing), 0, () -> {
+						if (ShowtimeConfig.stadium() == null) {
+							ShowtimeConfig.setStadium(stadium); // keep the place seen until now
+						}
+						ShowtimeConfig.setAmbiance(id);
+						sceneChanged();
+					}, null, null));
+				}
+			}
+		}
+	}
+
+	private static boolean isPlaceAmbiance(String id) {
+		Ambiance ambiance = Ambiances.isAmbiance(id) && !Ambiances.isPreset(id) ? Ambiances.get(id) : null;
+		return ambiance != null && Ambiances.hasPlace(ambiance);
+	}
+
+	/** Before a stadium is picked over a preset: the preset's ambiance stays, alone. */
+	private static void keepAmbianceAlone() {
+		String chosen = ShowtimeConfig.ambiance();
+		if (Ambiances.isPreset(chosen)) {
+			ShowtimeConfig.setAmbiance(Ambiances.presetAmbiance(chosen));
+		} else if (isPlaceAmbiance(chosen)) {
+			ShowtimeConfig.setAmbiance(BattleAmbiance.NONE);
+		}
+	}
+
+	private void sceneChanged() {
+		ShowtimeConfig.save();
+		BattleAmbiance.endPreview();
+		rebuild();
+		applyPreview();
 	}
 
 	/**
@@ -528,8 +601,7 @@ private static final int BLACK = 0xFF1A1A1A;
 	@Override
 	public void tick() {
 		// A preview ambiance lasts 30 s: this one goes on as long as it is selected.
-		if (category == Category.AMBIANCES && canPreview() && !BattleAmbiance.active()
-				&& !BattleAmbiance.NONE.equals(ShowtimeConfig.ambiance())) {
+		if (category == Category.AMBIANCES && canPreview() && !BattleAmbiance.active() && BattleAmbiance.ownSceneShows()) {
 			BattleAmbiance.preview(ShowtimeConfig.ambiance());
 		}
 	}

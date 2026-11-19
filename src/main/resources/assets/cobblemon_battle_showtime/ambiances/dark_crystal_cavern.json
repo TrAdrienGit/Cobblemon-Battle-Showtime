@@ -1,0 +1,183 @@
+{
+	"time": {
+		"at": 18000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#07050c",
+		"fog_color": "#0a0710",
+		"strength": 1.0,
+		"fog_start": 10,
+		"fog_end": 60,
+		"stars": 0,
+		"hide_clouds": true
+	},
+	"light": {
+		"color": "#7a40ff",
+		"strength": 0.45,
+		"rock": "#2a2238",
+		"floor": "#1e1828"
+	},
+	"props": [
+		{
+			"kind": "crystal",
+			"anchors": [
+				"ceiling",
+				"wall",
+				"floor",
+				"float"
+			],
+			"count": 42,
+			"size": [
+				1.4,
+				4.6
+			],
+			"colors": [
+				"#6a2ad0",
+				"#3a1a8a",
+				"#a060ff",
+				"#2a0a6a"
+			],
+			"glow": 1.3,
+			"pulse": 1,
+			"wave": true,
+			"beams": 5
+		},
+		{
+			"kind": "stalactite",
+			"anchors": [
+				"ceiling"
+			],
+			"count": 60,
+			"size": [
+				1.0,
+				3.6
+			],
+			"color": "#2a2238",
+			"drips": 0.5,
+			"drip": "#b080ff"
+		},
+		{
+			"kind": "stalagmite",
+			"anchors": [
+				"floor"
+			],
+			"count": 20,
+			"size": [
+				0.6,
+				2.0
+			],
+			"color": "#2a2238"
+		}
+	],
+	"veins": {
+		"color": "#5a2aa0",
+		"core": "#b080ff",
+		"alpha": 110,
+		"branches": 3,
+		"length": 9,
+		"pulse": 0.3,
+		"scatter": 8
+	},
+	"mist": {
+		"color": "#24183a",
+		"alpha": 70,
+		"height": 1.2,
+		"layers": 3,
+		"scale": 5,
+		"speed": 0.2
+	},
+	"flicker": {
+		"every": [
+			200,
+			420
+		],
+		"alpha": 0.45,
+		"ticks": 6
+	},
+	"particles": [
+		{
+			"type": "minecraft:reverse_portal",
+			"rate": 0.4,
+			"area": "field"
+		}
+	],
+	"sound": {
+		"id": "minecraft:ambient.soul_sand_valley.loop",
+		"volume": 0.35
+	},
+	"ambient_sounds": [
+		{
+			"id": "minecraft:block.sculk_sensor.clicking",
+			"every": [
+				160,
+				360
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.6,
+				0.9
+			]
+		},
+		{
+			"id": "minecraft:block.amethyst_block.chime",
+			"every": [
+				120,
+				300
+			],
+			"volume": 0.4,
+			"pitch": [
+				0.5,
+				0.7
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:reverse_portal",
+			"count": 20
+		},
+		"crit": {
+			"rockfall": 3,
+			"particle": "minecraft:sculk_soul",
+			"count": 30,
+			"flash": "#7a40ff",
+			"sound": "minecraft:block.amethyst_cluster.break",
+			"volume": 0.7,
+			"pitch": 0.6
+		},
+		"faint": {
+			"particle": "minecraft:squid_ink",
+			"count": 30,
+			"sound": "minecraft:block.sculk.break"
+		},
+		"victory": {
+			"particle": "minecraft:reverse_portal",
+			"count": 80,
+			"sound": "minecraft:block.amethyst_block.resonate",
+			"pitch": 0.6
+		},
+		"named": {
+			"cave_rumble": {
+				"rockfall": 8,
+				"particle": "minecraft:reverse_portal",
+				"count": 80,
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 14,
+				"sound": "minecraft:block.amethyst_cluster.fall",
+				"pitch": 0.5
+			},
+			"cave_collapse": {
+				"rockfall": 45,
+				"particle": "minecraft:large_smoke",
+				"count": 120,
+				"flash": "#4a2a7a",
+				"filter": "cobblemon_battle_showtime:shaders/post/wobble.json",
+				"filter_ticks": 40,
+				"sound": "minecraft:entity.generic.explode",
+				"volume": 0.8,
+				"pitch": 0.5
+			}
+		}
+	}
+}

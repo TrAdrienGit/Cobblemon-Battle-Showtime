@@ -1,0 +1,97 @@
+{
+	"time": {
+		"at": 3000,
+		"speed": 0
+	},
+	"sky": {
+		"sky_color": "#8ad0ff",
+		"fog_color": "#d8f0c0",
+		"strength": 0.45
+	},
+	"kelp": {
+		"color": "#4aa83a",
+		"count": 34,
+		"ring": [
+			1,
+			7
+		],
+		"height": [
+			1,
+			2.2
+		]
+	},
+	"critters": {
+		"kind": "butterfly",
+		"count": 10,
+		"colors": [
+			"#ffffff",
+			"#ffd23d",
+			"#a8ff60",
+			"#7fd0ff"
+		],
+		"radius": 12
+	},
+	"wind": [
+		0.03,
+		0.01
+	],
+	"particles": [
+		{
+			"type": "minecraft:spore_blossom_air",
+			"rate": 1.2,
+			"area": "field"
+		},
+		{
+			"type": "minecraft:happy_villager",
+			"rate": 0.3,
+			"area": "field"
+		}
+	],
+	"ambient_sounds": [
+		{
+			"id": "minecraft:entity.bee.pollinate",
+			"every": [
+				140,
+				320
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.9,
+				1.1
+			]
+		},
+		{
+			"id": "minecraft:block.grass.step",
+			"every": [
+				80,
+				200
+			],
+			"volume": 0.3,
+			"pitch": [
+				0.7,
+				0.9
+			]
+		}
+	],
+	"moments": {
+		"attack": {
+			"particle": "minecraft:composter",
+			"count": 10
+		},
+		"crit": {
+			"particle": "minecraft:happy_villager",
+			"count": 40,
+			"flash": "#d8ffb0",
+			"sound": "minecraft:block.grass.break"
+		},
+		"faint": {
+			"particle": "minecraft:composter",
+			"count": 30
+		},
+		"victory": {
+			"particle": "minecraft:happy_villager",
+			"count": 100,
+			"sound": "minecraft:entity.player.levelup"
+		}
+	}
+}
