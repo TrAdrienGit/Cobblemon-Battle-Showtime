@@ -83,6 +83,38 @@ First public release.
 - One menu (N), no commands; a chat notice when a new version is out
 ```
 
+### Changelog 1.6.0
+
+Same jar name pattern, `build/libs/cobblemon-battle-showtime-1.6.0.jar`; release `v1.6.0` with the jar and the
+template zip. Build it with `./gradlew publishToMavenLocal`: the local version bump only runs on `build`.
+
+```
+Stadiums, scene by biome, and LeagueWay compatibility.
+
+- Stadiums are now separate from ambiances: pick a place (void, ultra island, arena, cave,
+  volcanic den...) and lay any ambiance over it. The Scene page has three tabs: Ambiances,
+  Stadiums and Presets (a stadium and an ambiance under one name)
+- Sixteen new stadiums: sea and seabed, meadow, forest, badlands, swamp, desert, canyon,
+  scrapyard, summit, temple, ashen shore, factory, chessboard, big top and a hall of mirrors
+  that reflects the battle (mirrors off under shader packs)
+- 19 new field ambiances, each with its own moments in battle
+- Grounds laid block by block on the world's grid, finely shaded; one setting makes every
+  stadium smooth. New marble pavement for the temple
+- The field follows the trainers more calmly: no rebuild at every step
+- New "Scene by biome" setting: the place you stand in picks the stadium and the ambiance
+  (plains, ocean, caves, Nether, End, snowy peaks, storms...), modded biomes included
+- Hiding the battle screen with Cobblemon's R key frees the camera; showing it again
+  brings the cinematic camera back
+- The menu key (N) now also closes the menu
+- LeagueWay compatibility: one battle intro plays, not two. Showtime's by default; switch
+  to LeagueWay's in the Intros page (the setting shows only when LeagueWay is installed)
+- For mod developers: the API can add intros drawn by another mod, reserve intros and
+  ambiances for some players, impose a stadium, lay an ambiance on an area outside battles,
+  and impose or turn off the scene by biome (see Documentation/api.md)
+
+Requires Fabric API and Cobblemon 1.8.1+. Optional: Player Animation Library, Mod Menu.
+```
+
 ## Gallery to prepare
 
 Short GIFs or MP4s (Modrinth takes images and GIFs; CurseForge takes images, and videos through a YouTube link):
