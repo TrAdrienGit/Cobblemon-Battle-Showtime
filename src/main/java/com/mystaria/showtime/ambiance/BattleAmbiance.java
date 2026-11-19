@@ -71,6 +71,35 @@ public final class BattleAmbiance {
 	private static java.util.function.Supplier<List<Vec3>> distantSpots;
 	/** Distant mode: whether the player was inside the circle at the last tick. */
 	private static boolean inside;
+	/** A battle, the preview or a battle seen from afar holds the ambiance: no area's ambiance meanwhile. */
+	private static boolean owned;
+	/** The ambiance laid on a place (a hub), not on a battle: its box, and what it was started from. */
+	private static com.mystaria.showtime.api.AmbianceArea area;
+	private static String areaKey;
+	private static int areaTicks;
+	/** How far from the player an area's particles fall (always in the box): a whole hub would spread them too thin. */
+	private static final double AREA_REACH = 24;
+	/**
+	 * An area is paved with tiles of this side, fixed on the box's grid: each tile shows the ambiance's drawn effects
+	 * (wisps, lanterns, sprites...) as one battle field does, so they are as dense everywhere in a big hub. The field's
+	 * radius is half of it.
+	 */
+	private static final double AREA_TILE = 24;
+	/** Tiles drawn: those whose centre is this close to the camera. */
+	private static final double AREA_DRAW = 44;
+	/** From this far, a tile's drawn effects fade out, gone at AREA_DRAW: no tile pops in or out of sight. */
+	private static final double AREA_FADE = 30;
+	/** At most this many tiles drawn (the nearest), floors of a tall hub included. */
+	private static final int AREA_MAX_TILES = 16;
+	/** The floors of each tile of the area (heights of the world), read from the blocks now and then. */
+	private static final java.util.Map<Long, double[]> TILE_LEVELS = new java.util.HashMap<>();
+	/** The height the scene's once-drawn things (spotlights, the sky's) stand on: the place's own, fixed. */
+	private static double areaAnchorY;
+	/** The fading of the tile drawing (1 outside an area): applied to every vertex's alpha. */
+	private static float tileFade = 1;
+	/** The tiles drawn this frame (the field's own centre first), and the time shift of the one drawing. */
+	private static final List<Vec3> TILES = new ArrayList<>();
+	private static float tileShift;
 	private static long ticks;
 	private static long startDayTime;
 	private static int previewLeft;
@@ -191,6 +220,7 @@ private static boolean irisChecked;
 	public static void start(Collection<UUID> battleTrainers) {
 		String[] want = wanted();
 		begin(Ambiances.resolve(want[1], want[0]), battleTrainers, 0);
+		owned = true;
 		followed = List.copyOf(battleTrainers);
 		followedId = want[0] + "|" + want[1];
 	}
@@ -270,6 +300,7 @@ private static boolean irisChecked;
 		List<UUID> keep = followed;
 		Ambiance next = Ambiances.resolve(want[1], want[0]);
 		begin(next, keep, 0); // ends the old one (and forgets what is followed): set again below
+		owned = true;
 		followed = keep;
 		followedId = id;
 		if (active != null && next != null) {
@@ -283,11 +314,12 @@ private static boolean irisChecked;
 	 * player's own — restricted to its field, whose sides {@code spots} gives. Never over this player's own battle.
 	 */
 	public static void startDistant(String id, java.util.function.Supplier<List<Vec3>> spots) {
-		if (active() && !distant) {
+		if (active() && !distant && area == null) {
 			return;
 		}
 		String[] want = scene(id == null || id.isEmpty() ? null : id, null);
 		begin(Ambiances.resolve(want[1], want[0]), List.of(), 0);
+		owned = true;
 		if (active == null) {
 			return;
 		}
@@ -316,10 +348,248 @@ private static boolean irisChecked;
 		return active() && (!distant || inside);
 	}
 
+	// ---------------------------------------------------------------- an area's ambiance (2026-11-19)
+
+	/**
+	 * The ambiance of the place the player stands in (ShowtimeHooks.setAreaAmbiance: a Phantasmon Events hub), asked
+	 * twice a second while nothing else holds the ambiance: started when the player walks in, changed when the place's
+	 * changes, ended when they walk out. A battle takes over; the place's comes back after it.
+	 */
+	private static void followArea(Minecraft mc) {
+		if (owned || mc.level == null || mc.player == null || ++areaTicks % 10 != 0) {
+			return;
+		}
+		com.mystaria.showtime.api.AmbianceArea wanted = com.mystaria.showtime.api.ShowtimeHooks.areaAmbiance();
+		if (wanted != null && (wanted.ambiance() == null || wanted.ambiance().isEmpty()
+				|| !wanted.contains(mc.player.getX(), mc.player.getZ()))) {
+			wanted = null;
+		}
+		String key = wanted == null ? null : wanted.toString();
+		if (java.util.Objects.equals(key, areaKey)) {
+			return;
+		}
+		if (area != null) {
+			end();
+		}
+		if (wanted == null) {
+			return;
+		}
+		begin(Ambiances.resolve(wanted.ambiance(), NONE), List.of(), 0);
+		areaKey = key; // even when unknown: not asked again until the place changes
+		if (active == null) {
+			return;
+		}
+		area = wanted;
+		inside = true;
+		TILE_LEVELS.clear();
+		double[] middle = tileLevels(mc.level, 0, 0);
+		areaAnchorY = middle != null && middle.length > 0 ? middle[0] : wanted.bottomY();
+		// Each tile is a battle field's size: its effects as dense as in a battle.
+		fieldRadius = (float) (AREA_TILE / 2);
+		center = null;
+		trackArea(mc);
+		placeProps(mc.level, active);
+	}
+
+	/**
+	 * The area's field follows the player from tile to tile of its fixed grid (what is drawn is drawn on every tile
+	 * near them, so nothing moves), and stands on the floor the player stands on: of two platforms one above the other,
+	 * the one they are on, never the top of the world.
+	 */
+	private static void trackArea(Minecraft mc) {
+		if (area == null || mc.player == null || mc.level == null) {
+			return;
+		}
+		double tx = area.centerX() + Math.round((mc.player.getX() - area.centerX()) / AREA_TILE) * AREA_TILE;
+		double tz = area.centerZ() + Math.round((mc.player.getZ() - area.centerZ()) / AREA_TILE) * AREA_TILE;
+		// In the air (flying, jumping, falling): the floor last stood on, so nothing moves under a flying player; the
+		// first time, the floor far below (never the player's height in the air).
+		double floor;
+		if (center != null && !mc.player.onGround()) {
+			floor = center.y;
+		} else {
+			floor = areaFloor(mc.level, mc.player.getX(), mc.player.getZ(), mc.player.getY() + 0.5, Double.NaN, 64);
+			if (Double.isNaN(floor)) {
+				floor = center != null ? center.y : mc.player.getY();
+			}
+		}
+		if (center == null || Math.abs(floor - center.y) > 1.5) {
+			center = new Vec3(tx, floor, tz);
+			clearFloors(); // the ground's heights are kept relative to the field's height
+		} else if (tx != center.x || tz != center.z) {
+			center = new Vec3(tx, center.y, tz);
+		}
+	}
+
+	/**
+	 * The floor at a column of the world under {@code from} (searched 16 blocks down): the top of the first block one
+	 * stands on; {@code fallback} where there is none, or the chunk is not loaded.
+	 */
+	private static double areaFloor(ClientLevel level, double x, double z, double from, double fallback) {
+		return areaFloor(level, x, z, from, fallback, 16);
+	}
+
+	private static double areaFloor(ClientLevel level, double x, double z, double from, double fallback, int depth) {
+		int bx = Mth.floor(x);
+		int bz = Mth.floor(z);
+		if (!level.hasChunk(bx >> 4, bz >> 4)) {
+			return fallback;
+		}
+		net.minecraft.core.BlockPos.MutableBlockPos pos = new net.minecraft.core.BlockPos.MutableBlockPos();
+		int top = Mth.floor(from);
+		for (int y = top; y >= top - depth; y--) {
+			pos.set(bx, y, bz);
+			var shape = level.getBlockState(pos).getCollisionShape(level, pos);
+			if (!shape.isEmpty()) {
+				return y + shape.max(net.minecraft.core.Direction.Axis.Y);
+			}
+		}
+		return fallback;
+	}
+
+	/** The tiles of the area near the camera (the field's own centre first); just the field outside an area. */
+	private static void areaTiles(Vec3 camera) {
+		TILES.clear();
+		if (area == null) {
+			TILES.add(center);
+			return;
+		}
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level == null) {
+			return;
+		}
+		if (ticks % 100 == 0) {
+			TILE_LEVELS.clear(); // built or broken meanwhile
+		}
+		int reach = (int) Math.ceil(AREA_DRAW / AREA_TILE);
+		int ci = (int) Math.round(areaU(camera.x, camera.z) / AREA_TILE);
+		int ck = (int) Math.round(areaV(camera.x, camera.z) / AREA_TILE);
+		for (int i = ci - reach; i <= ci + reach; i++) {
+			for (int k = ck - reach; k <= ck + reach; k++) {
+				double x = area.centerX() + i * AREA_TILE;
+				double z = area.centerZ() + k * AREA_TILE;
+				if (Math.hypot(x - camera.x, z - camera.z) > AREA_DRAW || !area.contains(x, z)) {
+					continue;
+				}
+				double[] floors = tileLevels(level, i, k);
+				if (floors == null) {
+					continue;
+				}
+				for (double y : floors) {
+					Vec3 tile = new Vec3(x, y, z);
+					if (tile.distanceTo(camera) <= AREA_DRAW) {
+						TILES.add(tile);
+					}
+				}
+			}
+		}
+		if (TILES.size() > AREA_MAX_TILES) {
+			TILES.sort(java.util.Comparator.comparingDouble(t -> t.distanceToSqr(camera)));
+			TILES.subList(AREA_MAX_TILES, TILES.size()).clear();
+		}
+	}
+
+	/** The grid's axes are the world's: a tile's index along x and z from the area's centre. */
+	private static double areaU(double x, double z) {
+		return x - area.centerX();
+	}
+
+	private static double areaV(double x, double z) {
+		return z - area.centerZ();
+	}
+
+	/**
+	 * The floors of the tile (i, k) of the area, low to high: a top one stands on with two blocks of air over it, not
+	 * under a liquid, read on nine columns of the tile; floors within 2.5 blocks of each other are one. Null while the
+	 * chunk is not loaded. The same for everyone, wherever they stand: what is drawn on it never moves.
+	 */
+	private static double[] tileLevels(ClientLevel level, int i, int k) {
+		long key = ((long) i << 32) ^ (k & 0xFFFFFFFFL);
+		double[] cached = TILE_LEVELS.get(key);
+		if (cached != null) {
+			return cached;
+		}
+		double cx = area.centerX() + i * AREA_TILE;
+		double cz = area.centerZ() + k * AREA_TILE;
+		if (!level.hasChunk(Mth.floor(cx) >> 4, Mth.floor(cz) >> 4)) {
+			return null;
+		}
+		List<Double> found = new ArrayList<>();
+		net.minecraft.core.BlockPos.MutableBlockPos pos = new net.minecraft.core.BlockPos.MutableBlockPos();
+		int top = Mth.floor(area.topY());
+		int bottom = Math.max(level.getMinBuildHeight(), Mth.floor(area.bottomY()) - 1);
+		for (int dx = -1; dx <= 1; dx++) {
+			for (int dz = -1; dz <= 1; dz++) {
+				double x = cx + dx * AREA_TILE / 3;
+				double z = cz + dz * AREA_TILE / 3;
+				if (!area.contains(x, z) || !level.hasChunk(Mth.floor(x) >> 4, Mth.floor(z) >> 4)) {
+					continue;
+				}
+				int bx = Mth.floor(x);
+				int bz = Mth.floor(z);
+				int air = 0;
+				for (int y = top; y >= bottom; y--) {
+					pos.set(bx, y, bz);
+					BlockState state = level.getBlockState(pos);
+					var shape = state.getCollisionShape(level, pos);
+					if (shape.isEmpty()) {
+						air = state.getFluidState().isEmpty() ? air + 1 : -1000; // under a liquid: no floor
+						continue;
+					}
+					if (air >= 2) {
+						found.add(y + shape.max(net.minecraft.core.Direction.Axis.Y));
+					}
+					air = 0;
+				}
+			}
+		}
+		found.sort(null);
+		List<Double> floors = new ArrayList<>();
+		for (double y : found) {
+			if (floors.isEmpty() || y - floors.get(floors.size() - 1) > 2.5) {
+				floors.add(y);
+			}
+		}
+		double[] result = floors.stream().mapToDouble(Double::doubleValue).toArray();
+		TILE_LEVELS.put(key, result);
+		return result;
+	}
+
+	/**
+	 * Draws {@code draw} on every tile of {@link #TILES} (once outside an area): the field's centre moved to the tile's
+	 * for the time of it, and each tile's time shifted so the tiles do not move in step.
+	 */
+	private static void eachTile(PoseStack pose, Vec3 camera, Runnable draw) {
+		if (area == null) {
+			tileShift = 0;
+			draw.run();
+			return;
+		}
+		Vec3 home = center;
+		Vec3 homeRel = cameraRel;
+		for (Vec3 tile : TILES) {
+			center = tile;
+			cameraRel = camera.subtract(tile);
+			// The tile's own, whoever stands where: a tile never jumps in time when the player walks onto another.
+			tileShift = hashFloat((int) Math.round(tile.x / AREA_TILE) * 7919 + (int) Math.round(tile.z / AREA_TILE) * 104729) * 2400f;
+			double far = tile.distanceTo(camera);
+			tileFade = (float) Mth.clamp((AREA_DRAW - far) / (AREA_DRAW - AREA_FADE), 0, 1);
+			pose.pushPose();
+			pose.translate(tile.x - home.x, tile.y - home.y, tile.z - home.z);
+			draw.run();
+			pose.popPose();
+		}
+		center = home;
+		cameraRel = homeRel;
+		tileShift = 0;
+		tileFade = 1;
+	}
+
 	/** The menu's preview: around the player for 30 s ({@code none} stops it). */
 	public static void preview(String id) {
 		Minecraft mc = Minecraft.getInstance();
 		begin(Ambiances.resolve(id, ownStadium()), mc.player == null ? List.of() : List.of(mc.player.getUUID()), PREVIEW_TICKS);
+		owned = true;
 	}
 
 	/** The menu's preview is over: ended, but never a battle's ambiance (one seen from afar included). */
@@ -332,6 +602,9 @@ private static boolean irisChecked;
 	public static void end() {
 		followed = null;
 		followedId = null;
+		owned = false;
+		area = null;
+		areaKey = null;
 		stopSound();
 		if (filterOn) {
 			Minecraft.getInstance().gameRenderer.shutdownEffect();
@@ -452,6 +725,7 @@ private static boolean irisChecked;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && !mc.isPaused()) {
 			followOverride();
+			followArea(mc);
 		}
 		if (active == null || mc.level == null || mc.isPaused()) {
 			if (active != null && mc.level == null) {
@@ -481,6 +755,7 @@ private static boolean irisChecked;
 			setFilter(lastingFilter(active)); // the moment's filter is over: back to the ambiance's own
 		}
 		updateField(mc.level);
+		trackArea(mc);
 		if (center == null) {
 			return;
 		}
@@ -759,6 +1034,9 @@ private static boolean irisChecked;
 	}
 
 	private static void updateField(ClientLevel level) {
+		if (area != null) {
+			return; // an area's field never moves
+		}
 		List<Vec3> spots = new ArrayList<>();
 		if (distantSpots != null) {
 			spots.addAll(distantSpots.get());
@@ -902,7 +1180,26 @@ private static boolean irisChecked;
 	// ---------------------------------------------------------------- drawing
 
 	/** World pass (after the entities): backdrop, stars, rainbow, searchlights, floating blocks. */
+	/**
+	 * In an area, the scene is drawn from the place's own centre (on the floor the player stands on), never from the
+	 * player's tile: what is drawn once (spotlights, the sky's) stays put while they walk or fly; the tiles are drawn
+	 * where they are.
+	 */
 	public static void render(WorldRenderContext context) {
+		if (area == null || center == null) {
+			renderScene(context);
+			return;
+		}
+		Vec3 tile = center;
+		center = new Vec3(area.centerX(), areaAnchorY, area.centerZ());
+		try {
+			renderScene(context);
+		} finally {
+			center = tile;
+		}
+	}
+
+	private static void renderScene(WorldRenderContext context) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!active() || mc.level == null || context.matrixStack() == null) {
 			return;
@@ -914,6 +1211,7 @@ private static boolean irisChecked;
 		pose.pushPose();
 		pose.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z);
 		cameraRel = camera.subtract(center);
+		areaTiles(camera);
 		MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 		if (active.moon != null || active.volcano != null || active.stripedSun != null || active.mirage != null
 				|| !active.wormholes.isEmpty()) {
@@ -975,10 +1273,10 @@ private static boolean irisChecked;
 				drawHall(pose, buffers, active.hall, time, false);
 			}
 			if (active.grass != null) {
-				drawGrass(pose, buffers, active.grass, time);
+				eachTile(pose, camera, () -> drawGrass(pose, buffers, active.grass, time + tileShift));
 			}
 			if (active.flowers != null) {
-				drawFlowers(pose, buffers, active.flowers, time);
+				eachTile(pose, camera, () -> drawFlowers(pose, buffers, active.flowers, time + tileShift));
 			}
 			drawProps(pose, buffers, time, false);
 			if (active.islands != null) {
@@ -1014,37 +1312,37 @@ private static boolean irisChecked;
 			drawSpotlights(pose, buffers, active.spotlights, time);
 		}
 		if (active.floorLights != null) {
-			drawFloorLights(pose, buffers, active.floorLights, time);
+			eachTile(pose, camera, () -> drawFloorLights(pose, buffers, active.floorLights, time + tileShift));
 		}
 		if (active.danceFloor != null) {
-			drawDanceFloor(pose, buffers, active.danceFloor, time);
+			eachTile(pose, camera, () -> drawDanceFloor(pose, buffers, active.danceFloor, time + tileShift));
 		}
 		if (active.neonGrid != null) {
-			drawNeonGrid(pose, buffers, active.neonGrid, time);
+			eachTile(pose, camera, () -> drawNeonGrid(pose, buffers, active.neonGrid, time + tileShift));
 		}
 		if (active.mirrorBall != null) {
-			drawMirrorBallDots(pose, buffers, active.mirrorBall, time);
+			eachTile(pose, camera, () -> drawMirrorBallDots(pose, buffers, active.mirrorBall, time + tileShift));
 		}
 		if (active.sprites != null) {
-			drawSprites(pose, buffers, active.sprites, time);
+			eachTile(pose, camera, () -> drawSprites(pose, buffers, active.sprites, time + tileShift));
 		}
 		if (active.veins != null) {
-			drawVeins(pose, buffers, active.veins, time);
+			eachTile(pose, camera, () -> drawVeins(pose, buffers, active.veins, time + tileShift));
 		}
 		if (active.skyCracks != null) {
 			drawSkyCracks(pose, buffers, active.skyCracks, time);
 		}
 		if (active.wisps != null) {
-			drawWisps(pose, buffers, active.wisps, time);
+			eachTile(pose, camera, () -> drawWisps(pose, buffers, active.wisps, time + tileShift));
 		}
 		if (active.bubbles != null) {
-			drawBubbles(pose, buffers, active.bubbles, time);
+			eachTile(pose, camera, () -> drawBubbles(pose, buffers, active.bubbles, time + tileShift));
 		}
 		if (active.caustics != null) {
-			drawCaustics(pose, buffers, active.caustics, time);
+			eachTile(pose, camera, () -> drawCaustics(pose, buffers, active.caustics, time + tileShift));
 		}
 		if (active.glints != null) {
-			drawGlints(pose, buffers, active.glints, time);
+			eachTile(pose, camera, () -> drawGlints(pose, buffers, active.glints, time + tileShift));
 		}
 		if (active.islands != null) {
 			drawIslands(pose, buffers, active.islands, time, true);
@@ -1086,22 +1384,22 @@ private static boolean irisChecked;
 			drawCameraFlashes(pose, buffers, time);
 		}
 		if (active.shafts != null) {
-			drawShafts(pose, buffers, active.shafts, time);
+			eachTile(pose, camera, () -> drawShafts(pose, buffers, active.shafts, time + tileShift));
 		}
 		if (active.embers != null) {
-			drawEmbers(pose, buffers, active.embers, time);
+			eachTile(pose, camera, () -> drawEmbers(pose, buffers, active.embers, time + tileShift));
 		}
 		if (active.lanterns != null) {
-			drawLanterns(pose, buffers, active.lanterns, time, true);
+			eachTile(pose, camera, () -> drawLanterns(pose, buffers, active.lanterns, time + tileShift, true));
 		}
 		if (active.mushrooms != null) {
-			drawMushrooms(pose, buffers, active.mushrooms, time, true);
+			eachTile(pose, camera, () -> drawMushrooms(pose, buffers, active.mushrooms, time + tileShift, true));
 		}
 		if (active.glitchCubes != null) {
-			drawGlitchCubes(pose, buffers, active.glitchCubes, true);
+			eachTile(pose, camera, () -> drawGlitchCubes(pose, buffers, active.glitchCubes, true));
 		}
 		if (active.rifts != null) {
-			drawRifts(pose, buffers, active.rifts, partialTick);
+			eachTile(pose, camera, () -> drawRifts(pose, buffers, active.rifts, partialTick));
 		}
 		if (active.aurora != null) {
 			drawAurora(pose, buffers, active.aurora, time);
@@ -1115,22 +1413,22 @@ private static boolean irisChecked;
 		buffers.endBatch();
 		// Solid colours after the light: the mirror ball itself, the critters.
 		if (active.mirrorBall != null) {
-			drawMirrorBall(pose, buffers, active.mirrorBall, time);
+			eachTile(pose, camera, () -> drawMirrorBall(pose, buffers, active.mirrorBall, time + tileShift));
 		}
 		if (active.critters != null) {
-			drawCritters(pose, buffers, active.critters, time);
+			eachTile(pose, camera, () -> drawCritters(pose, buffers, active.critters, time + tileShift));
 		}
 		if (active.glitchCubes != null) {
-			drawGlitchCubes(pose, buffers, active.glitchCubes, false);
+			eachTile(pose, camera, () -> drawGlitchCubes(pose, buffers, active.glitchCubes, false));
 		}
 		if (active.ghosts != null) {
-			drawGhosts(pose, buffers, active.ghosts, time);
+			eachTile(pose, camera, () -> drawGhosts(pose, buffers, active.ghosts, time + tileShift));
 		}
 		if (active.mushrooms != null) {
-			drawMushrooms(pose, buffers, active.mushrooms, time, false);
+			eachTile(pose, camera, () -> drawMushrooms(pose, buffers, active.mushrooms, time + tileShift, false));
 		}
 		if (active.kelp != null) {
-			drawKelp(pose, buffers, active.kelp, time);
+			eachTile(pose, camera, () -> drawKelp(pose, buffers, active.kelp, time + tileShift));
 		}
 		if (active.palms != null) {
 			drawPalms(pose, buffers, active.palms, time);
@@ -1148,13 +1446,23 @@ private static boolean irisChecked;
 			drawConfetti(pose, buffers, time);
 		}
 		if (active.lanterns != null) {
-			drawLanterns(pose, buffers, active.lanterns, time, false);
+			eachTile(pose, camera, () -> drawLanterns(pose, buffers, active.lanterns, time + tileShift, false));
 		}
 		if (active.mist != null) {
-			drawMist(pose, buffers, active.mist, time);
+			eachTile(pose, camera, () -> drawMist(pose, buffers, active.mist, time + tileShift));
 		}
 		buffers.endBatch();
 		if (floatingState != null) {
+			eachTile(pose, camera, () -> drawFloating(pose, buffers, camera, partialTick));
+			buffers.endBatch();
+		}
+		pose.popPose();
+	}
+
+	/** The floating blocks around the field. */
+	private static void drawFloating(PoseStack pose, MultiBufferSource.BufferSource buffers, Vec3 camera, float partialTick) {
+		Minecraft mc = Minecraft.getInstance();
+		{
 			for (Floating floating : FLOATING) {
 				Vec3 world = floatingPosition(floating, partialTick);
 				// Shrinks away near the camera: one drifting across a low battle shot filled the screen (2026-11-09).
@@ -1170,9 +1478,7 @@ private static boolean irisChecked;
 				mc.getBlockRenderer().renderSingleBlock(floatingState, pose, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY);
 				pose.popPose();
 			}
-			buffers.endBatch();
 		}
-		pose.popPose();
 	}
 
 	/** HUD pass: the flash of a strong moment. */
@@ -1353,6 +1659,9 @@ private static boolean irisChecked;
 			// below it, so the spot follows hollows, steps and slopes. Well over that surface: at the blocks' own height
 			// they flickered with them (2026-10-30).
 			Vec3 at = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius);
+			if (hole(at)) {
+				continue;
+			}
 			int color = Ambiance.color(lights.colors.get(i % lights.colors.size()), 0xFFFFFF);
 			int segments = 20;
 			Vec3[] rim = new Vec3[segments + 1];
@@ -1381,6 +1690,25 @@ private static boolean irisChecked;
 	}
 
 	private static double groundAt(double x, double z) {
+		double found = groundOrHole(x, z);
+		return Double.isNaN(found) ? 0 : found;
+	}
+
+	/**
+	 * Whether there is no floor to lay anything on at {@code (x, z)} from the field's centre: in an area only (a hub is
+	 * built, with voids, pools and walls in it; a battle field keeps its old ways). Nothing that stands on the ground is
+	 * drawn there, nor what rises from it.
+	 */
+	private static boolean hole(double x, double z) {
+		return area != null && Double.isNaN(groundOrHole(x, z));
+	}
+
+	private static boolean hole(Vec3 at) {
+		return hole(at.x, at.z);
+	}
+
+	/** {@link #groundAt}, NaN for a hole: in an area, no floor within reach, a liquid's surface, or inside a wall. */
+	private static double groundOrHole(double x, double z) {
 		ClientLevel level = Minecraft.getInstance().level;
 		if (level == null || center == null) {
 			return 0;
@@ -1388,23 +1716,33 @@ private static boolean irisChecked;
 		int bx = Mth.floor(center.x + x);
 		int bz = Mth.floor(center.z + z);
 		long key = ((long) bx << 32) ^ (bz & 0xFFFFFFFFL);
+		key = key * 31 + Mth.floor(center.y * 4);
 		Double cached = GROUND.get(key);
 		if (cached != null) {
-			return cached;
+			return cached - center.y;
 		}
-		double found = 0;
-		int top = Mth.floor(center.y) + 4;
+		boolean inArea = area != null;
+		double found = inArea ? Double.NaN : 0;
+		// In an area, a step up of two blocks at most: higher is a wall or the platform over the player's.
+		int top = Mth.floor(center.y) + (inArea ? 2 : 4);
 		net.minecraft.core.BlockPos.MutableBlockPos pos = new net.minecraft.core.BlockPos.MutableBlockPos();
-		for (int y = top; y >= top - 16; y--) {
+		// In an area, the tile's floor only (another floor is another tile's): two blocks up, three and a half down.
+		int lowest = inArea ? Mth.floor(center.y - 3.5) : top - 16;
+		for (int y = top; y >= lowest; y--) {
 			pos.set(bx, y, bz);
 			BlockState state = level.getBlockState(pos);
+			if (inArea && !state.getFluidState().isEmpty()) {
+				break; // water, lava: nothing grows on it
+			}
 			var shape = state.getCollisionShape(level, pos);
 			if (!shape.isEmpty()) {
-				found = y + shape.max(net.minecraft.core.Direction.Axis.Y) - center.y;
+				if (!inArea || y < top) {
+					found = y + shape.max(net.minecraft.core.Direction.Axis.Y) - center.y;
+				}
 				break;
 			}
 		}
-		GROUND.put(key, found);
+		GROUND.put(key, found + center.y);
 		return found;
 	}
 
@@ -1699,6 +2037,9 @@ private static boolean irisChecked;
 
 	/** A flat quad lying on the ground, its four corners each on the surface below them. */
 	private static void groundQuad(VertexConsumer out, Matrix4f m, double x0, double z0, double x1, double z1, int color, int alpha) {
+		if (hole(x0, z0) || hole(x1, z0) || hole(x1, z1) || hole(x0, z1)) {
+			return;
+		}
 		vertex(out, m, onGround(x0, z0), color, alpha);
 		vertex(out, m, onGround(x1, z0), color, alpha);
 		vertex(out, m, onGround(x1, z1), color, alpha);
@@ -1713,6 +2054,9 @@ private static boolean irisChecked;
 		double length = Math.sqrt(dx * dx + dz * dz);
 		double nx = -dz / length * width / 2;
 		double nz = dx / length * width / 2;
+		if (hole(x0, z0) || hole(x1, z1)) {
+			return;
+		}
 		vertex(out, m, onGround(x0 + nx, z0 + nz), color, alpha0);
 		vertex(out, m, onGround(x1 + nx, z1 + nz), color, alpha1);
 		vertex(out, m, onGround(x1 - nx, z1 - nz), color, alpha1);
@@ -1797,6 +2141,9 @@ private static boolean irisChecked;
 			double z = Math.sin(azimuth) * reach;
 			int color = Ambiance.color(ball.colors.get(i % ball.colors.size()), 0xFFFFFF);
 			Vec3 at = onGround(x, z);
+			if (hole(at)) {
+				continue;
+			}
 			int segments = 10;
 			float size = 0.32f + 0.18f * hashFloat(i * 104729);
 			Vec3 previous = null;
@@ -1913,7 +2260,7 @@ private static boolean irisChecked;
 						double patch = 0.5 + 0.25 * Math.sin(c[0] / mist.scale + t + layer * 1.7)
 								+ 0.25 * Math.cos(c[1] / mist.scale * 0.8 - t * 0.7 + layer);
 						Vec3 at = onGround(c[0], c[1]).add(0, lift, 0);
-						int alpha = Math.round(mist.alpha * (float) patch * edge * nearFade(at, 0.5, 2.5));
+						int alpha = hole(c[0], c[1]) ? 0 : Math.round(mist.alpha * (float) patch * edge * nearFade(at, 0.5, 2.5));
 						vertex(out, m, at, color, alpha);
 					}
 				}
@@ -2087,6 +2434,9 @@ private static boolean irisChecked;
 			double height = Mth.lerp(hashFloat(i * 17 + 3), wisps.height.get(0), wisps.height.get(1)) + Math.sin(t * 0.9 + i) * 0.4;
 			Vec3 at = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius).add(0, height, 0);
 			float fade = nearFade(at, 1.0, 2.0);
+			if (hole(at)) {
+				continue;
+			}
 			if (fade <= 0.03f) {
 				continue;
 			}
@@ -2126,6 +2476,9 @@ private static boolean irisChecked;
 			double radius = Mth.lerp(hashFloat(i * 29 + 4), ghosts.radius.get(0), ghosts.radius.get(1));
 			Vec3 base = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius)
 					.add(0, 1.0 + Math.sin(time / 25.0 + i) * 0.4 + phase * 1.5, 0);
+			if (hole(base)) {
+				continue;
+			}
 			Vec3 toCamera = cameraRel.subtract(base);
 			Vec3 right = new Vec3(toCamera.z, 0, -toCamera.x);
 			right = right.lengthSqr() < 1.0E-6 ? new Vec3(1, 0, 0) : right.normalize();
@@ -2164,6 +2517,9 @@ private static boolean irisChecked;
 			double radius = Mth.lerp(hashFloat(seed + 4), bubbles.radius.get(0), bubbles.radius.get(1));
 			double sway = Math.sin(time / 15.0 + i) * 0.6;
 			Vec3 at = onGround(Math.cos(angle) * radius + sway, Math.sin(angle) * radius).add(0, 0.5 + phase * bubbles.height, 0);
+			if (hole(at)) {
+				continue;
+			}
 			float size = Mth.lerp(hashFloat(seed + 5), bubbles.size.get(0), bubbles.size.get(1));
 			// Fades in from the ground, pops (grows a hair and vanishes) at the very top.
 			float life = (float) Mth.clamp(Math.min(phase / 0.1, (1 - phase) / 0.04), 0, 1);
@@ -2223,7 +2579,7 @@ private static boolean irisChecked;
 				double z = Math.sin(angle) * ring + (hashFloat(c * 53 + 20 + k) - 0.5) * 1.2;
 				float size = mushrooms.size * (0.6f + 0.7f * hashFloat(c * 53 + 30 + k));
 				Vec3 foot = onGround(x, z);
-				if (nearFade(foot, 0.5, 1.5) <= 0.05f) {
+				if (hole(foot) || nearFade(foot, 0.5, 1.5) <= 0.05f) {
 					continue;
 				}
 				float breathe = 0.7f + 0.3f * Mth.sin(time / 30f + c + k);
@@ -2366,6 +2722,9 @@ private static boolean irisChecked;
 			double swirl = Math.sin(time / 12.0 + i) * 0.5 * phase;
 			Vec3 at = onGround(Math.cos(angle) * radius + swirl, Math.sin(angle) * radius + Math.cos(time / 14.0 + i) * 0.5 * phase)
 					.add(0, 0.2 + phase * embers.height, 0);
+			if (hole(at)) {
+				continue;
+			}
 			float life = (float) Mth.clamp(Math.min(phase / 0.08, (1 - phase) / 0.35), 0, 1);
 			float twinkle = 0.75f + 0.25f * Mth.sin(time * 0.9f + i * 2.3f);
 			float fade = life * twinkle * nearFade(at, 0.4, 1.5);
@@ -2461,6 +2820,9 @@ private static boolean irisChecked;
 				}
 				double x0 = (ix - n) * cell;
 				double z0 = (iz - n) * cell;
+				if (hole(x0, z0) || hole(x0 + cell, z0) || hole(x0 + cell, z0 + cell) || hole(x0, z0 + cell)) {
+					continue;
+				}
 				vertex(out, m, onGround(x0, z0), color, Math.round(caustics.alpha * a));
 				vertex(out, m, onGround(x0 + cell, z0), color, Math.round(caustics.alpha * b));
 				vertex(out, m, onGround(x0 + cell, z0 + cell), color, Math.round(caustics.alpha * c));
@@ -2480,6 +2842,9 @@ private static boolean irisChecked;
 			double radius = Mth.lerp(hashFloat(i * 73 + 2), shafts.ring.get(0), shafts.ring.get(1));
 			double sway = Math.sin(time / 50.0 + i * 1.9) * 1.6;
 			Vec3 foot = onGround(Math.cos(angle) * radius + sway, Math.sin(angle) * radius);
+			if (hole(foot)) {
+				continue;
+			}
 			Vec3 top = foot.add(lean, shafts.height, lean * 0.3);
 			float breathe = 0.6f + 0.4f * Mth.sin(time / 37f + i * 2.1f);
 			beam(out, m, top, foot, shafts.width * 0.7f, shafts.width * 1.3f, color, Math.round(shafts.alpha * breathe));
@@ -2499,7 +2864,7 @@ private static boolean irisChecked;
 			double radius = fieldRadius + Mth.lerp(hashFloat(i * 89 + 2), kelp.ring.get(0), kelp.ring.get(1));
 			float height = Mth.lerp(hashFloat(i * 89 + 3), kelp.height.get(0), kelp.height.get(1));
 			Vec3 foot = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius);
-			if (nearFade(foot.add(0, height / 2, 0), 1.5, 2) <= 0.05f) {
+			if (hole(foot) || nearFade(foot.add(0, height / 2, 0), 1.5, 2) <= 0.05f) {
 				continue;
 			}
 			Vec3 across = new Vec3(-Math.sin(angle), 0, Math.cos(angle));
@@ -2543,6 +2908,9 @@ private static boolean irisChecked;
 			double drift = phase * 4;
 			Vec3 at = onGround(Math.cos(angle) * radius + drift, Math.sin(angle) * radius + drift * 0.4)
 					.add(Math.sin(time / 30.0 + i) * 0.3, 1.5 + phase * lanterns.height, 0);
+			if (hole(at)) {
+				continue;
+			}
 			float life = (float) Mth.clamp(Math.min(phase / 0.06, (1 - phase) / 0.25), 0, 1);
 			float fade = life * nearFade(at, 0.8, 2);
 			if (fade <= 0.03f) {
@@ -2604,6 +2972,9 @@ private static boolean irisChecked;
 			double radius = Mth.lerp(hashFloat(seed + 4), glints.radius.get(0), glints.radius.get(1));
 			Vec3 at = onGround(Math.cos(angle) * radius, Math.sin(angle) * radius)
 					.add(0, Mth.lerp(hashFloat(seed + 5), glints.height.get(0), glints.height.get(1)), 0);
+			if (hole(at)) {
+				continue;
+			}
 			float flash = (float) Math.sin(phase / 0.25 * Math.PI);
 			float fade = flash * nearFade(at, 0.5, 1.5);
 			if (fade <= 0.03f) {
@@ -5682,7 +6053,7 @@ try {
 			double x = Math.cos(a) * r;
 			double z = Math.sin(a) * r;
 			Vec3 at = new Vec3(x, floorY(x, z) - 0.06, z);
-			if (nearFade(at, 0.8, 1) < 0.5f) {
+			if (hole(x, z) || nearFade(at, 0.8, 1) < 0.5f) {
 				continue;
 			}
 			double h = within(grass.height, hashFloat(i * 157 + 3));
@@ -5708,7 +6079,7 @@ try {
 			double x = Math.cos(a) * r;
 			double z = Math.sin(a) * r;
 			Vec3 at = new Vec3(x, floorY(x, z) - 0.05, z);
-			if (nearFade(at, 0.8, 1) < 0.5f) {
+			if (hole(x, z) || nearFade(at, 0.8, 1) < 0.5f) {
 				continue;
 			}
 			double h = within(flowers.height, hashFloat(i * 163 + 3));
@@ -6959,6 +7330,9 @@ try {
 			double x = Math.cos(angle) * radius;
 			double z = Math.sin(angle) * radius;
 			Vec3 body = onGround(x, z).add(0, o.height() + Math.sin(t * 1.3 + o.phase()) * 0.5, 0);
+			if (hole(body)) {
+				continue;
+			}
 			if (nearFade(body, 0.8, 1.2) <= 0.05f) {
 				continue;
 			}
@@ -7016,7 +7390,7 @@ try {
 
 	private static void vertex(VertexConsumer out, Matrix4f m, Vec3 at, int color, int alpha) {
 		out.addVertex(m, (float) at.x, (float) at.y, (float) at.z)
-				.setColor((color >> 16) & 255, (color >> 8) & 255, color & 255, alpha);
+				.setColor((color >> 16) & 255, (color >> 8) & 255, color & 255, tileFade < 1 ? Math.round(alpha * tileFade) : alpha);
 	}
 
 	private static void face(VertexConsumer out, Matrix4f m, int tint, float tile, float x0, float y0, float z0, float x1,
@@ -7056,6 +7430,10 @@ try {
 			return;
 		}
 		float rate = spec.rate * budget;
+		if (area != null) {
+			// Spread over the place near the player: as dense as on a field, so more of them.
+			rate *= (float) (AREA_REACH * AREA_REACH / (fieldRadius * fieldRadius));
+		}
 		int count = (int) rate + (RANDOM.nextFloat() < rate - (int) rate ? 1 : 0);
 		float windX = active.wind != null && active.wind.size() > 0 ? active.wind.get(0) : 0f;
 		float windZ = active.wind != null && active.wind.size() > 1 ? active.wind.get(1) : 0f;
@@ -7084,7 +7462,28 @@ try {
 			float mx = spec.motion.size() > 0 ? spec.motion.get(0) : 0f;
 			float my = spec.motion.size() > 1 ? spec.motion.get(1) : 0f;
 			float mz = spec.motion.size() > 2 ? spec.motion.get(2) : 0f;
-			level.addParticle(particle, center.x + Math.cos(angle) * r, center.y + y, center.z + Math.sin(angle) * r,
+			double px = center.x + Math.cos(angle) * r;
+			double pz = center.z + Math.sin(angle) * r;
+			double py = center.y + y;
+			if (area != null) {
+				// Fixed to the place: anywhere in it near the player, on its own ground there (never one height for all).
+				Player self = Minecraft.getInstance().player;
+				if (self == null) {
+					return;
+				}
+				double reach = Math.sqrt(RANDOM.nextDouble()) * AREA_REACH * (spec.area.equals("sky") ? 1.6 : 1);
+				px = self.getX() + Math.cos(angle) * reach;
+				pz = self.getZ() + Math.sin(angle) * reach;
+				if (!area.contains(px, pz)) {
+					continue;
+				}
+				double floor = areaFloor(level, px, pz, center.y + 3, Double.NaN);
+				if (Double.isNaN(floor)) {
+					continue; // over a void
+				}
+				py = floor + (spec.area.equals("ring") ? RANDOM.nextDouble() * 3 : y);
+			}
+			level.addParticle(particle, px, py, pz,
 					mx + windX + (RANDOM.nextDouble() - 0.5) * spec.spread, my + (RANDOM.nextDouble() - 0.5) * spec.spread,
 					mz + windZ + (RANDOM.nextDouble() - 0.5) * spec.spread);
 		}

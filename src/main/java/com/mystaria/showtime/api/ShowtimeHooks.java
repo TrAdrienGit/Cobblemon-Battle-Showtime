@@ -202,6 +202,24 @@ public final class ShowtimeHooks {
 		return ambianceOverride.get();
 	}
 
+	private static java.util.function.Supplier<AmbianceArea> areaAmbiance = () -> null;
+
+	/**
+	 * (1.4, 2026-11-19) The ambiance of the place the local player stands in ({@link AmbianceArea}), asked twice a
+	 * second outside battles; null: none here. Phantasmon Events: the ambiance of the hub the player is in.
+	 */
+	public static void setAreaAmbiance(java.util.function.Supplier<AmbianceArea> area) {
+		areaAmbiance = area == null ? () -> null : area;
+	}
+
+	public static AmbianceArea areaAmbiance() {
+		try {
+			return areaAmbiance.get();
+		} catch (RuntimeException ex) {
+			return null;
+		}
+	}
+
 	private static boolean lobbyMusic;
 
 	/**
