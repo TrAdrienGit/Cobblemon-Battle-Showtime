@@ -82,7 +82,10 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   broadleaf / pine / dead, `count`, `ring`, `height`, `trunk`, `leaves`, `canopy`), `rocks` (`color`, `count`,
   `spires`, `ring`, `size`), `pools` (`color`, `rim`, `glow`, `count`, `ring`, `size`; the ambiance's `water.color`
   and `water.light` recolour them), `cracks` (`color`, `core`, `count`, `ring`), `columns` (`color`, `count`,
-  `distance`, `height`, `ruined`), `junk` (`colors`, `count`, `ring`). Every `ring` is in blocks past the field's edge.
+  `distance`, `height`, `ruined`), `junk` (`colors`, `count`, `ring`), `tiles` (2026-11-19: a pavement of `size`-block
+  tiles on the world's grid out to `radius` blocks, 0 = the field and its `flat`; `joint` colour between tiles, each
+  tile its own `shade`, `vein` for marble veins running across them; laid in blocks even when the ground is smooth).
+  Every `ring` is in blocks past the field's edge.
 - `hall` (2026-11-19): a room `margin` blocks past the field, `height` high. `shape` `box` (walls, pilasters, beams,
   hanging lamps) or `tent` (round wall and cone in `stripes`). `floor`, `checker` + `tile` (a checkerboard), `wall`,
   `ceiling`, `lamp`, `mirrors`, `machines` (`metal`, `belt`, `crates`, `warning`, `gears`, `presses`, `speed`: a

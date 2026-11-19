@@ -179,6 +179,7 @@ STADIUMS = {
                  "radius": 60,
                  "rocks": {"color": "#c8c0b0", "count": 0},
                  "columns": {"count": 12, "distance": 5, "height": 9},
+                 "tiles": {"size": 2, "joint": "#a89c88", "vein": "#9a98a8", "shade": 0.05},
                  "clouds": {"color": "#ffffff", "shade": "#e0d8f0", "depth": 18}},
     },
 

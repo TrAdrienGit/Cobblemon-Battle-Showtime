@@ -4277,7 +4277,19 @@ private static boolean irisChecked;
 	 */
 	private static void drawBlockFloor(VertexConsumer out, Matrix4f m, String layer, double reach,
 			java.util.function.DoubleBinaryOperator top, FloorColor color, FloorTint tint, FloorCell cell) {
+		drawBlockFloor(out, m, layer, reach, top, color, tint, cell, null, 0);
+	}
+
+	/**
+	 * The same, paved with {@code tiles} out to {@code paved} blocks from the centre: each tile its own shade over the
+	 * floor's colours, and a joint strip along the tile edges, laid just above the top.
+	 */
+	private static void drawBlockFloor(VertexConsumer out, Matrix4f m, String layer, double reach,
+			java.util.function.DoubleBinaryOperator top, FloorColor color, FloorTint tint, FloorCell cell, Ambiance.Tiles tiles,
+			double paved) {
 		FloorCache cache = floorCache(layer);
+		int tileSize = tiles != null ? Math.max(1, tiles.size) : 1;
+		int joint = tiles != null ? Ambiance.color(tiles.joint, 0xA8A094) : 0;
 		int bx0 = Mth.floor(center.x - reach);
 		int bx1 = Mth.floor(center.x + reach);
 		int bz0 = Mth.floor(center.z - reach);
@@ -4315,12 +4327,26 @@ private static boolean irisChecked;
 					}
 					k[c] = corner[slot];
 				}
+				boolean paving = tiles != null && r <= paved;
+				if (paving) {
+					// Each tile a shade of its own: lighter or darker as a whole, so the tiles read apart.
+					int tx = Math.floorDiv(bx, tileSize);
+					int tz = Math.floorDiv(bz, tileSize);
+					float shade = (hashFloat(tx * 7349 + tz * 3571 + 17) - 0.5f) * 2 * tiles.shade;
+					int toward = shade > 0 ? 0xFFFFFF : 0x000000;
+					for (int c = 0; c < 4; c++) {
+						k[c] = lerpColor(k[c], toward, Math.abs(shade));
+					}
+				}
 				// Corners 0 (ax, az), 1 (ax+1, az), 2 (ax+1, az+1), 3 (ax, az+1).
 				Vec3 p0 = new Vec3(ax, y, az);
 				Vec3 p1 = new Vec3(ax + 1, y, az);
 				Vec3 p2 = new Vec3(ax + 1, y, az + 1);
 				Vec3 p3 = new Vec3(ax, y, az + 1);
 				quadColors(out, m, p0, p1, p2, p3, k[0], k[1], k[2], k[3]);
+				if (paving) {
+					drawJoints(out, m, bx, bz, ax, az, y, tileSize, k, joint);
+				}
 				for (int d = 0; d < 4; d++) {
 					int dx = d == 0 ? 1 : d == 1 ? -1 : 0;
 					int dz = d == 2 ? 1 : d == 3 ? -1 : 0;
@@ -4366,6 +4392,35 @@ private static boolean irisChecked;
 		}
 	}
 
+	/**
+	 * The joints along a paved block's tile edges: thin strips just above the top (the block's own half of the joint;
+	 * the neighbour draws the other), coloured from the stone's corners toward the joint's colour.
+	 */
+	private static void drawJoints(VertexConsumer out, Matrix4f m, int bx, int bz, double ax, double az, double y, int size,
+			int[] k, int joint) {
+		final double w = 0.045;
+		double jy = y + 0.004;
+		float mix = 0.75f;
+		if (Math.floorMod(bx, size) == 0) { // west edge
+			quadColors(out, m, new Vec3(ax, jy, az), new Vec3(ax + w, jy, az), new Vec3(ax + w, jy, az + 1), new Vec3(ax, jy, az + 1),
+					lerpColor(k[0], joint, mix), lerpColor(k[0], joint, mix), lerpColor(k[3], joint, mix), lerpColor(k[3], joint, mix));
+		}
+		if (Math.floorMod(bx + 1, size) == 0) { // east edge
+			quadColors(out, m, new Vec3(ax + 1 - w, jy, az), new Vec3(ax + 1, jy, az), new Vec3(ax + 1, jy, az + 1),
+					new Vec3(ax + 1 - w, jy, az + 1), lerpColor(k[1], joint, mix), lerpColor(k[1], joint, mix),
+					lerpColor(k[2], joint, mix), lerpColor(k[2], joint, mix));
+		}
+		if (Math.floorMod(bz, size) == 0) { // north edge
+			quadColors(out, m, new Vec3(ax, jy, az), new Vec3(ax + 1, jy, az), new Vec3(ax + 1, jy, az + w), new Vec3(ax, jy, az + w),
+					lerpColor(k[0], joint, mix), lerpColor(k[1], joint, mix), lerpColor(k[1], joint, mix), lerpColor(k[0], joint, mix));
+		}
+		if (Math.floorMod(bz + 1, size) == 0) { // south edge
+			quadColors(out, m, new Vec3(ax, jy, az + 1 - w), new Vec3(ax + 1, jy, az + 1 - w), new Vec3(ax + 1, jy, az + 1),
+					new Vec3(ax, jy, az + 1), lerpColor(k[3], joint, mix), lerpColor(k[2], joint, mix), lerpColor(k[2], joint, mix),
+					lerpColor(k[3], joint, mix));
+		}
+	}
+
 	private static double floorTop(FloorCache cache, java.util.function.DoubleBinaryOperator top, int bx, int bz) {
 		long key = blockKey(bx, bz);
 		Double cached = cache.tops.get(key);
@@ -4374,6 +4429,22 @@ private static boolean irisChecked;
 			cache.tops.put(key, cached);
 		}
 		return cached;
+	}
+
+	/**
+	 * Marble's veins at (x, z): thin winding lines where a warped wave crosses zero, in world coordinates so they run on
+	 * across the tiles; two sets at an angle, the second fainter.
+	 */
+	private static int veined(int c, int vein, double x, double z) {
+		double wx = center.x + x;
+		double wz = center.z + z;
+		double warp = 3.2 * valueNoise(wx * 0.11, 21, wz * 0.11);
+		double a = Math.abs(Math.sin((wx * 0.31 + wz * 0.17) + warp));
+		double warp2 = 2.6 * valueNoise(wx * 0.07 + 40, 22, wz * 0.07);
+		double b = Math.abs(Math.sin((wx * -0.12 + wz * 0.29) + warp2));
+		float strong = (float) Mth.clamp((0.16 - a) / 0.16, 0, 1);
+		float faint = (float) Mth.clamp((0.1 - b) / 0.1, 0, 1) * 0.5f;
+		return lerpColor(c, vein, 0.7f * Math.max(strong * strong, faint));
 	}
 
 	/** A land's ground colour at (x, z): its patches, cliffs on steep slopes, grain, snow, the sun, the haze. */
@@ -4387,6 +4458,9 @@ private static boolean irisChecked;
 		c = lerpColor(c, c2, 0.7f * (float) smooth(Mth.clamp((patch2 - 0.55) / 0.25, 0, 1)));
 		c = lerpColor(c, cliff, (float) smooth(Mth.clamp((0.85 - normal.y) / 0.25, 0, 1)));
 		c = stoneGrain(c, p, land.grain);
+		if (land.tiles != null && land.tiles.vein != null) {
+			c = veined(c, Ambiance.color(land.tiles.vein, 0x8A8A94), x, z);
+		}
 		c = snowed(c, p, flatTop ? new Vec3(0, 1, 0) : normal);
 		c = sunlit(c, flatTop ? new Vec3(0, 1, 0) : normal, 0.68f);
 		if (fog >= 0) {
@@ -4453,14 +4527,20 @@ private static boolean irisChecked;
 		Vec3[] inner = null;
 		int[] innerColor = null;
 		double smoothFrom = 0;
+		double paved = land.tiles == null ? 0 : land.tiles.radius > 0 ? land.tiles.radius : fieldRadius + land.flat;
+		final int g0 = c0;
+		final int g1 = c1;
+		final int g2 = c2;
 		if (blocky()) {
 			// Blocks out to 56 blocks, the smooth ground beyond (far off, in the haze, nobody tells).
 			smoothFrom = Math.min(land.radius, 56);
-			final int g0 = c0;
-			final int g1 = c1;
-			final int g2 = c2;
 			drawBlockFloor(out, m, "land", smoothFrom, (a, b) -> landY(land, a, b),
-					(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true);
+					(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true, land.tiles, paved);
+		} else if (paved > 0) {
+			// A pavement is laid in blocks even on a smooth ground: the smooth ground starts where it ends.
+			smoothFrom = Math.min(land.radius, paved + 0.5);
+			drawBlockFloor(out, m, "pavement", smoothFrom, (a, b) -> snapToBlock((x, z) -> smoothLandY(land, x, z), a, b),
+					(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true, land.tiles, paved + 1);
 		}
 		for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + land.flat + 16), land.radius)) {
 			Vec3[] ring = new Vec3[sectors];

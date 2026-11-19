@@ -479,6 +479,7 @@ public final class Ambiance {
 		public Cracks cracks;
 		public Columns columns;
 		public Junk junk;
+		public Tiles tiles;
 	}
 
 	/** Mountain ranges far off, in layers paler with distance; {@code snow} caps their peaks. */
@@ -533,6 +534,19 @@ public final class Ambiance {
 		public String core = "#ffe080";
 		public int count = 24;
 		public List<Float> ring = List.of(1f, 26f);
+	}
+
+	/**
+	 * A paved floor (2026-11-19): tiles of {@code size} blocks laid on the world's grid out to {@code radius} blocks from
+	 * the centre (0: the field and its level ground), {@code joint} between them, each tile a shade of its own
+	 * ({@code shade}); {@code vein} runs through the stone (marble), none when unset. Always in blocks, a pavement is.
+	 */
+	public static final class Tiles {
+		public int size = 2;
+		public float radius;
+		public String joint = "#a8a094";
+		public String vein;
+		public float shade = 0.05f;
 	}
 
 	/** A ring of columns round the field (a temple), lintels joining them; {@code ruined}: some broken. */

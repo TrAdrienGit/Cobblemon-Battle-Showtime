@@ -153,6 +153,8 @@ remove it from roadmap.md.
 - Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
   stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
   size changes by steps of 4, so the place is no longer rebuilt at every step.
+- The Temple's marble pavement (2026-11-19): 2-block tiles on the world's grid, each its own shade, joints between
+  them, grey veins running across; in blocks whatever the ground setting (land option `tiles`).
 
 ## Trainers (`emote/`, needs Player Animation Library)
 
