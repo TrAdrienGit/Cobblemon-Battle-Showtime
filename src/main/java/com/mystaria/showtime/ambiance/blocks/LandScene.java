@@ -792,6 +792,17 @@ final class LandScene {
 	/** The plants of a land, as kinds with their chances; and placing them. */
 	static final class Plants {
 
+		/** A stadium's own plants, as kinds. */
+		static List<Kind> of(List<Ambiance.Plant> plants) {
+			List<Kind> kinds = new ArrayList<>();
+			if (plants != null) {
+				for (Ambiance.Plant plant : plants) {
+					kinds.add(new Kind(Palette.block(plant.block, Blocks.SHORT_GRASS.defaultBlockState()), plant.chance, plant.ring));
+				}
+			}
+			return kinds;
+		}
+
 		record Kind(BlockState block, float chance, List<Float> ring) {
 		}
 
@@ -880,6 +891,19 @@ final class LandScene {
 					for (int n = 0; n < tall; n++) {
 						level.set(x, y + n, z, state);
 					}
+				} else if (state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT)) {
+					// A kelp: its stem, then its head, swaying nowhere but tall.
+					int tall = 2 + (int) (Noise.at(x, y, z, 37) * 7);
+					for (int n = 0; n < tall - 1; n++) {
+						if (!level.isAir(x, y + n + 1, z)) {
+							tall = n + 1;
+							break;
+						}
+						level.set(x, y + n, z, Blocks.KELP_PLANT.defaultBlockState());
+					}
+					level.set(x, y + tall - 1, z, Blocks.KELP.defaultBlockState());
+				} else if (state.hasProperty(BlockStateProperties.PICKLES)) {
+					level.set(x, y, z, state.setValue(BlockStateProperties.PICKLES, 1 + (int) (Noise.at(x, y, z, 38) * 4)));
 				} else if (state.hasProperty(BlockStateProperties.FLOWER_AMOUNT)) {
 					level.set(x, y, z, state.setValue(BlockStateProperties.FLOWER_AMOUNT, 1 + (int) (Noise.at(x, y, z, 35) * 4))
 							.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.from2DDataValue((int) (Noise.at(x, y, z, 36) * 4))));

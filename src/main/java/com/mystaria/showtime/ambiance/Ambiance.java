@@ -417,6 +417,15 @@ public final class Ambiance {
 		public int pillars = 5;
 		public LavaLake lava;
 		public Hoard hoard;
+		/**
+		 * Built of blocks (2026-11-19): {@code surface} the floor, {@code rock} the walls and vault (or {@code bands} by
+		 * height), {@code soil} unused. Unset: stone, gravel and tuff.
+		 */
+		public Ground blocks;
+		/** Built of blocks: the pillars' block, and whether dripstone hangs from the vault and rises from the floor. */
+		public String pillar = "minecraft:dripstone_block";
+		public boolean dripstone = true;
+		public List<Plant> plants;
 	}
 
 	/**
@@ -439,6 +448,15 @@ public final class Ambiance {
 		public int rocks = 7;
 		public boolean under;
 		public float depth = 14f;
+		/**
+		 * Built of blocks (2026-11-19): the beach or seabed ({@code surface}, its patches, {@code soil}, {@code rock}),
+		 * the rocks' blocks, the plants (seagrass, kelp, coral under water; anything on a beach) and the biome. The
+		 * water is Minecraft's, coloured {@code water} (or the ambiance's).
+		 */
+		public Ground blocks;
+		public List<String> rockBlocks;
+		public List<Plant> plants;
+		public String biome = "minecraft:beach";
 	}
 
 	/**

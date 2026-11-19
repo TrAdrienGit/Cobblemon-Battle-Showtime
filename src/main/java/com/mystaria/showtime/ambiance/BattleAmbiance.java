@@ -120,6 +120,9 @@ public final class BattleAmbiance {
 	private static net.minecraft.client.renderer.culling.Frustum frustum;
 	/** This frame's land is drawn in blocks: its grass and flowers are blocks of it, not drawn again. */
 	private static boolean landInBlocks;
+	/** This frame's sea or cave is drawn in blocks: what it holds is not drawn again (its glitter, its floor). */
+	private static boolean seaInBlocks;
+	private static boolean caveInBlocks;
 /** Drawing a mirror's reflection: the hall's own mirrors fall back to their painted sheen. */
 private static boolean reflecting;
 /** The wall left out while its reflection is drawn (it lies in the mirror's very plane); -1 for none. */
@@ -1286,6 +1289,8 @@ private static boolean irisChecked;
 			// Solid scenery first, writing depth: the glows drawn after are hidden behind it where they should be.
 			buffers.endBatch();
 			landInBlocks = false;
+			seaInBlocks = false;
+			caveInBlocks = false;
 			if (active.cavern != null) {
 				drawCavern(pose, buffers, active.cavern, time, false);
 			}
@@ -3940,6 +3945,11 @@ private static boolean irisChecked;
 	 * ripples, the crystals' glow and beams, the lava's heat, the gold glinting, a dull glow in the skull's eyes.
 	 */
 	private static void drawCavern(PoseStack pose, MultiBufferSource buffers, Ambiance.Cavern cavern, float time, boolean glow) {
+		if (!glow && blocky()) {
+			// Built of blocks (2026-11-19): the floor, the vault, pillars, dripstone and lava. Asked before any buffer.
+			caveInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawCave(pose, buffers, center, cameraWorld, frustum,
+					cavern, lightStrength(cavern), fieldRadius, BattleAmbiance::groundAt);
+		}
 		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		// The ambiance may recolour the stadium's stone (the same vault black in a dark crystal cave).
@@ -3951,100 +3961,102 @@ private static boolean irisChecked;
 		double lavaOut = lava == null ? Double.MAX_VALUE : Math.min(radius + 2, lavaIn + lava.width);
 		Vec3 up = new Vec3(0, 1, 0);
 		if (!glow) {
-			// The floor, out to the walls (the lava's ring left for the lava). Every vertex has its own colour (the
-			// light there, the stone's grain), shared with its neighbours and blended across each face by the GPU: no
-			// tile, no ring shows (2026-11-19: one colour per face read as a chequerboard and concentric bands).
-			int sectors = 96;
-			List<Double> radii = new ArrayList<>();
-			if (blocky()) {
-				// The real blocks' tops, block by block, the lava's ring left for the lava.
-				drawBlockFloor(out, m, "cave", radius, (x, z) -> groundAt(x, z) + 0.09, (x, z) -> {
-					Vec3 p = new Vec3(x, groundAt(x, z) + 0.09, z);
-					return caveLit(cavern, stoneGrain(floorColor, p, 0.16f), p, up);
-				}, null, (x, z, r) -> r < lavaIn || r > lavaOut);
-			} else {
-				for (double r = 0; r < radius; r += 1.0) {
-					radii.add(r);
+			if (!caveInBlocks) {
+				// The floor, out to the walls (the lava's ring left for the lava). Every vertex has its own colour (the
+				// light there, the stone's grain), shared with its neighbours and blended across each face by the GPU: no
+				// tile, no ring shows (2026-11-19: one colour per face read as a chequerboard and concentric bands).
+				int sectors = 96;
+				List<Double> radii = new ArrayList<>();
+				if (blocky()) {
+					// The real blocks' tops, block by block, the lava's ring left for the lava.
+					drawBlockFloor(out, m, "cave", radius, (x, z) -> groundAt(x, z) + 0.09, (x, z) -> {
+						Vec3 p = new Vec3(x, groundAt(x, z) + 0.09, z);
+						return caveLit(cavern, stoneGrain(floorColor, p, 0.16f), p, up);
+					}, null, (x, z, r) -> r < lavaIn || r > lavaOut);
+				} else {
+					for (double r = 0; r < radius; r += 1.0) {
+						radii.add(r);
+					}
+					radii.add(radius);
 				}
-				radii.add(radius);
-			}
-			if (lava != null && !radii.isEmpty()) {
-				radii.removeIf(r -> r > lavaIn && r < lavaOut);
-				radii.add(Math.min(lavaIn, radius));
-				radii.add(Math.min(lavaOut, radius));
-				radii.sort(Double::compare);
-			}
-			Vec3[] inner = null;
-			int[] innerColor = null;
-			double innerR = 0;
-			for (double r : radii) {
-				Vec3[] ring = new Vec3[sectors];
-				int[] ringColor = new int[sectors];
-				for (int k = 0; k < sectors; k++) {
-					double a = Math.PI * 2 * k / sectors;
-					ring[k] = onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.03, 0);
-					ringColor[k] = caveLit(cavern, stoneGrain(floorColor, ring[k], 0.16f), ring[k], up);
+				if (lava != null && !radii.isEmpty()) {
+					radii.removeIf(r -> r > lavaIn && r < lavaOut);
+					radii.add(Math.min(lavaIn, radius));
+					radii.add(Math.min(lavaOut, radius));
+					radii.sort(Double::compare);
 				}
-				boolean inLava = lava != null && innerR >= lavaIn - 0.01 && r <= lavaOut + 0.01;
-				if (inner != null && r > innerR + 1.0E-3 && !inLava) {
+				Vec3[] inner = null;
+				int[] innerColor = null;
+				double innerR = 0;
+				for (double r : radii) {
+					Vec3[] ring = new Vec3[sectors];
+					int[] ringColor = new int[sectors];
 					for (int k = 0; k < sectors; k++) {
-						int n = (k + 1) % sectors;
-						quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+						double a = Math.PI * 2 * k / sectors;
+						ring[k] = onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.03, 0);
+						ringColor[k] = caveLit(cavern, stoneGrain(floorColor, ring[k], 0.16f), ring[k], up);
+					}
+					boolean inLava = lava != null && innerR >= lavaIn - 0.01 && r <= lavaOut + 0.01;
+					if (inner != null && r > innerR + 1.0E-3 && !inLava) {
+						for (int k = 0; k < sectors; k++) {
+							int n = (k + 1) % sectors;
+							quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+						}
+					}
+					inner = ring;
+					innerColor = ringColor;
+					innerR = r;
+				}
+				// The vault, coloured per vertex too: its light and grain, strata running round it at uneven heights.
+				int stacks = 18;
+				int around = 96;
+				Vec3[][] grid = new Vec3[stacks + 1][around];
+				int[][] colors = new int[stacks + 1][around];
+				Vec3 heart = new Vec3(0, cavern.height * 0.25, 0);
+				for (int j = 0; j <= stacks; j++) {
+					for (int k = 0; k < around; k++) {
+						Vec3 p = vaultPoint(cavern, Math.PI * 2 * k / around, j / (double) stacks);
+						grid[j][k] = p;
+						double strata = Math.sin(p.y * 1.7 + 2.5 * valueNoise(p.x * 0.2, p.y * 0.2, p.z * 0.2));
+						int stone = lerpColor(rock, strata > 0 ? 0xFFFFFF : 0x000000, 0.06f * (float) Math.abs(strata));
+						colors[j][k] = caveLit(cavern, stoneGrain(stone, p, 0.2f), p, heart.subtract(p).normalize());
 					}
 				}
-				inner = ring;
-				innerColor = ringColor;
-				innerR = r;
-			}
-			// The vault, coloured per vertex too: its light and grain, strata running round it at uneven heights.
-			int stacks = 18;
-			int around = 96;
-			Vec3[][] grid = new Vec3[stacks + 1][around];
-			int[][] colors = new int[stacks + 1][around];
-			Vec3 heart = new Vec3(0, cavern.height * 0.25, 0);
-			for (int j = 0; j <= stacks; j++) {
-				for (int k = 0; k < around; k++) {
-					Vec3 p = vaultPoint(cavern, Math.PI * 2 * k / around, j / (double) stacks);
-					grid[j][k] = p;
-					double strata = Math.sin(p.y * 1.7 + 2.5 * valueNoise(p.x * 0.2, p.y * 0.2, p.z * 0.2));
-					int stone = lerpColor(rock, strata > 0 ? 0xFFFFFF : 0x000000, 0.06f * (float) Math.abs(strata));
-					colors[j][k] = caveLit(cavern, stoneGrain(stone, p, 0.2f), p, heart.subtract(p).normalize());
-				}
-			}
-			for (int j = 0; j < stacks; j++) {
-				for (int k = 0; k < around; k++) {
-					int n = (k + 1) % around;
-					Vec3 mid = grid[j][k].add(grid[j][n]).add(grid[j + 1][n]).add(grid[j + 1][k]).scale(0.25);
-					Vec3 inward = heart.subtract(mid).normalize();
-					if (cameraRel.subtract(mid).dot(inward) < 0 || nearFade(mid, 1.5, 2) < 0.5f) {
-						continue;
+				for (int j = 0; j < stacks; j++) {
+					for (int k = 0; k < around; k++) {
+						int n = (k + 1) % around;
+						Vec3 mid = grid[j][k].add(grid[j][n]).add(grid[j + 1][n]).add(grid[j + 1][k]).scale(0.25);
+						Vec3 inward = heart.subtract(mid).normalize();
+						if (cameraRel.subtract(mid).dot(inward) < 0 || nearFade(mid, 1.5, 2) < 0.5f) {
+							continue;
+						}
+						quadColors(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], colors[j][k], colors[j][n],
+								colors[j + 1][n], colors[j + 1][k]);
 					}
-					quadColors(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], colors[j][k], colors[j][n],
-							colors[j + 1][n], colors[j + 1][k]);
 				}
-			}
-			// Pillars: a stalactite and a stalagmite grown into one, narrow in the middle.
-			double[] heights = {0, 0.12, 0.35, 0.5, 0.65, 0.88, 1};
-			double[] widths = {1.6, 1.05, 0.6, 0.5, 0.72, 1.25, 1.9};
-			for (int i = 0; i < cavern.pillars; i++) {
-				double a = Math.PI * 2 * (i + 0.5 * hashFloat(i * 23 + 1)) / Math.max(1, cavern.pillars) + 0.4;
-				double r = radius * (0.74 + 0.1 * hashFloat(i * 23 + 2));
-				double x = Math.cos(a) * r;
-				double z = Math.sin(a) * r;
-				double bottom = groundAt(x, z) - 0.5;
-				double top = vaultHeightAt(cavern, r) + 1;
-				for (int k = 0; k + 1 < heights.length; k++) {
-					Vec3 p0 = new Vec3(x, Mth.lerp(heights[k], bottom, top), z);
-					Vec3 p1 = new Vec3(x, Mth.lerp(heights[k + 1], bottom, top), z);
-					if (nearFade(p0.add(p1).scale(0.5), 1.5, 2.0) < 0.3f) {
-						continue;
+				// Pillars: a stalactite and a stalagmite grown into one, narrow in the middle.
+				double[] heights = {0, 0.12, 0.35, 0.5, 0.65, 0.88, 1};
+				double[] widths = {1.6, 1.05, 0.6, 0.5, 0.72, 1.25, 1.9};
+				for (int i = 0; i < cavern.pillars; i++) {
+					double a = Math.PI * 2 * (i + 0.5 * hashFloat(i * 23 + 1)) / Math.max(1, cavern.pillars) + 0.4;
+					double r = radius * (0.74 + 0.1 * hashFloat(i * 23 + 2));
+					double x = Math.cos(a) * r;
+					double z = Math.sin(a) * r;
+					double bottom = groundAt(x, z) - 0.5;
+					double top = vaultHeightAt(cavern, r) + 1;
+					for (int k = 0; k + 1 < heights.length; k++) {
+						Vec3 p0 = new Vec3(x, Mth.lerp(heights[k], bottom, top), z);
+						Vec3 p1 = new Vec3(x, Mth.lerp(heights[k + 1], bottom, top), z);
+						if (nearFade(p0.add(p1).scale(0.5), 1.5, 2.0) < 0.3f) {
+							continue;
+						}
+						int c = caveLit(cavern, lerpColor(rock, 0xFFFFFF, 0.06f * k), p0, new Vec3(-x, 0, -z).normalize());
+						tube(out, m, p0, p1, widths[k], widths[k + 1], c);
 					}
-					int c = caveLit(cavern, lerpColor(rock, 0xFFFFFF, 0.06f * k), p0, new Vec3(-x, 0, -z).normalize());
-					tube(out, m, p0, p1, widths[k], widths[k + 1], c);
 				}
-			}
-			if (lava != null) {
-				drawLavaLake(out, m, cavern, lava, lavaIn, lavaOut, time, false);
+				if (lava != null) {
+					drawLavaLake(out, m, cavern, lava, lavaIn, lavaOut, time, false);
+				}
 			}
 			if (cavern.hoard != null) {
 				drawHoard(out, m, cavern, cavern.hoard, lavaIn, lavaOut, time, false);
@@ -4166,6 +4178,15 @@ private static boolean irisChecked;
 	 * Light pass: the sun glittering on the water or the ice; the light coming down from the surface.
 	 */
 	private static void drawSea(PoseStack pose, MultiBufferSource buffers, Ambiance.Sea sea, float time, boolean glow) {
+		if (!glow && blocky()) {
+			// Built of blocks (2026-11-19): Minecraft's water, coloured as the ambiance sees it. Asked before any buffer.
+			WaterLook seen = waterLook(sea);
+			seaInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawSea(pose, buffers, center, cameraWorld, frustum, sea,
+					seen.frozen(), seen.water(), fieldRadius, BattleAmbiance::groundAt);
+		}
+		if (seaInBlocks && !sea.under) {
+			return; // the islet, its rocks and the water are blocks; the sun's glitter would sit under their surface
+		}
 		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		WaterLook look = waterLook(sea);
@@ -4390,93 +4411,95 @@ private static boolean irisChecked;
 			glowDisc(out, m, onGround(0, 0).add(0, 0.04, 0), new Vec3(0, 1, 0), (float) fieldRadius, look.light, 14);
 			return;
 		}
-		int sand = Ambiance.color(sea.sand, 0xD9C48F);
-		int sectors = 96;
-		// The seabed: sand with ripples and dunes, darker and bluer further out, caustics dancing on it.
-		Vec3[] inner = null;
-		int[] innerColor = null;
-		double smoothFrom = 0;
-		if (blocky()) {
-			smoothFrom = Math.min(reach, 48);
-			drawBlockFloor(out, m, "seabed", smoothFrom, BattleAmbiance::seabedY, (x, z) -> {
-				double y = smoothSeabedY(x, z);
-				int c = lerpColor(0x000000, stoneGrain(sand, new Vec3(x, y, z), 0.14f), 0.91f);
-				float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
-				return lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
-			}, (x, z, c) -> {
-				float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
-				double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
-				double band = 1 - Math.abs(2 * n - 1);
-				return lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
-			}, (x, z, r) -> true);
-		}
-		for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + 16), reach)) {
-			Vec3[] ring = new Vec3[sectors];
-			int[] ringColor = new int[sectors];
-			for (int k = 0; k < sectors; k++) {
-				double a = Math.PI * 2 * k / sectors;
+		if (!seaInBlocks) {
+			int sand = Ambiance.color(sea.sand, 0xD9C48F);
+			int sectors = 96;
+			// The seabed: sand with ripples and dunes, darker and bluer further out, caustics dancing on it.
+			Vec3[] inner = null;
+			int[] innerColor = null;
+			double smoothFrom = 0;
+			if (blocky()) {
+				smoothFrom = Math.min(reach, 48);
+				drawBlockFloor(out, m, "seabed", smoothFrom, BattleAmbiance::seabedY, (x, z) -> {
+					double y = smoothSeabedY(x, z);
+					int c = lerpColor(0x000000, stoneGrain(sand, new Vec3(x, y, z), 0.14f), 0.91f);
+					float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
+					return lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
+				}, (x, z, c) -> {
+					float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
+					double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
+					double band = 1 - Math.abs(2 * n - 1);
+					return lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
+				}, (x, z, r) -> true);
+			}
+			for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + 16), reach)) {
+				Vec3[] ring = new Vec3[sectors];
+				int[] ringColor = new int[sectors];
+				for (int k = 0; k < sectors; k++) {
+					double a = Math.PI * 2 * k / sectors;
+					double x = Math.cos(a) * r;
+					double z = Math.sin(a) * r;
+					double y = smoothSeabedY(x, z);
+					ring[k] = new Vec3(x, y - 0.03, z);
+					Vec3 normal = new Vec3(y - smoothSeabedY(x + 0.5, z), 0.5, y - smoothSeabedY(x, z + 0.5)).normalize();
+					int c = stoneGrain(sand, ring[k], 0.14f);
+					c = lerpColor(0x000000, c, (float) (0.65 + 0.35 * Math.max(0, normal.dot(SUN))));
+					float far = (float) Mth.clamp((r - fieldRadius) / 50, 0, 1);
+					c = lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
+					double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
+					double band = 1 - Math.abs(2 * n - 1);
+					c = lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
+					ringColor[k] = c;
+				}
+				if (inner != null) {
+					for (int k = 0; k < sectors; k++) {
+						int n = (k + 1) % sectors;
+						quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+					}
+				}
+				inner = ring;
+				innerColor = ringColor;
+			}
+			// The surface overhead: bright straight above (the sky seen through it), darker towards the sides, rippling.
+			inner = null;
+			innerColor = null;
+			double amp = Math.max(0.15, look.amp * 0.8);
+			for (double r : seaRadii(0, 30, reach)) {
+				Vec3[] ring = new Vec3[sectors];
+				int[] ringColor = new int[sectors];
+				for (int k = 0; k < sectors; k++) {
+					double a = Math.PI * 2 * k / sectors;
+					double x = Math.cos(a) * r;
+					double z = Math.sin(a) * r;
+					double h = waveAt(sea, amp, x, z, time);
+					ring[k] = new Vec3(x, surface + h, z);
+					float window = (float) Mth.clamp(r / (sea.depth * 1.6), 0, 1);
+					int c = lerpColor(look.light, look.water, window);
+					c = lerpColor(c, look.deep, (float) Mth.clamp((r - sea.depth * 1.6) / 40, 0, 0.9));
+					c = lerpColor(c, look.light, 0.35f * (float) Mth.clamp(h / amp, 0, 1) * (1 - window * 0.6f));
+					ringColor[k] = c;
+				}
+				if (inner != null) {
+					for (int k = 0; k < sectors; k++) {
+						int n = (k + 1) % sectors;
+						quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+					}
+				}
+				inner = ring;
+				innerColor = ringColor;
+			}
+			int rock = lerpColor(Ambiance.color(sea.rock, 0x6E675C), look.deep, 0.3f);
+			for (int i = 0; i < sea.rocks + 4; i++) {
+				double a = Math.PI * 2 * (i + 0.6 * hashFloat(i * 53 + 1)) / (sea.rocks + 4);
+				double r = fieldRadius + 3 + 15 * hashFloat(i * 53 + 2);
 				double x = Math.cos(a) * r;
 				double z = Math.sin(a) * r;
-				double y = smoothSeabedY(x, z);
-				ring[k] = new Vec3(x, y - 0.03, z);
-				Vec3 normal = new Vec3(y - smoothSeabedY(x + 0.5, z), 0.5, y - smoothSeabedY(x, z + 0.5)).normalize();
-				int c = stoneGrain(sand, ring[k], 0.14f);
-				c = lerpColor(0x000000, c, (float) (0.65 + 0.35 * Math.max(0, normal.dot(SUN))));
-				float far = (float) Mth.clamp((r - fieldRadius) / 50, 0, 1);
-				c = lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
-				double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
-				double band = 1 - Math.abs(2 * n - 1);
-				c = lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
-				ringColor[k] = c;
-			}
-			if (inner != null) {
-				for (int k = 0; k < sectors; k++) {
-					int n = (k + 1) % sectors;
-					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
+				Vec3 c = new Vec3(x, seabedY(x, z), z);
+				if (nearFade(c, 1.5, 2) < 0.5f) {
+					continue;
 				}
+				boulder(out, m, c, 0.6f + 1.1f * hashFloat(i * 53 + 3), hashFloat(i * 53 + 4) * 6.28, stoneGrain(rock, c, 0.2f), i);
 			}
-			inner = ring;
-			innerColor = ringColor;
-		}
-		// The surface overhead: bright straight above (the sky seen through it), darker towards the sides, rippling.
-		inner = null;
-		innerColor = null;
-		double amp = Math.max(0.15, look.amp * 0.8);
-		for (double r : seaRadii(0, 30, reach)) {
-			Vec3[] ring = new Vec3[sectors];
-			int[] ringColor = new int[sectors];
-			for (int k = 0; k < sectors; k++) {
-				double a = Math.PI * 2 * k / sectors;
-				double x = Math.cos(a) * r;
-				double z = Math.sin(a) * r;
-				double h = waveAt(sea, amp, x, z, time);
-				ring[k] = new Vec3(x, surface + h, z);
-				float window = (float) Mth.clamp(r / (sea.depth * 1.6), 0, 1);
-				int c = lerpColor(look.light, look.water, window);
-				c = lerpColor(c, look.deep, (float) Mth.clamp((r - sea.depth * 1.6) / 40, 0, 0.9));
-				c = lerpColor(c, look.light, 0.35f * (float) Mth.clamp(h / amp, 0, 1) * (1 - window * 0.6f));
-				ringColor[k] = c;
-			}
-			if (inner != null) {
-				for (int k = 0; k < sectors; k++) {
-					int n = (k + 1) % sectors;
-					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
-				}
-			}
-			inner = ring;
-			innerColor = ringColor;
-		}
-		int rock = lerpColor(Ambiance.color(sea.rock, 0x6E675C), look.deep, 0.3f);
-		for (int i = 0; i < sea.rocks + 4; i++) {
-			double a = Math.PI * 2 * (i + 0.6 * hashFloat(i * 53 + 1)) / (sea.rocks + 4);
-			double r = fieldRadius + 3 + 15 * hashFloat(i * 53 + 2);
-			double x = Math.cos(a) * r;
-			double z = Math.sin(a) * r;
-			Vec3 c = new Vec3(x, seabedY(x, z), z);
-			if (nearFade(c, 1.5, 2) < 0.5f) {
-				continue;
-			}
-			boulder(out, m, c, 0.6f + 1.1f * hashFloat(i * 53 + 3), hashFloat(i * 53 + 4) * 6.28, stoneGrain(rock, c, 0.2f), i);
 		}
 		// Schools of fish circling the field, each fish a slim body and a tail, its back darker than its belly.
 		for (int s = 0; s < 5; s++) {

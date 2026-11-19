@@ -10,6 +10,34 @@
 		"radius": 96,
 		"wave": 0.25,
 		"speed": 0.8,
-		"rocks": 9
+		"rocks": 9,
+		"biome": "minecraft:stony_shore",
+		"blocks": {
+			"surface": [
+				"minecraft:gravel",
+				"minecraft:gravel",
+				"minecraft:tuff"
+			],
+			"soil": [
+				"minecraft:gravel",
+				"minecraft:tuff"
+			],
+			"rock": [
+				"minecraft:tuff",
+				"minecraft:andesite",
+				"minecraft:blackstone"
+			]
+		},
+		"rock_blocks": [
+			"minecraft:tuff",
+			"minecraft:blackstone",
+			"minecraft:andesite"
+		],
+		"plants": [
+			{
+				"block": "minecraft:dead_bush",
+				"chance": 0.01
+			}
+		]
 	}
 }

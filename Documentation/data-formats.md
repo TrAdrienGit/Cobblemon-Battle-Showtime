@@ -100,6 +100,14 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   with `snow` or a snowy ambiance), `blaze` chars the trees and lights fires. The ambiance's `grass` and `flowers`
   become Minecraft's grass and flowers (a flower per colour, the nearest of Minecraft's). The sea of clouds stays
   drawn as before.
+- A `sea` and a `cavern` built of blocks (2026-11-19, same setting): a sea's `blocks` (`surface` with its patches,
+  `soil`, `rock`: the beach or seabed), `rock_blocks` (its rocks), `plants` (on the beach; under water seagrass, kelp,
+  sea pickles, coral), `biome`; the water is Minecraft's, tinted with the ambiance's `water.color` (else the
+  stadium's), ice when `frozen`, with snow and floes. A cavern's `blocks` (`surface` the floor, `rock` or `bands` the
+  walls and vault), `pillar` (the pillars' block), `dripstone` (pointed dripstone hanging and rising, default true),
+  `plants`; its lava lake is lava over magma, its field lit by hidden light blocks (as bright as its `light_strength`),
+  the rest by little sky light (its `ambient`). The hoard, the falls' glow and the ambiance's props stay drawn as
+  before.
 - `hall` (2026-11-19): a room `margin` blocks past the field, `height` high. `shape` `box` (walls, pilasters, beams,
   hanging lamps) or `tent` (round wall and cone in `stripes`). `floor`, `checker` + `tile` (a checkerboard), `wall`,
   `ceiling`, `lamp`, `mirrors`, `machines` (`metal`, `belt`, `crates`, `warning`, `gears`, `presses`, `speed`: a

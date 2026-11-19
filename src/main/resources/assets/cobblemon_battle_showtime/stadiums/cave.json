@@ -6,6 +6,38 @@
 		"light": "#ffd9a0",
 		"light_strength": 0.4,
 		"ambient": 0.32,
-		"pillars": 6
+		"pillars": 6,
+		"blocks": {
+			"surface": [
+				"minecraft:stone",
+				"minecraft:gravel",
+				"minecraft:tuff"
+			],
+			"rock": [
+				"minecraft:stone",
+				"minecraft:andesite",
+				"minecraft:tuff"
+			],
+			"bands": [
+				"minecraft:stone",
+				"minecraft:stone",
+				"minecraft:andesite",
+				"minecraft:tuff",
+				"minecraft:stone",
+				"minecraft:dripstone_block",
+				"minecraft:stone",
+				"minecraft:granite"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:brown_mushroom",
+				"chance": 0.01
+			},
+			{
+				"block": "minecraft:red_mushroom",
+				"chance": 0.004
+			}
+		]
 	}
 }

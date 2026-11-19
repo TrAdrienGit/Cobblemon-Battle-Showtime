@@ -55,6 +55,19 @@ final class SceneLevel implements LevelReader {
 		int top(int x, int z);
 	}
 
+	/** What stands where nothing is stored, for a part that is not a plain ground (a sea's water, a cave's rock). */
+	interface Fallback {
+		BlockState at(int x, int y, int z);
+	}
+
+	private Fallback fallback;
+	/** The sky's light everywhere: 15 out of doors, low in a cave (its rock lit only by what glows in it). */
+	private int skyLight = 15;
+	/** The water's colour, an ambiance's own; -1: the biome's. */
+	private int waterTint = -1;
+	/** Another part whose glowing blocks light this one too (a cave's pillars, lit by the cave's lamps). */
+	private SceneLevel lightOf;
+
 	final Long2ObjectOpenHashMap<BlockState> blocks = new Long2ObjectOpenHashMap<>();
 	/** Column (x, z) -> its lowest stored block's y. A column absent is outside the part. */
 	private final Long2IntOpenHashMap bottoms = new Long2IntOpenHashMap();
@@ -94,6 +107,31 @@ final class SceneLevel implements LevelReader {
 		}
 	}
 
+	SceneLevel fallback(Fallback fallback) {
+		this.fallback = fallback;
+		return this;
+	}
+
+	SceneLevel skyLight(int skyLight) {
+		this.skyLight = skyLight;
+		return this;
+	}
+
+	SceneLevel lightOf(SceneLevel other) {
+		this.lightOf = other;
+		return this;
+	}
+
+	private int light(long key) {
+		int own = blockLight.get(key);
+		return lightOf == null ? own : Math.max(own, lightOf.blockLight.get(key));
+	}
+
+	SceneLevel waterTint(int rgb) {
+		this.waterTint = rgb;
+		return this;
+	}
+
 	BlockState stored(int x, int y, int z) {
 		return blocks.get(BlockPos.asLong(x, y, z));
 	}
@@ -107,6 +145,9 @@ final class SceneLevel implements LevelReader {
 		BlockState state = blocks.get(pos.asLong());
 		if (state != null) {
 			return state;
+		}
+		if (fallback != null) {
+			return fallback.at(pos.getX(), pos.getY(), pos.getZ());
 		}
 		if (ground != null) {
 			return pos.getY() < ground.top(pos.getX(), pos.getZ()) ? FILL : AIR;
@@ -179,17 +220,17 @@ final class SceneLevel implements LevelReader {
 
 	@Override
 	public int getBrightness(LightLayer layer, BlockPos pos) {
-		return layer == LightLayer.SKY ? 15 : blockLight.get(pos.asLong());
+		return layer == LightLayer.SKY ? skyLight : light(pos.asLong());
 	}
 
 	@Override
 	public int getRawBrightness(BlockPos pos, int darkening) {
-		return Math.max(15 - darkening, blockLight.get(pos.asLong()));
+		return Math.max(skyLight - darkening, light(pos.asLong()));
 	}
 
 	@Override
 	public boolean canSeeSky(BlockPos pos) {
-		return true;
+		return skyLight == 15;
 	}
 
 	@Override
@@ -200,6 +241,9 @@ final class SceneLevel implements LevelReader {
 
 	@Override
 	public int getBlockTint(BlockPos pos, ColorResolver resolver) {
+		if (waterTint >= 0 && resolver == net.minecraft.client.renderer.BiomeColors.WATER_COLOR_RESOLVER) {
+			return waterTint;
+		}
 		return resolver.getColor(biome.value(), pos.getX(), pos.getZ());
 	}
 

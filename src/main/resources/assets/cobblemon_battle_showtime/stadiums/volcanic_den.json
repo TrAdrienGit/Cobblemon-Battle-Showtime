@@ -21,6 +21,27 @@
 			"gold": "#ffcf4a",
 			"piles": 10,
 			"bones": true
-		}
+		},
+		"blocks": {
+			"surface": [
+				"minecraft:blackstone",
+				"minecraft:basalt",
+				"minecraft:magma_block"
+			],
+			"rock": [
+				"minecraft:blackstone",
+				"minecraft:basalt"
+			],
+			"bands": [
+				"minecraft:blackstone",
+				"minecraft:basalt",
+				"minecraft:blackstone",
+				"minecraft:gilded_blackstone",
+				"minecraft:blackstone",
+				"minecraft:tuff"
+			]
+		},
+		"pillar": "minecraft:basalt",
+		"dripstone": false
 	}
 }

@@ -34,10 +34,15 @@ final class SceneBuilder {
 	/**
 	 * One part of a stadium: its blocks, drawn {@code scale} blocks a cell (far parts are coarser). Ground parts are cut
 	 * into square pieces; an objects part (trees, rocks) gives a piece per object, its block keys in {@code objects}.
+	 * {@code lift}: blocks the whole part is raised by (a coarse sea's water, so its surface meets the near one's).
 	 */
-	record Part(SceneLevel level, int scale, List<LongArrayList> objects) {
+	record Part(SceneLevel level, int scale, List<LongArrayList> objects, float lift) {
 		Part(SceneLevel level, int scale) {
-			this(level, scale, new ArrayList<>());
+			this(level, scale, new ArrayList<>(), 0);
+		}
+
+		Part(SceneLevel level, int scale, float lift) {
+			this(level, scale, new ArrayList<>(), lift);
 		}
 	}
 
@@ -98,6 +103,7 @@ final class SceneBuilder {
 			BlockRenderDispatcher dispatcher, RandomSource random, PoseStack pose, int[] failures) {
 		SceneLevel level = part.level();
 		int s = part.scale();
+		float lift = part.lift();
 		MeshCapture[] layers = new MeshCapture[SceneMesh.LAYERS.length];
 		for (int i = 0; i < layers.length; i++) {
 			layers[i] = new MeshCapture();
@@ -113,7 +119,7 @@ final class SceneBuilder {
 				if (state.getRenderShape() == RenderShape.MODEL) {
 					MeshCapture out = layers[SceneMesh.layer(ItemBlockRenderTypes.getMovingBlockRenderType(state))];
 					pose.pushPose();
-					pose.translate((double) pos.getX() * s - originX, (double) pos.getY() * s, (double) pos.getZ() * s - originZ);
+					pose.translate((double) pos.getX() * s - originX, (double) pos.getY() * s + lift, (double) pos.getZ() * s - originZ);
 					if (s != 1) {
 						pose.scale(s, s, s);
 					}
@@ -122,10 +128,11 @@ final class SceneBuilder {
 					pose.popPose();
 				}
 				FluidState fluid = state.getFluidState();
-				if (!fluid.isEmpty()) {
+				// Only a liquid block draws its liquid: kelp and seagrass hold water too, but stand in air here.
+				if (!fluid.isEmpty() && state.getBlock() instanceof net.minecraft.world.level.block.LiquidBlock) {
 					// The liquid renderer writes positions within the block's 16-block section.
 					MeshCapture out = layers[SceneMesh.layer(ItemBlockRenderTypes.getRenderLayer(fluid))];
-					out.transform((pos.getX() & ~15) * s - originX, (pos.getY() & ~15) * s, (pos.getZ() & ~15) * s - originZ, s);
+					out.transform((pos.getX() & ~15) * s - originX, (pos.getY() & ~15) * s + lift, (pos.getZ() & ~15) * s - originZ, s);
 					dispatcher.renderLiquid(pos, level, out, state, fluid);
 					out.noTransform();
 				}

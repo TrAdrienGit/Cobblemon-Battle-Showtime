@@ -158,6 +158,11 @@ remove it from roadmap.md.
   once in the background with Minecraft's block renderer (ambient occlusion, biome colours, block light from lava
   and fire), coarser far off (2 then 4 blocks a cell), replayed each frame for the pieces in view only, in the render
   types of falling blocks: shader packs light and shade them like the world.
+- Sea and cave stadiums built of blocks (2026-11-19): Sea and Ashen Shore (a sand or gravel islet, Minecraft's water
+  coloured by the ambiance out to the horizon, rocks on the shore, ice, snow and floes when frozen), Seabed (sand and
+  gravel, seagrass, kelp, sea pickles, coral, the water overhead), Cave and Volcanic Den (the vault's inner skin of
+  rock in strata, pillars, pointed dripstone, a lava lake over magma; lit by hidden light blocks and the lava, so dark
+  where no light reaches; a camera outside the vault sees through it).
 - Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
   stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
   size changes by steps of 4, so the place is no longer rebuilt at every step.

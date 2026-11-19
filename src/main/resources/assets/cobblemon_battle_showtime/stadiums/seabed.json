@@ -10,6 +10,74 @@
 		"radius": 72,
 		"wave": 0.3,
 		"speed": 0.7,
-		"rocks": 7
+		"rocks": 7,
+		"biome": "minecraft:warm_ocean",
+		"blocks": {
+			"surface": [
+				"minecraft:sand",
+				"minecraft:sand",
+				"minecraft:gravel"
+			],
+			"soil": [
+				"minecraft:sand",
+				"minecraft:sandstone"
+			],
+			"rock": [
+				"minecraft:stone",
+				"minecraft:andesite"
+			]
+		},
+		"rock_blocks": [
+			"minecraft:stone",
+			"minecraft:andesite",
+			"minecraft:mossy_cobblestone",
+			"minecraft:prismarine"
+		],
+		"plants": [
+			{
+				"block": "minecraft:seagrass",
+				"chance": 0.14
+			},
+			{
+				"block": "minecraft:tall_seagrass",
+				"chance": 0.04
+			},
+			{
+				"block": "minecraft:kelp",
+				"chance": 0.025
+			},
+			{
+				"block": "minecraft:sea_pickle",
+				"chance": 0.008
+			},
+			{
+				"block": "minecraft:tube_coral",
+				"chance": 0.004
+			},
+			{
+				"block": "minecraft:brain_coral",
+				"chance": 0.004
+			},
+			{
+				"block": "minecraft:bubble_coral",
+				"chance": 0.004
+			},
+			{
+				"block": "minecraft:fire_coral",
+				"chance": 0.004
+			},
+			{
+				"block": "minecraft:horn_coral",
+				"chance": 0.004
+			},
+			{
+				"block": "minecraft:tube_coral_fan",
+				"chance": 0.003
+			},
+			{
+				"block": "minecraft:fire_coral_fan",
+				"chance": 0.003
+			}
+		]
 	}
 }

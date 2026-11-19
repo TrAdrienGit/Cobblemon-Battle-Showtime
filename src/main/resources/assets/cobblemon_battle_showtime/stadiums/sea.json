@@ -10,6 +10,38 @@
 		"radius": 96,
 		"wave": 0.32,
 		"speed": 1,
-		"rocks": 7
+		"rocks": 7,
+		"biome": "minecraft:beach",
+		"blocks": {
+			"surface": [
+				"minecraft:sand",
+				"minecraft:sand",
+				"minecraft:gravel"
+			],
+			"soil": [
+				"minecraft:sand",
+				"minecraft:sandstone"
+			],
+			"rock": [
+				"minecraft:stone",
+				"minecraft:andesite"
+			]
+		},
+		"rock_blocks": [
+			"minecraft:stone",
+			"minecraft:andesite",
+			"minecraft:cobblestone",
+			"minecraft:mossy_cobblestone"
+		],
+		"plants": [
+			{
+				"block": "minecraft:sugar_cane",
+				"chance": 0.25
+			},
+			{
+				"block": "minecraft:dead_bush",
+				"chance": 0.006
+			}
+		]
 	}
 }

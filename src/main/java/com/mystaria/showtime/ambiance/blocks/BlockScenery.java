@@ -32,9 +32,8 @@ public final class BlockScenery {
 
 	private static final Logger LOG = LoggerFactory.getLogger("cobblemon_battle_showtime");
 
-	/** What a mesh shows: the same objects (the ambiance's) on the same field. */
-	private record Key(Ambiance.Land land, Ambiance.Grass grass, Ambiance.Flowers flowers, float snowCover, boolean ablaze,
-			Vec3 center, float fieldRadius) {
+	/** What a mesh shows: the same stadium (by identity), as the ambiance sees it ({@code look}), on the same field. */
+	private record Key(Object stadium, Object look, Vec3 center, float fieldRadius) {
 	}
 
 	private static Key shownKey;
@@ -54,13 +53,38 @@ public final class BlockScenery {
 	public static boolean drawLand(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
 			Ambiance.Land land, Ambiance.Grass grass, Ambiance.Flowers flowers, float snowCover, boolean ablaze, float fieldRadius,
 			DoubleBinaryOperator ground) {
-		Key wanted = new Key(land, grass, flowers, snowCover, ablaze, center, fieldRadius);
+		Key wanted = new Key(land, java.util.Arrays.asList(grass, flowers, snowCover, ablaze), center, fieldRadius);
+		return draw(wanted, () -> LandScene.recipe(land, grass, flowers, snowCover, ablaze, center, fieldRadius, ground), pose,
+				buffers, center, camera, frustum);
+	}
+
+	/**
+	 * Draws a sea stadium in blocks (an islet, or the seabed); {@code frozen}: ice instead of water; {@code tint}: the
+	 * water's colour. As {@link #drawLand}.
+	 */
+	public static boolean drawSea(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
+			Ambiance.Sea sea, boolean frozen, int tint, float fieldRadius, DoubleBinaryOperator ground) {
+		Key wanted = new Key(sea, java.util.Arrays.asList(frozen, tint), center, fieldRadius);
+		return draw(wanted, () -> SeaScene.recipe(sea, frozen, tint, center, fieldRadius, ground), pose, buffers, center, camera,
+				frustum);
+	}
+
+	/** Draws a cave stadium in blocks; {@code lightStrength}: how bright its light on the field is. As {@link #drawLand}. */
+	public static boolean drawCave(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
+			Ambiance.Cavern cavern, float lightStrength, float fieldRadius, DoubleBinaryOperator ground) {
+		Key wanted = new Key(cavern, lightStrength, center, fieldRadius);
+		return draw(wanted, () -> CaveScene.recipe(cavern, lightStrength, center, fieldRadius, ground), pose, buffers, center,
+				camera, frustum);
+	}
+
+	private static boolean draw(Key wanted, Supplier<Supplier<SceneMesh>> recipe, PoseStack pose, MultiBufferSource buffers,
+			Vec3 center, Vec3 camera, Frustum frustum) {
 		collect();
 		if (!wanted.equals(shownKey) && !wanted.equals(pendingKey) && !wanted.equals(failedKey)) {
-			start(wanted, () -> LandScene.recipe(land, grass, flowers, snowCover, ablaze, center, fieldRadius, ground));
+			start(wanted, recipe);
 		}
 		// The previous build of the same stadium (before the field grew) stands in until the new one is ready.
-		if (shown == null || shownKey.land() != land) {
+		if (shown == null || shownKey.stadium() != wanted.stadium()) {
 			return false;
 		}
 		Matrix4f toOrigin = new Matrix4f(pose.last().pose()).translate((float) (shown.originX - center.x), (float) -center.y,
