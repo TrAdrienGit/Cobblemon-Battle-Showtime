@@ -31,6 +31,30 @@
 			"height": 40,
 			"distance": 110,
 			"layers": 3
-		}
+		},
+		"biome": "minecraft:windswept_hills",
+		"blocks": {
+			"surface": [
+				"minecraft:stone",
+				"minecraft:andesite",
+				"minecraft:grass_block"
+			],
+			"soil": [
+				"minecraft:andesite",
+				"minecraft:stone"
+			],
+			"rock": [
+				"minecraft:stone",
+				"minecraft:andesite",
+				"minecraft:tuff"
+			],
+			"far": "minecraft:stone"
+		},
+		"plants": [
+			{
+				"block": "minecraft:short_grass",
+				"chance": 0.12
+			}
+		]
 	}
 }

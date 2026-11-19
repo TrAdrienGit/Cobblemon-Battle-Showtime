@@ -480,6 +480,36 @@ public final class Ambiance {
 		public Columns columns;
 		public Junk junk;
 		public Tiles tiles;
+		/** Built of blocks (2026-11-19): what the ground is made of. Unset: plain grass, dirt and stone. */
+		public Ground blocks;
+		/** Built of blocks: the plants growing on the ground (grass, flowers, ferns, dead bushes...). */
+		public List<Plant> plants;
+		/** Built of blocks: the biome whose colours tint the grass, the leaves and the water. */
+		public String biome = "minecraft:plains";
+	}
+
+	/**
+	 * The blocks a land is made of (2026-11-19). {@code surface}: the top, the first everywhere, the second and third in
+	 * patches (where the smooth ground had its second and third colours); {@code soil} under it, {@code rock} on cliffs
+	 * and deeper, or {@code bands} of rock laid by height (badlands). Ids with properties: {@code oak_log[axis=x]}.
+	 */
+	public static final class Ground {
+		public List<String> surface = List.of("minecraft:grass_block");
+		public List<String> soil = List.of("minecraft:dirt");
+		public List<String> rock = List.of("minecraft:stone", "minecraft:andesite");
+		public List<String> bands;
+		/** The mountains far off: their top where it is gentle (unset: the surface's first block). */
+		public String far;
+	}
+
+	/**
+	 * A plant of a land built of blocks (2026-11-19): {@code block} grows on {@code chance} of the ground's blocks that
+	 * can hold it, within {@code ring} blocks of the centre (unset: everywhere). Tall plants take their two halves.
+	 */
+	public static final class Plant {
+		public String block = "minecraft:short_grass";
+		public float chance = 0.2f;
+		public List<Float> ring;
 	}
 
 	/** Mountain ranges far off, in layers paler with distance; {@code snow} caps their peaks. */
@@ -507,6 +537,12 @@ public final class Ambiance {
 		public String trunk = "#5a3e26";
 		public List<String> leaves = List.of("#3f7a2a", "#4e8a30", "#2f6a24");
 		public boolean canopy;
+		/**
+		 * Built of blocks (2026-11-19): the trees' kinds, taken in turn: {@code oak}, {@code birch}, {@code spruce},
+		 * {@code dark_oak}, {@code jungle}, {@code acacia}, {@code cherry}, {@code azalea}, {@code dead}. Unset: from
+		 * {@code kind} (broadleaf: oak and birch; pine: spruce; dead: dead).
+		 */
+		public List<String> species;
 	}
 
 	/** Boulders and, with {@code spires}, tall needles of rock. */
@@ -516,6 +552,8 @@ public final class Ambiance {
 		public List<Float> ring = List.of(3f, 30f);
 		public List<Float> size = List.of(0.5f, 1.8f);
 		public int spires;
+		/** Built of blocks (2026-11-19): what boulders and spires are made of. Unset: the land's rock. */
+		public List<String> blocks;
 	}
 
 	/** Pools sunk in the ground (sludge, bog water), bubbling; the ambiance's {@code water} recolours them. */
@@ -526,6 +564,8 @@ public final class Ambiance {
 		public int count = 8;
 		public List<Float> ring = List.of(3f, 22f);
 		public List<Float> size = List.of(1.5f, 4f);
+		/** Built of blocks (2026-11-19): lily pads on this share of the water (0..1). */
+		public float lilies;
 	}
 
 	/** Fissures in the ground, glowing from below. */
@@ -547,6 +587,8 @@ public final class Ambiance {
 		public String joint = "#a8a094";
 		public String vein;
 		public float shade = 0.05f;
+		/** Built of blocks (2026-11-19): the paving stones, one per tile. */
+		public List<String> blocks = List.of("minecraft:smooth_quartz", "minecraft:calcite", "minecraft:polished_diorite");
 	}
 
 	/** A ring of columns round the field (a temple), lintels joining them; {@code ruined}: some broken. */
@@ -556,6 +598,9 @@ public final class Ambiance {
 		public float distance = 6f;
 		public float height = 9f;
 		public boolean ruined;
+		/** Built of blocks (2026-11-19): the shaft, and the base and capital. */
+		public String block = "minecraft:quartz_pillar";
+		public String capital = "minecraft:chiseled_quartz_block";
 	}
 
 	/** Scrap round the field: rusted barrels, lying and standing. */
@@ -563,6 +608,11 @@ public final class Ambiance {
 		public List<String> colors = List.of("#7a4a2a", "#5a5a50", "#8a6a2a");
 		public int count = 24;
 		public List<Float> ring = List.of(3f, 24f);
+		/** Built of blocks (2026-11-19): the scrap, piled one or two high. */
+		public List<String> blocks = List.of("minecraft:barrel[facing=up]", "minecraft:barrel[facing=east]",
+				"minecraft:barrel[facing=south]", "minecraft:cauldron", "minecraft:damaged_anvil", "minecraft:chipped_anvil",
+				"minecraft:composter", "minecraft:weathered_cut_copper", "minecraft:exposed_copper", "minecraft:oxidized_cut_copper",
+				"minecraft:iron_bars", "minecraft:hopper", "minecraft:blast_furnace[facing=north]");
 	}
 
 	/**

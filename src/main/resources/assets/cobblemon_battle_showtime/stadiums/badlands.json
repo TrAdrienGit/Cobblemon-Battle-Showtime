@@ -36,6 +36,35 @@
 			"height": 26,
 			"distance": 90,
 			"layers": 2
-		}
+		},
+		"biome": "minecraft:badlands",
+		"blocks": {
+			"surface": [
+				"minecraft:red_sand",
+				"minecraft:terracotta",
+				"minecraft:coarse_dirt"
+			],
+			"soil": [
+				"minecraft:terracotta"
+			],
+			"bands": [
+				"minecraft:terracotta",
+				"minecraft:orange_terracotta",
+				"minecraft:terracotta",
+				"minecraft:yellow_terracotta",
+				"minecraft:brown_terracotta",
+				"minecraft:red_terracotta",
+				"minecraft:terracotta",
+				"minecraft:white_terracotta",
+				"minecraft:light_gray_terracotta",
+				"minecraft:orange_terracotta"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:dead_bush",
+				"chance": 0.015
+			}
+		]
 	}
 }

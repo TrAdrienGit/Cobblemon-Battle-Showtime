@@ -115,6 +115,11 @@ public final class BattleAmbiance {
 	private static final List<Floating> FLOATING = new ArrayList<>();
 	/** The camera this frame, from the field's centre: beams and sprites fade near it. */
 	private static Vec3 cameraRel = Vec3.ZERO;
+	/** This frame's camera (world) and view, for the stadiums built of blocks: what is out of view is skipped. */
+	private static Vec3 cameraWorld = Vec3.ZERO;
+	private static net.minecraft.client.renderer.culling.Frustum frustum;
+	/** This frame's land is drawn in blocks: its grass and flowers are blocks of it, not drawn again. */
+	private static boolean landInBlocks;
 /** Drawing a mirror's reflection: the hall's own mirrors fall back to their painted sheen. */
 private static boolean reflecting;
 /** The wall left out while its reflection is drawn (it lies in the mirror's very plane); -1 for none. */
@@ -651,6 +656,9 @@ private static boolean irisChecked;
 		crowdWave = -1;
 		SPOT_AIM[0] = null;
 		SPOT_AIM[1] = null;
+		frustum = null;
+		landInBlocks = false;
+		com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
 	}
 
 	public static boolean active() {
@@ -1226,6 +1234,8 @@ private static boolean irisChecked;
 		pose.pushPose();
 		pose.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z);
 		cameraRel = camera.subtract(center);
+		cameraWorld = camera;
+		frustum = context.frustum();
 		areaTiles(camera);
 		MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 		if (active.moon != null || active.volcano != null || active.stripedSun != null || active.mirage != null
@@ -1275,6 +1285,7 @@ private static boolean irisChecked;
 				|| active.grass != null || active.flowers != null || !PLACED.isEmpty() || !ROCKS.isEmpty()) {
 			// Solid scenery first, writing depth: the glows drawn after are hidden behind it where they should be.
 			buffers.endBatch();
+			landInBlocks = false;
 			if (active.cavern != null) {
 				drawCavern(pose, buffers, active.cavern, time, false);
 			}
@@ -1287,10 +1298,10 @@ private static boolean irisChecked;
 			if (active.hall != null) {
 				drawHall(pose, buffers, active.hall, time, false);
 			}
-			if (active.grass != null) {
+			if (active.grass != null && !landInBlocks) {
 				eachTile(pose, camera, () -> drawGrass(pose, buffers, active.grass, time + tileShift));
 			}
-			if (active.flowers != null) {
+			if (active.flowers != null && !landInBlocks) {
 				eachTile(pose, camera, () -> drawFlowers(pose, buffers, active.flowers, time + tileShift));
 			}
 			drawProps(pose, buffers, time, false);
@@ -4595,6 +4606,7 @@ private static boolean irisChecked;
 	/** The setting changed: every floor is built again. */
 	public static void groundStyleChanged() {
 		clearFloors();
+		com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
 	}
 
 	/** A block floor's tops and corner colours, by world block: noise is costly and the field stays put. */
@@ -4884,6 +4896,19 @@ private static boolean irisChecked;
 	 * cracks' and the pools' glow, bubbles, and the fire when the ambiance sets the place ablaze.
 	 */
 	private static void drawLand(PoseStack pose, MultiBufferSource buffers, Ambiance.Land land, float time, boolean glow) {
+		if (!glow && blocky()) {
+			// Built of Minecraft's blocks (2026-11-19): lit and shaded by shader packs like the world. The smooth land
+			// stands in while the blocks are built, in the background. The asking comes before any buffer is (rule 9).
+			landInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawLand(pose, buffers, center, cameraWorld, frustum,
+					land, active.grass, active.flowers, active.snowCover, active.blaze != null, fieldRadius, BattleAmbiance::groundAt);
+			if (landInBlocks) {
+				if (land.clouds != null) {
+					drawCloudSea(buffers.getBuffer(com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE), pose.last().pose(), land.clouds,
+							groundAt(0, 0) + 0.09, time);
+				}
+				return;
+			}
+		}
 		VertexConsumer out = buffers.getBuffer(glow ? com.mystaria.showtime.ShowtimeRenderTypes.GLOW : com.mystaria.showtime.ShowtimeRenderTypes.OPAQUE);
 		Matrix4f m = pose.last().pose();
 		double base = groundAt(0, 0) + 0.09;

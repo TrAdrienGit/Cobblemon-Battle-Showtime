@@ -27,6 +27,35 @@
 			"height": 34,
 			"distance": 75,
 			"layers": 3
-		}
+		},
+		"biome": "minecraft:savanna",
+		"blocks": {
+			"surface": [
+				"minecraft:coarse_dirt",
+				"minecraft:packed_mud",
+				"minecraft:gravel"
+			],
+			"soil": [
+				"minecraft:coarse_dirt"
+			],
+			"bands": [
+				"minecraft:granite",
+				"minecraft:dripstone_block",
+				"minecraft:terracotta",
+				"minecraft:granite",
+				"minecraft:stone",
+				"minecraft:packed_mud"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:dead_bush",
+				"chance": 0.01
+			},
+			{
+				"block": "minecraft:short_grass",
+				"chance": 0.05
+			}
+		]
 	}
 }

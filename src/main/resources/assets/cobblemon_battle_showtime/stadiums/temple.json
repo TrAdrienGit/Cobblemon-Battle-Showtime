@@ -24,12 +24,32 @@
 			"size": 2,
 			"joint": "#a89c88",
 			"vein": "#9a98a8",
-			"shade": 0.05
+			"shade": 0.05,
+			"blocks": [
+				"minecraft:smooth_quartz",
+				"minecraft:quartz_bricks",
+				"minecraft:calcite"
+			]
 		},
 		"clouds": {
 			"color": "#ffffff",
 			"shade": "#e0d8f0",
 			"depth": 18
+		},
+		"biome": "minecraft:cherry_grove",
+		"blocks": {
+			"surface": [
+				"minecraft:calcite",
+				"minecraft:calcite",
+				"minecraft:diorite"
+			],
+			"soil": [
+				"minecraft:calcite"
+			],
+			"rock": [
+				"minecraft:calcite",
+				"minecraft:diorite"
+			]
 		}
 	}
 }

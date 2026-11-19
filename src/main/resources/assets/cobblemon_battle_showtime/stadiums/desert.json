@@ -22,6 +22,11 @@
 			"size": [
 				0.6,
 				1.8
+			],
+			"blocks": [
+				"minecraft:sandstone",
+				"minecraft:smooth_sandstone",
+				"minecraft:terracotta"
 			]
 		},
 		"ranges": {
@@ -29,6 +34,32 @@
 			"height": 18,
 			"distance": 100,
 			"layers": 2
-		}
+		},
+		"biome": "minecraft:desert",
+		"blocks": {
+			"surface": [
+				"minecraft:sand",
+				"minecraft:sand",
+				"minecraft:sandstone"
+			],
+			"soil": [
+				"minecraft:sand",
+				"minecraft:sandstone"
+			],
+			"rock": [
+				"minecraft:sandstone",
+				"minecraft:smooth_sandstone"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:dead_bush",
+				"chance": 0.012
+			},
+			{
+				"block": "minecraft:cactus",
+				"chance": 0.005
+			}
+		]
 	}
 }

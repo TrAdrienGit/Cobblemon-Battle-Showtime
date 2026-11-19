@@ -150,6 +150,14 @@ remove it from roadmap.md.
   Then: the Chessboard level with big squares, the Mirror Hall's mirrors reflecting the room and the battle (not
   under a shader pack), the stands level all round (Big Top, Arena), Ultra Space's islands shaded per vertex like
   the Reborn stadiums, the Inverse filter softer and looping without a jerk.
+- Land stadiums built of Minecraft's blocks (2026-11-19, `ambiance/blocks/`): the nine lands (Meadow, Forest,
+  Desert, Badlands, Canyon, Swamp, Summit, Temple, Scrapyard) laid block by block out of the game's own blocks:
+  textured grass, sand, terracotta bands, mud; trees of logs and leaves in Minecraft's shapes (oak, birch, spruce,
+  dark oak...); real grass, ferns, flowers, dead bushes, cacti, sugar cane, lily pads; water pools, lava cracks,
+  snow layers, quartz columns and paving, scrap of barrels, anvils and copper; the ranges as real mountains. Built
+  once in the background with Minecraft's block renderer (ambient occlusion, biome colours, block light from lava
+  and fire), coarser far off (2 then 4 blocks a cell), replayed each frame for the pieces in view only, in the render
+  types of falling blocks: shader packs light and shade them like the world.
 - Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
   stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
   size changes by steps of 4, so the place is no longer rebuilt at every step.

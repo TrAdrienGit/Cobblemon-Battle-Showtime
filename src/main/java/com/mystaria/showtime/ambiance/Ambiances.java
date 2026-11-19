@@ -97,6 +97,8 @@ public final class Ambiances {
 				stadiums = stadiumRead;
 				presets = presetRead;
 				COMBINED.clear();
+				// Stadiums built of blocks hold the old textures' coordinates: built again.
+				com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
 				LOG.info("{} battle ambiance(s), {} stadium(s), {} preset(s)", ambianceRead.size(), stadiumRead.size(),
 						presetRead.size());
 			}

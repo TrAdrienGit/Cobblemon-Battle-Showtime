@@ -86,6 +86,20 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   tiles on the world's grid out to `radius` blocks, 0 = the field and its `flat`; `joint` colour between tiles, each
   tile its own `shade`, `vein` for marble veins running across them; laid in blocks even when the ground is smooth).
   Every `ring` is in blocks past the field's edge.
+- A `land` built of Minecraft's blocks (2026-11-19, the default ground look): the same place laid block by block
+  (see "Grounds in blocks" below). Its blocks, each an id with optional properties (`oak_log[axis=x]`; an unknown id
+  logs once and falls back): `blocks` (`surface`: the top, the first everywhere, the second and third in the patches
+  the smooth ground colours with its second and third `ground` colours; `soil` under it; `rock` on cliffs and deeper,
+  or `bands` of rock laid by height; `far`: the mountains' gentle tops, unset the first surface block), `plants` (a
+  list of `{block, chance, ring}`: each grows on `chance` of the blocks that can hold it, within `ring` blocks of the
+  centre, unset everywhere; double plants take both halves, cactus and sugar cane one to three high), `biome` (the
+  biome whose colours tint grass, leaves and water; default `minecraft:plains`), `trees.species` (taken in turn:
+  `oak`, `birch`, `spruce`, `dark_oak`, `jungle`, `acacia`, `cherry`, `azalea`, `dead`; unset: from `kind`),
+  `rocks.blocks`, `pools.lilies` (0..1), `tiles.blocks` (one per tile), `columns.block` and `columns.capital`,
+  `junk.blocks`. Pools are water, cracks lava over magma, `ranges` real mountains (snowed above 60 % of their height
+  with `snow` or a snowy ambiance), `blaze` chars the trees and lights fires. The ambiance's `grass` and `flowers`
+  become Minecraft's grass and flowers (a flower per colour, the nearest of Minecraft's). The sea of clouds stays
+  drawn as before.
 - `hall` (2026-11-19): a room `margin` blocks past the field, `height` high. `shape` `box` (walls, pilasters, beams,
   hanging lamps) or `tent` (round wall and cone in `stripes`). `floor`, `checker` + `tile` (a checkerboard), `wall`,
   `ceiling`, `lamp`, `mirrors`, `machines` (`metal`, `belt`, `crates`, `warning`, `gears`, `presses`, `speed`: a
@@ -95,8 +109,10 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   pack is on (else a painted sheen). A wall the camera is outside of is not drawn.
 - Grounds in blocks (2026-11-19): every stadium's floor (land, islet, seabed, cave, hall without a checkerboard,
   Ultra Space's island) is drawn block by block on the world's grid by default, each top at a whole block, sides
-  down to lower neighbours, still coloured per vertex; a land goes smooth past 56 blocks, a seabed past 48. The
-  player's setting (N menu, Stadiums and Presets tabs) turns every one smooth. Not a data option.
+  down to lower neighbours, still coloured per vertex; a seabed goes smooth past 48. A land is built of real blocks
+  (above) out to the horizon: one block a block within 44 of the centre, 2-block cells to 84, 4-block cells beyond;
+  the coloured one stands in while it is built (a second or two, in the background). The player's setting (N menu,
+  Stadiums and Presets tabs) turns every one smooth. Not a data option.
 - Stands (`crowd`) stand level all round, at the field centre's height, whatever the blocks round the arena.
 - An ambiance's `grass` (`colors`, `tip`, `count`, `ring` from the centre, `height`, `wind`) and `flowers` (`colors`,
   `count`, `ring`, `height`) grow on whatever floor the stadium gives (else the real ground). `blaze` (`color`,

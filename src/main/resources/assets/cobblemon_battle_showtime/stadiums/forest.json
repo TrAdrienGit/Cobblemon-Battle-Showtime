@@ -27,7 +27,13 @@
 				"#24581e",
 				"#4a8030"
 			],
-			"trunk": "#4a3420"
+			"trunk": "#4a3420",
+			"species": [
+				"dark_oak",
+				"oak",
+				"dark_oak",
+				"birch"
+			]
 		},
 		"rocks": {
 			"color": "#6a6a5a",
@@ -39,7 +45,58 @@
 			"size": [
 				0.4,
 				1.2
+			],
+			"blocks": [
+				"minecraft:mossy_cobblestone",
+				"minecraft:cobblestone",
+				"minecraft:stone"
 			]
-		}
+		},
+		"biome": "minecraft:dark_forest",
+		"blocks": {
+			"surface": [
+				"minecraft:grass_block",
+				"minecraft:podzol",
+				"minecraft:moss_block"
+			],
+			"soil": [
+				"minecraft:dirt",
+				"minecraft:coarse_dirt"
+			],
+			"rock": [
+				"minecraft:stone",
+				"minecraft:andesite"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:fern",
+				"chance": 0.12
+			},
+			{
+				"block": "minecraft:large_fern",
+				"chance": 0.03
+			},
+			{
+				"block": "minecraft:short_grass",
+				"chance": 0.18
+			},
+			{
+				"block": "minecraft:brown_mushroom",
+				"chance": 0.03
+			},
+			{
+				"block": "minecraft:red_mushroom",
+				"chance": 0.012
+			},
+			{
+				"block": "minecraft:lily_of_the_valley",
+				"chance": 0.006
+			},
+			{
+				"block": "minecraft:sweet_berry_bush[age=3]",
+				"chance": 0.004
+			}
+		]
 	}
 }

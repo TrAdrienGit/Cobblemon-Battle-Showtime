@@ -21,7 +21,8 @@
 			"size": [
 				1.5,
 				4.5
-			]
+			],
+			"lilies": 0.18
 		},
 		"trees": {
 			"kind": "dead",
@@ -35,6 +36,40 @@
 				9
 			],
 			"trunk": "#3a3024"
-		}
+		},
+		"biome": "minecraft:swamp",
+		"blocks": {
+			"surface": [
+				"minecraft:grass_block",
+				"minecraft:mud",
+				"minecraft:moss_block"
+			],
+			"soil": [
+				"minecraft:mud",
+				"minecraft:dirt"
+			],
+			"rock": [
+				"minecraft:packed_mud",
+				"minecraft:stone"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:sugar_cane",
+				"chance": 0.3
+			},
+			{
+				"block": "minecraft:short_grass",
+				"chance": 0.18
+			},
+			{
+				"block": "minecraft:fern",
+				"chance": 0.05
+			},
+			{
+				"block": "minecraft:blue_orchid",
+				"chance": 0.01
+			}
+		]
 	}
 }

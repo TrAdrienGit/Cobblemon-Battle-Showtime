@@ -39,6 +39,11 @@
 			"size": [
 				0.5,
 				1.6
+			],
+			"blocks": [
+				"minecraft:cobblestone",
+				"minecraft:tuff",
+				"minecraft:stone"
 			]
 		},
 		"trees": {
@@ -53,6 +58,33 @@
 				7
 			],
 			"trunk": "#3a3430"
-		}
+		},
+		"biome": "minecraft:swamp",
+		"blocks": {
+			"surface": [
+				"minecraft:coarse_dirt",
+				"minecraft:gravel",
+				"minecraft:packed_mud"
+			],
+			"soil": [
+				"minecraft:coarse_dirt",
+				"minecraft:dirt"
+			],
+			"rock": [
+				"minecraft:stone",
+				"minecraft:cobblestone",
+				"minecraft:tuff"
+			]
+		},
+		"plants": [
+			{
+				"block": "minecraft:dead_bush",
+				"chance": 0.012
+			},
+			{
+				"block": "minecraft:short_grass",
+				"chance": 0.04
+			}
+		]
 	}
 }
