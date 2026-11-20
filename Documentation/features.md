@@ -178,8 +178,8 @@ remove it from roadmap.md.
   psychic terrain), Glitch Room (the missing texture's black and magenta squares, mismatched walls; glitch), Negative
   Hall (black floor, white walls, wither roses; inverse). Presets: `charged_station`, `mind_sanctum`, `glitched_room`,
   `negative_hall`.
-- Grounds in blocks or smooth (2026-11-19): one setting in the N menu (Stadiums and Presets tabs) for every
-  stadium, blocks by default. The field stays put: it follows the trainers only once they are 4 blocks off, and its
+- Grounds in blocks (2026-11-19): every stadium's ground is laid block by block (the smooth grounds and the menu
+  setting choosing them were removed on 2026-11-20). The field stays put: it follows the trainers only once they are 4 blocks off, and its
   size changes by steps of 4, so the place is no longer rebuilt at every step.
 - Scene by biome (2026-11-19, 1.5, box on the menu's scene page, API `ShowtimeHooks.setBiomeScenes`): a battle's
   stadium and ambiance follow the place the player stands in, modded biomes included (tags, name, climate), plus

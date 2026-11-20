@@ -2099,11 +2099,6 @@ private static boolean irisChecked;
 		decal(out, m, new double[] {x0 + nx, x1 + nx, x1 - nx, x0 - nx}, new double[] {z0 + nz, z1 + nz, z1 - nz, z0 - nz},
 				new float[] {alpha0, alpha1, alpha1, alpha0}, 4, color, 0.12);
 	}
-	/** Whether the floor is a smooth stadium's (slopes, not blocks): flat shapes then follow it point by point. */
-	private static boolean smoothStadium() {
-		return !blocky() && (active.land != null || active.sea != null || active.hall != null || active.cavern != null);
-	}
-
 	/** Scratch room for {@link #decal}'s clipping (client thread). */
 	private static final double[][] CLIP_X = new double[2][24];
 	private static final double[][] CLIP_Z = new double[2][24];
@@ -2112,23 +2107,10 @@ private static boolean irisChecked;
 	/**
 	 * A flat shape on the floor (2026-11-20: the shapes were laid point by point on the ground, so across a step they
 	 * slanted into it or floated over the hollow, with hard lines where they went into the blocks): cut along the
-	 * blocks' edges, each piece flat on its own block's top, {@code lift} over it. On a smooth stadium, laid point by
-	 * point on its slopes as before. {@code xs, zs, alphas}: a convex polygon's {@code n} corners (at most 8) from the
+	 * blocks' edges, each piece flat on its own block's top, {@code lift} over it. {@code xs, zs, alphas}: a convex polygon's {@code n} corners (at most 8) from the
 	 * field's centre and their opacity, blended across it.
 	 */
 	private static void decal(VertexConsumer out, Matrix4f m, double[] xs, double[] zs, float[] alphas, int n, int color, double lift) {
-		if (smoothStadium()) {
-			if (!hole(xs[0], zs[0])) {
-				for (int i = 1; i + 1 < n; i += 2) {
-					int last = Math.min(i + 2, n - 1);
-					decalVertex(out, m, xs[0], surfaceY(xs[0], zs[0]) + lift, zs[0], color, alphas[0]);
-					decalVertex(out, m, xs[i], surfaceY(xs[i], zs[i]) + lift, zs[i], color, alphas[i]);
-					decalVertex(out, m, xs[i + 1], surfaceY(xs[i + 1], zs[i + 1]) + lift, zs[i + 1], color, alphas[i + 1]);
-					decalVertex(out, m, xs[last], surfaceY(xs[last], zs[last]) + lift, zs[last], color, alphas[last]);
-				}
-			}
-			return;
-		}
 		double minX = xs[0];
 		double maxX = xs[0];
 		double minZ = zs[0];
@@ -2629,11 +2611,8 @@ private static boolean irisChecked;
 		}
 	}
 
-	/** The top of the block a vein runs over: the real ground's, snapped to its block where the stadium is blocks. */
+	/** The top of the block a vein runs over: the floor people see there, the same all over the block. */
 	private static double veinTop(double x, double z) {
-		if (smoothStadium()) {
-			return surfaceY(x, z);
-		}
 		// Each block's top is the same all over it: kept per block for this stadium (the mist asks for hundreds a frame).
 		if (BLOCK_TOPS_OWNER != active) {
 			BLOCK_TOPS.clear();
@@ -3906,35 +3885,12 @@ private static boolean irisChecked;
 		float depth = island.depth > 0 ? island.depth : Math.max(10f, fieldRadius * 1.1f);
 		int sectors = 64;
 		double reach = fieldRadius + island.margin;
-		int rings = (int) Math.ceil(reach);
 		Vec3 sink = new Vec3(0, -0.03, 0);
 		if (!glow) {
-			// The top (2026-11-19, as the Reborn stadiums): a vertex every ring and sector, each coloured from where it
-			// is (patches of a lighter stone, fine grain), so neighbouring tiles blend instead of standing out.
-			if (blocky()) {
-				drawBlockFloor(out, m, "island", reach, (x, z) -> groundAt(x, z) + 0.09,
-						(x, z) -> ultraTop(top, new Vec3(x, groundAt(x, z) + 0.09, z)), null,
-						(x, z, r) -> r <= islandEdge(island, Math.atan2(z, x)));
-			}
-			int topRings = blocky() ? -1 : rings;
-			Vec3[][] grid = new Vec3[rings + 1][sectors];
-			int[][] tint = new int[rings + 1][sectors];
-			for (int j = 0; j <= topRings; j++) {
-				double f = j / (double) rings;
-				for (int k = 0; k < sectors; k++) {
-					double a = Math.PI * 2 * k / sectors;
-					double e = islandEdge(island, a);
-					grid[j][k] = onGround(Math.cos(a) * e * f, Math.sin(a) * e * f).add(sink);
-					tint[j][k] = ultraTop(top, grid[j][k]);
-				}
-			}
-			for (int j = 0; j < topRings; j++) {
-				for (int k = 0; k < sectors; k++) {
-					int n = (k + 1) % sectors;
-					quadColors(out, m, grid[j][k], grid[j][n], grid[j + 1][n], grid[j + 1][k], tint[j][k], tint[j][n], tint[j + 1][n],
-							tint[j + 1][k]);
-				}
-			}
+			// The top: block by block on the real ground, each block coloured from where it is.
+			drawBlockFloor(out, m, "island", reach, (x, z) -> groundAt(x, z) + 0.09,
+					(x, z) -> ultraTop(top, new Vec3(x, groundAt(x, z) + 0.09, z)), null,
+					(x, z, r) -> r <= islandEdge(island, Math.atan2(z, x)));
 			// The rock below: the rim on the ground, a lip, then narrower and narrower rings to a point, every corner lit
 			// by its own normal and grained, darker the deeper it hangs.
 			double[] across = {1, 1.02, 0.88, 0.74, 0.56, 0.36, 0.17};
@@ -4279,7 +4235,7 @@ private static boolean irisChecked;
 	 * ripples, the crystals' glow and beams, the lava's heat, the gold glinting, a dull glow in the skull's eyes.
 	 */
 	private static void drawCavern(PoseStack pose, MultiBufferSource buffers, Ambiance.Cavern cavern, float time, boolean glow) {
-		if (!glow && blocky()) {
+		if (!glow) {
 			// Built of blocks (2026-11-19): the floor, the vault, pillars, dripstone, lava, the hoard, and the ambiance's
 			// stalactites and stalagmites (2026-11-20). Asked before any buffer.
 			caveInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawCave(pose, buffers, center, cameraWorld, frustum,
@@ -4297,51 +4253,11 @@ private static boolean irisChecked;
 		Vec3 up = new Vec3(0, 1, 0);
 		if (!glow) {
 			if (!caveInBlocks) {
-				// The floor, out to the walls (the lava's ring left for the lava). Every vertex has its own colour (the
-				// light there, the stone's grain), shared with its neighbours and blended across each face by the GPU: no
-				// tile, no ring shows (2026-11-19: one colour per face read as a chequerboard and concentric bands).
-				int sectors = 96;
-				List<Double> radii = new ArrayList<>();
-				if (blocky()) {
-					// The real blocks' tops, block by block, the lava's ring left for the lava.
-					drawBlockFloor(out, m, "cave", radius, (x, z) -> groundAt(x, z) + 0.09, (x, z) -> {
-						Vec3 p = new Vec3(x, groundAt(x, z) + 0.09, z);
-						return caveLit(cavern, stoneGrain(floorColor, p, 0.16f), p, up);
-					}, null, (x, z, r) -> r < lavaIn || r > lavaOut);
-				} else {
-					for (double r = 0; r < radius; r += 1.0) {
-						radii.add(r);
-					}
-					radii.add(radius);
-				}
-				if (lava != null && !radii.isEmpty()) {
-					radii.removeIf(r -> r > lavaIn && r < lavaOut);
-					radii.add(Math.min(lavaIn, radius));
-					radii.add(Math.min(lavaOut, radius));
-					radii.sort(Double::compare);
-				}
-				Vec3[] inner = null;
-				int[] innerColor = null;
-				double innerR = 0;
-				for (double r : radii) {
-					Vec3[] ring = new Vec3[sectors];
-					int[] ringColor = new int[sectors];
-					for (int k = 0; k < sectors; k++) {
-						double a = Math.PI * 2 * k / sectors;
-						ring[k] = onGround(Math.cos(a) * r, Math.sin(a) * r).add(0, -0.03, 0);
-						ringColor[k] = caveLit(cavern, stoneGrain(floorColor, ring[k], 0.16f), ring[k], up);
-					}
-					boolean inLava = lava != null && innerR >= lavaIn - 0.01 && r <= lavaOut + 0.01;
-					if (inner != null && r > innerR + 1.0E-3 && !inLava) {
-						for (int k = 0; k < sectors; k++) {
-							int n = (k + 1) % sectors;
-							quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
-						}
-					}
-					inner = ring;
-					innerColor = ringColor;
-					innerR = r;
-				}
+				// The floor, out to the walls: the real blocks' tops, block by block, the lava's ring left for the lava.
+				drawBlockFloor(out, m, "cave", radius, (x, z) -> groundAt(x, z) + 0.09, (x, z) -> {
+					Vec3 p = new Vec3(x, groundAt(x, z) + 0.09, z);
+					return caveLit(cavern, stoneGrain(floorColor, p, 0.16f), p, up);
+				}, null, (x, z, r) -> r < lavaIn || r > lavaOut);
 				// The vault, coloured per vertex too: its light and grain, strata running round it at uneven heights.
 				int stacks = 18;
 				int around = 96;
@@ -4439,9 +4355,9 @@ private static boolean irisChecked;
 		return fieldRadius + sea.margin * (0.6 + 0.9 * n);
 	}
 
-	/** The islet's top at (x, z): in whole blocks when the ground is blocky. */
+	/** The islet's top at (x, z): in whole blocks. */
 	private static double isletY(Ambiance.Sea sea, double x, double z) {
-		return blocky() ? snapToBlock((a, b) -> smoothIsletY(sea, a, b), x, z) : smoothIsletY(sea, x, z);
+		return snapToBlock((a, b) -> smoothIsletY(sea, a, b), x, z);
 	}
 
 	/** The islet's smooth top at (x, z): the real ground under the field (people stand on it), then a beach. */
@@ -4460,9 +4376,9 @@ private static boolean irisChecked;
 		return Mth.lerp(smooth(Mth.clamp((r - from) / Math.max(0.5, edge - from), 0, 1)), rim, floor);
 	}
 
-	/** The seabed at (x, z): in whole blocks when the ground is blocky. */
+	/** The seabed at (x, z): in whole blocks. */
 	private static double seabedY(double x, double z) {
-		return blocky() ? snapToBlock(BattleAmbiance::smoothSeabedY, x, z) : smoothSeabedY(x, z);
+		return snapToBlock(BattleAmbiance::smoothSeabedY, x, z);
 	}
 
 	/** The smooth seabed at (x, z): the real ground under the field, then sand dunes and ripples going gently down. */
@@ -4513,7 +4429,7 @@ private static boolean irisChecked;
 	 * Light pass: the sun glittering on the water or the ice; the light coming down from the surface.
 	 */
 	private static void drawSea(PoseStack pose, MultiBufferSource buffers, Ambiance.Sea sea, float time, boolean glow) {
-		if (!glow && blocky()) {
+		if (!glow) {
 			// Built of blocks (2026-11-19): Minecraft's water, coloured as the ambiance sees it. Asked before any buffer.
 			WaterLook seen = waterLook(sea);
 			seaInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawSea(pose, buffers, center, cameraWorld, frustum, sea,
@@ -4560,53 +4476,18 @@ private static boolean irisChecked;
 			edges[k] = isletEdge(sea, Math.PI * 2 * k / sectors);
 			maxEdge = Math.max(maxEdge, edges[k]);
 		}
-		// The islet: rings following its uneven shore, out a little under the water so no gap shows at the waterline.
+		// The islet, block by block, wet near the water, sunk under it.
 		int sand = Ambiance.color(sea.sand, 0xD9C48F);
-		int rings = (int) Math.ceil(maxEdge + 2.5);
-		Vec3[] inner = null;
-		int[] innerColor = null;
-		if (blocky()) {
-			drawBlockFloor(out, m, "islet", maxEdge + 2.5, (a, b) -> isletY(sea, a, b), (x, z) -> {
-				double y = smoothIsletY(sea, x, z);
-				int c = stoneGrain(sand, new Vec3(x, y, z), 0.12f);
-				float wet = (float) Mth.clamp(1 - (y - level) / 0.5, 0, 1);
-				c = lerpColor(c, lerpColor(sand, 0x000000, 0.45f), 0.6f * wet);
-				if (y < level) {
-					c = lerpColor(c, look.frozen ? look.water : look.deep, (float) Mth.clamp((level - y) / 1.2, 0, 0.8));
-				}
-				return lerpColor(0x000000, c, 0.93f);
-			}, null, (x, z, r) -> r <= isletEdge(sea, Math.atan2(z, x)) + 2.5);
-			rings = -1; // no smooth rings
-		}
-		for (int j = 0; j <= rings; j++) {
-			Vec3[] ring = new Vec3[sectors];
-			int[] ringColor = new int[sectors];
-			for (int k = 0; k < sectors; k++) {
-				double a = Math.PI * 2 * k / sectors;
-				double r = (edges[k] + 2.5) * j / rings;
-				double x = Math.cos(a) * r;
-				double z = Math.sin(a) * r;
-				double y = isletY(sea, x, z);
-				ring[k] = new Vec3(x, y - 0.03, z);
-				Vec3 normal = new Vec3(y - isletY(sea, x + 0.5, z), 0.5, y - isletY(sea, x, z + 0.5)).normalize();
-				int c = stoneGrain(sand, ring[k], 0.12f);
-				// Wet near the water, sunk under it.
-				float wet = (float) Mth.clamp(1 - (y - level) / 0.5, 0, 1);
-				c = lerpColor(c, lerpColor(sand, 0x000000, 0.45f), 0.6f * wet);
-				if (y < level) {
-					c = lerpColor(c, look.frozen ? look.water : look.deep, (float) Mth.clamp((level - y) / 1.2, 0, 0.8));
-				}
-				ringColor[k] = lerpColor(0x000000, c, (float) (0.72 + 0.28 * Math.max(0, normal.dot(SUN))));
+		drawBlockFloor(out, m, "islet", maxEdge + 2.5, (a, b) -> isletY(sea, a, b), (x, z) -> {
+			double y = smoothIsletY(sea, x, z);
+			int c = stoneGrain(sand, new Vec3(x, y, z), 0.12f);
+			float wet = (float) Mth.clamp(1 - (y - level) / 0.5, 0, 1);
+			c = lerpColor(c, lerpColor(sand, 0x000000, 0.45f), 0.6f * wet);
+			if (y < level) {
+				c = lerpColor(c, look.frozen ? look.water : look.deep, (float) Mth.clamp((level - y) / 1.2, 0, 0.8));
 			}
-			if (inner != null) {
-				for (int k = 0; k < sectors; k++) {
-					int n = (k + 1) % sectors;
-					quadColors(out, m, inner[k], inner[n], ring[n], ring[k], innerColor[k], innerColor[n], ringColor[n], ringColor[k]);
-				}
-			}
-			inner = ring;
-			innerColor = ringColor;
-		}
+			return lerpColor(0x000000, c, 0.93f);
+		}, null, (x, z, r) -> r <= isletEdge(sea, Math.atan2(z, x)) + 2.5);
 		// Rocks on the shore, half in the water.
 		int rock = Ambiance.color(sea.rock, 0x6E675C);
 		for (int i = 0; i < sea.rocks; i++) {
@@ -4621,8 +4502,8 @@ private static boolean irisChecked;
 		// The water: per vertex, its height (waves), its colour (depth, crests, slope, foam on the shore, slicks).
 		List<Double> radii = seaRadii(fieldRadius + 0.3, maxEdge + 14, sea.radius);
 		int fog = active.sky != null ? Ambiance.color(active.sky.fogColor, -1) : -1;
-		inner = null;
-		innerColor = null;
+		Vec3[] inner = null;
+		int[] innerColor = null;
 		for (double r : radii) {
 			Vec3[] ring = new Vec3[sectors];
 			int[] ringColor = new int[sectors];
@@ -4752,21 +4633,19 @@ private static boolean irisChecked;
 			// The seabed: sand with ripples and dunes, darker and bluer further out, caustics dancing on it.
 			Vec3[] inner = null;
 			int[] innerColor = null;
-			double smoothFrom = 0;
-			if (blocky()) {
-				smoothFrom = Math.min(reach, 48);
-				drawBlockFloor(out, m, "seabed", smoothFrom, BattleAmbiance::seabedY, (x, z) -> {
-					double y = smoothSeabedY(x, z);
-					int c = lerpColor(0x000000, stoneGrain(sand, new Vec3(x, y, z), 0.14f), 0.91f);
-					float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
-					return lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
-				}, (x, z, c) -> {
-					float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
-					double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
-					double band = 1 - Math.abs(2 * n - 1);
-					return lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
-				}, (x, z, r) -> true);
-			}
+			// Block by block out to 48 blocks, smooth beyond (far out in the dark water).
+			double smoothFrom = Math.min(reach, 48);
+			drawBlockFloor(out, m, "seabed", smoothFrom, BattleAmbiance::seabedY, (x, z) -> {
+				double y = smoothSeabedY(x, z);
+				int c = lerpColor(0x000000, stoneGrain(sand, new Vec3(x, y, z), 0.14f), 0.91f);
+				float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
+				return lerpColor(c, look.deep, 0.35f + 0.6f * (float) Math.pow(far, 0.8));
+			}, (x, z, c) -> {
+				float far = (float) Mth.clamp((Math.sqrt(x * x + z * z) - fieldRadius) / 50, 0, 1);
+				double n = valueNoise(x * 0.18 + time * 0.012, time * 0.015, z * 0.18);
+				double band = 1 - Math.abs(2 * n - 1);
+				return lerpColor(c, look.light, 0.3f * (float) (band * band) * (1 - far));
+			}, (x, z, r) -> true);
 			for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + 16), reach)) {
 				Vec3[] ring = new Vec3[sectors];
 				int[] ringColor = new int[sectors];
@@ -4914,9 +4793,9 @@ private static boolean irisChecked;
 		return Mth.lerp(t, ring.get(0), ring.get(ring.size() - 1));
 	}
 
-	/** A land's ground at (x, z): in whole blocks when the ground is blocky. */
+	/** A land's ground at (x, z): in whole blocks. */
 	private static double landY(Ambiance.Land land, double x, double z) {
-		return blocky() ? snapToBlock((a, b) -> smoothLandY(land, a, b), x, z) : smoothLandY(land, x, z);
+		return snapToBlock((a, b) -> smoothLandY(land, a, b), x, z);
 	}
 
 	/** A land's smooth ground at (x, z): the real ground under the field, level a little further, then its relief. */
@@ -4952,20 +4831,6 @@ private static boolean irisChecked;
 	}
 
 	// ---------------------------------------------------------------- Block floors (2026-11-19)
-
-	/**
-	 * The ground's look, the player's choice (N menu, stadiums): block by block like Minecraft's own ground (the
-	 * default), or a smooth sheet. All stadiums follow it, so they always look alike.
-	 */
-	private static boolean blocky() {
-		return ShowtimeConfig.blockyGround();
-	}
-
-	/** The setting changed: every floor is built again. */
-	public static void groundStyleChanged() {
-		clearFloors();
-		com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
-	}
 
 	/** A block floor's tops and corner colours, by world block: noise is costly and the field stays put. */
 	private static final class FloorCache {
@@ -5255,7 +5120,7 @@ private static boolean irisChecked;
 	 * cracks' and the pools' glow, bubbles, and the fire when the ambiance sets the place ablaze.
 	 */
 	private static void drawLand(PoseStack pose, MultiBufferSource buffers, Ambiance.Land land, float time, boolean glow) {
-		if (!glow && blocky()) {
+		if (!glow) {
 			// Built of Minecraft's blocks (2026-11-19): lit and shaded by shader packs like the world. The smooth land
 			// stands in while the blocks are built, in the background. The asking comes before any buffer is (rule 9).
 			landInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawLand(pose, buffers, center, cameraWorld, frustum,
@@ -5296,22 +5161,14 @@ private static boolean irisChecked;
 		int sectors = 128;
 		Vec3[] inner = null;
 		int[] innerColor = null;
-		double smoothFrom = 0;
 		double paved = land.tiles == null ? 0 : land.tiles.radius > 0 ? land.tiles.radius : fieldRadius + land.flat;
 		final int g0 = c0;
 		final int g1 = c1;
 		final int g2 = c2;
-		if (blocky()) {
-			// Blocks out to 56 blocks, the smooth ground beyond (far off, in the haze, nobody tells).
-			smoothFrom = Math.min(land.radius, 56);
-			drawBlockFloor(out, m, "land", smoothFrom, (a, b) -> landY(land, a, b),
-					(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true, land.tiles, paved);
-		} else if (paved > 0) {
-			// A pavement is laid in blocks even on a smooth ground: the smooth ground starts where it ends.
-			smoothFrom = Math.min(land.radius, paved + 0.5);
-			drawBlockFloor(out, m, "pavement", smoothFrom, (a, b) -> snapToBlock((x, z) -> smoothLandY(land, x, z), a, b),
-					(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true, land.tiles, paved + 1);
-		}
+		// Blocks out to 56 blocks, the smooth ground beyond (far off, in the haze, nobody tells).
+		double smoothFrom = Math.min(land.radius, 56);
+		drawBlockFloor(out, m, "land", smoothFrom, (a, b) -> landY(land, a, b),
+				(a, b) -> landColor(land, a, b, g0, g1, g2, cliff, fog, true), null, (a, b, r) -> true, land.tiles, paved);
 		for (double r : seaRadii(smoothFrom, Math.max(smoothFrom, fieldRadius + land.flat + 16), land.radius)) {
 			Vec3[] ring = new Vec3[sectors];
 			int[] ringColor = new int[sectors];
@@ -5824,7 +5681,7 @@ private static boolean irisChecked;
 		if (active != null && active.hall != null && active.hall.flat) {
 			return groundAt(0, 0) + 0.09;
 		}
-		return blocky() ? snapToBlock(BattleAmbiance::smoothHallY, x, z) : smoothHallY(x, z);
+		return snapToBlock(BattleAmbiance::smoothHallY, x, z);
 	}
 
 	private static double smoothHallY(double x, double z) {
@@ -5850,7 +5707,7 @@ private static boolean irisChecked;
 	 * left out. Light pass: the lamps' glow and beams, warning lights, emergency lights and sparks in a power cut.
 	 */
 	private static void drawHall(PoseStack pose, MultiBufferSource buffers, Ambiance.Hall hall, float time, boolean glow) {
-		if (!glow && !reflecting && blocky()) {
+		if (!glow && !reflecting) {
 			// Built of blocks (2026-11-19), mirrors included (glass, the room built again mirrored behind it). Asked
 			// before any buffer.
 			hallInBlocks = com.mystaria.showtime.ambiance.blocks.BlockScenery.drawHall(pose, buffers, center, cameraWorld, frustum,
@@ -5945,7 +5802,7 @@ private static boolean irisChecked;
 		double extent = tent ? s + 0.5 : s;
 		if (hallInBlocks) {
 			cells = 0;
-		} else if (blocky() && checker < 0 && !hall.flat) {
+		} else if (checker < 0 && !hall.flat) {
 			drawBlockFloor(out, m, "hall", extent * 1.42, BattleAmbiance::hallY,
 					(x, z) -> floorColor(hall, floor, new Vec3(x, hallY(x, z) - 0.03, z), 0.14f), null,
 					(x, z, r) -> tent ? r <= extent : Math.abs(x) < extent && Math.abs(z) < extent);

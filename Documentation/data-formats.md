@@ -132,8 +132,8 @@ jar, `assets/<its namespace>/ambiances/`, written by hand.
   Ultra Space's island) is drawn block by block on the world's grid by default, each top at a whole block, sides
   down to lower neighbours, still coloured per vertex; a seabed goes smooth past 48. A land is built of real blocks
   (above) out to the horizon: one block a block within 44 of the centre, 2-block cells to 84, 4-block cells beyond;
-  the coloured one stands in while it is built (a second or two, in the background). The player's setting (N menu,
-  Stadiums and Presets tabs) turns every one smooth. Not a data option.
+  the coloured one stands in while it is built (a second or two, in the background). Always: the smooth grounds and
+  the setting that chose them were removed on 2026-11-20.
 - Stands (`crowd`) stand level all round, at the field centre's height, whatever the blocks round the arena.
 - An ambiance's `grass` (`colors`, `tip`, `count`, `ring` from the centre, `height`, `wind`) and `flowers` (`colors`,
   `count`, `ring`, `height`) grow on whatever floor the stadium gives (else the real ground). `blaze` (`color`,

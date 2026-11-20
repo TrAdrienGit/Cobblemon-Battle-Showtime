@@ -80,11 +80,6 @@ public final class ShowtimeConfig {
 		 * darkness flickers, flashes much softer, no screen filter on the battle's moments, half the particles.
 		 */
 		boolean calmEffects = false;
-		/**
-		 * Stadium grounds block by block like Minecraft's own (2026-11-19, the default), or a smooth sheet. One choice
-		 * for every stadium, so they always look alike.
-		 */
-		boolean blockyGround = true;
 	}
 
 	private static Stored stored;
@@ -116,14 +111,6 @@ public final class ShowtimeConfig {
 
 	public static void setCalmEffects(boolean calm) {
 		get().calmEffects = calm;
-	}
-
-	public static boolean blockyGround() {
-		return get().blockyGround;
-	}
-
-	public static void setBlockyGround(boolean blocky) {
-		get().blockyGround = blocky;
 	}
 
 	public static boolean checkUpdates() {

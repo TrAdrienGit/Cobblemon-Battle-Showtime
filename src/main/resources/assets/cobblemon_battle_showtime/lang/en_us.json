@@ -242,7 +242,6 @@
   "cobblemon_battle_showtime.scene.biome_note": "The place picks the stadium and ambiance.",
   "cobblemon_battle_showtime.scene.biome_imposed_on": "Scene by biome: imposed by a mod",
   "cobblemon_battle_showtime.scene.biome_imposed_off": "Scene by biome: turned off by a mod",
-  "cobblemon_battle_showtime.scene.blocky_ground": "Ground in blocks (off: smooth)",
   "cobblemon_battle_showtime.scene.tab.presets": "Presets",
   "cobblemon_battle_showtime.stadium.field": "The field's own"
 }
