@@ -115,6 +115,34 @@ Stadiums, scene by biome, and LeagueWay compatibility.
 Requires Fabric API and Cobblemon 1.8.1+. Optional: Player Animation Library, Mod Menu.
 ```
 
+### Changelog 1.7.0
+
+Same jar name pattern, `build/libs/cobblemon-battle-showtime-1.7.0.jar`; release `v1.7.0` with the jar and the
+template zip. Build it with `./gradlew publishToMavenLocal`: the local version bump only runs on `build`.
+
+```
+Stadiums built of Minecraft's own blocks, shader-friendly.
+
+- Every stadium is now built of real Minecraft blocks, plants and trees: lands, sea, seabed,
+  caves and halls. They are lit and shaded by shader packs (Iris) like the world, and built
+  in the background so the frame rate holds
+- Halls of blocks with pilasters, cornices, wainscots, chandeliers, pedestals and carpets;
+  the hall of mirrors now reflects the battle under shader packs too, and is furnished
+- Caves of blocks: dripstone stalactites and stalagmites, a gold hoard, fossils in the lava
+- Four new hall stadiums: Power Station, Psychic Sanctum, Glitch Room and Negative Hall,
+  with their presets (charged station, mind sanctum, glitched room, negative hall)
+- Ambiance glows stay bright and emissive under shader packs
+- Glowing veins and neon grids follow the blocks: laid on each block's top, down each step
+- Mist lies level in the hollows and fades before it reaches the blocks: no more hard lines
+- Floor glows, dance floors, caustics and court lines are cut along the blocks' edges, flat
+  on each block; every ambiance layer follows the stadium's ground past the field
+- An ambiance or stadium imposed by another mod is settled behind the intro: no swap or
+  flash when the intro ends
+- The smooth grounds and their setting are gone: stadiums are always built of blocks
+
+Requires Fabric API and Cobblemon 1.8.1+. Optional: Player Animation Library, Mod Menu, Iris.
+```
+
 ## Gallery to prepare
 
 Short GIFs or MP4s (Modrinth takes images and GIFs; CurseForge takes images, and videos through a YouTube link):
