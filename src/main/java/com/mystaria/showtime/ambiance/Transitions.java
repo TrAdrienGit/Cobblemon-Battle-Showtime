@@ -50,6 +50,8 @@ public final class Transitions {
 		public List<Cue> cues = List.of();
 		/** The camera meanwhile (null: it keeps its course). */
 		public Camera camera;
+		/** A sheet spreading over the water (null: none), the ice freezing over or the slick spreading out. */
+		public Cover cover;
 		/** Ids qualified with the file's namespace (set at load). */
 		transient List<String> fromIds = List.of();
 		transient List<String> toIds = List.of();
@@ -64,6 +66,25 @@ public final class Transitions {
 		/** The shake: how far it moves at first, in blocks, and over how long it dies out. */
 		public float shake;
 		public float shakeSeconds = 1f;
+	}
+
+	/**
+	 * A sheet over the sea's water, its front running out from the field to the horizon: {@code "spread"}, the new look
+	 * covering the old (the old water stays built under it until the front has gone all the way, then the sheet fades
+	 * over the new one); {@code "retreat"}, the old look drawn back from the field outward over the new water.
+	 */
+	public static final class Cover {
+		public String mode = "spread";
+		/** Its colours, blended in patches with a grain, and the front's (null: none). */
+		public List<String> colors = List.of("#ffffff");
+		public String edge;
+		public int alpha = 230;
+		/** When the front leaves the field and how long it takes to reach {@code reach} blocks (0: the sea's reach). */
+		public int start;
+		public int ticks = 30;
+		public float reach;
+		/** Ticks the sheet takes to fade once the front is out ("spread"). */
+		public int fade = 12;
 	}
 
 	/** How the old props of one kind leave. */
@@ -100,6 +121,8 @@ public final class Transitions {
 		/** A new jolt of the camera: how far, in blocks, and over how long it dies out. */
 		public float shake;
 		public float shakeSeconds = 0.6f;
+		/** How long its flash lasts, in ticks (0: a moment's flash); a long one holds, then fades over its last ticks. */
+		public int flashTicks;
 	}
 
 	private static List<Transition> all = List.of();

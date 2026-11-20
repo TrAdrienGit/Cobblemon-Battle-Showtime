@@ -43,6 +43,8 @@ public final class BlockScenery {
 	private static Key failedKey;
 	/** The stadium shown may stand in for another until that one is built (an ambiance turning into another, 2026-11-20). */
 	private static boolean holdOver;
+	/** The stadium shown stays, even once another is built, until released (a sheet spreading over it, 2026-11-20). */
+	private static boolean pinned;
 
 	private BlockScenery() {
 	}
@@ -126,8 +128,20 @@ public final class BlockScenery {
 		holdOver = shown != null;
 	}
 
+	/** Keeps the stadium shown until {@link #release()}, standing in for the next one even once it is built. */
+	public static void pin() {
+		pinned = shown != null;
+		holdOver = pinned;
+	}
+
+	/** The next stadium may take over (at once if it is built). */
+	public static void release() {
+		pinned = false;
+	}
+
 	/** Forgets every stadium built (battle over, the ground's look changed, resource packs reloaded). */
 	public static void clear() {
+		pinned = false;
 		holdOver = false;
 		shown = null;
 		shownKey = null;
@@ -151,7 +165,7 @@ public final class BlockScenery {
 
 	/** Takes a finished build, if any. */
 	private static void collect() {
-		if (pending == null || !pending.isDone()) {
+		if (pending == null || !pending.isDone() || pinned) {
 			return;
 		}
 		CompletableFuture<SceneMesh> done = pending;

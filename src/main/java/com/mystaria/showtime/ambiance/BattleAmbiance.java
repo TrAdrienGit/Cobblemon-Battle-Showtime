@@ -112,6 +112,8 @@ public final class BattleAmbiance {
 	/** Ticks since this player's battle started ({@link #followOverride}). */
 	private static int sinceStart;
 	private static int flashLeft;
+	/** The flash's length when it started (a transition's cue may hold one longer). */
+	private static int flashTotal = FLASH_TICKS;
 	/**
 	 * A transition playing (2026-11-20, see {@link Transitions}): the old ambiance, the props and veins of it that stay a
 	 * while to leave in their own way. Its clock is the new ambiance's {@link #ticks}, which starts with it.
@@ -349,6 +351,7 @@ private static boolean irisChecked;
 		} else if (active != null && next != null && !intro) {
 			flashColor = Ambiance.color(next.sky != null ? next.sky.fogColor : null, 0xFFFFFF);
 			flashLeft = FLASH_TICKS;
+			flashTotal = FLASH_TICKS;
 		}
 	}
 
@@ -364,6 +367,9 @@ private static boolean irisChecked;
 		if (play.veinsFade > 0 && old.veins != null) {
 			LEAVING_VEINS.putAll(oldVeins);
 		}
+		if (play.cover != null && "spread".equals(play.cover.mode)) {
+			com.mystaria.showtime.ambiance.blocks.BlockScenery.pin();
+		}
 		Transitions.Camera camera = play.camera;
 		if (camera != null) {
 			float seconds = camera.seconds > 0 ? camera.seconds : play.ticks / 20f;
@@ -376,6 +382,9 @@ private static boolean irisChecked;
 	/** A tick of the transition: its cues, the old props breaking; over once its time is up. */
 	private static void tickTransition(Minecraft mc) {
 		playCues(mc, ticks);
+		if (transition.cover != null && ticks >= transition.cover.start + transition.cover.ticks) {
+			com.mystaria.showtime.ambiance.blocks.BlockScenery.release();
+		}
 		boolean sounded = false;
 		for (Placed placed : LEAVING) {
 			Transitions.Leaving how = transition.leaving.get(placed.prop().kind);
@@ -390,6 +399,7 @@ private static boolean irisChecked;
 	}
 
 	private static void endTransition() {
+		com.mystaria.showtime.ambiance.blocks.BlockScenery.release();
 		transition = null;
 		outgoing = null;
 		LEAVING.clear();
@@ -404,6 +414,10 @@ private static boolean irisChecked;
 			playMoment(mc, cue);
 			if (mc.level == null) {
 				continue;
+			}
+			if (cue.flash != null && cue.flashTicks > 0) {
+				flashLeft = cue.flashTicks;
+				flashTotal = cue.flashTicks;
 			}
 			if (cue.shake > 0) {
 				com.mystaria.showtime.battle.BattleCameraDirector.shake(calm() ? cue.shake * 0.3f : cue.shake, cue.shakeSeconds);
@@ -482,6 +496,83 @@ private static boolean irisChecked;
 			mc.level.playLocalSound(mid.x, mid.y, mid.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(how.sound)),
 					SoundSource.AMBIENT, how.volume, 0.75f + RANDOM.nextFloat() * 0.5f, false);
 		}
+	}
+
+	/**
+	 * A transition's sheet over the sea's water (2026-11-20): ice freezing over, a slick spreading, ice thawing back.
+	 * Its front runs out from the field, jagged by noise, a bright line on it; patches of its colours with a grain.
+	 */
+	private static void drawCover(PoseStack pose, MultiBufferSource buffers, Transitions.Cover cover, float time) {
+		Ambiance.Sea sea = active.sea != null ? active.sea : outgoing != null ? outgoing.sea : null;
+		if (sea == null || sea.under || cover.colors.isEmpty()) {
+			return;
+		}
+		boolean spread = !"retreat".equals(cover.mode);
+		float k = Mth.clamp((time - cover.start) / Math.max(1, cover.ticks), 0, 1);
+		if (spread && time < cover.start) {
+			return;
+		}
+		float run = 1 - (1 - k) * (1 - k);
+		float shown = 1;
+		if (spread && k >= 1) {
+			shown = 1 - Mth.clamp((time - cover.start - cover.ticks) / Math.max(1, cover.fade), 0, 1);
+		}
+		if (shown <= 0 || !spread && k >= 1) {
+			return;
+		}
+		double from = fieldRadius + 0.5;
+		double reach = Math.min(sea.radius, cover.reach > 0 ? cover.reach : sea.radius);
+		double front = from - 3 + (reach - from + 6) * run;
+		double y = Math.round(center.y + groundAt(0, 0)) - center.y + 0.04;
+		int[] colors = cover.colors.stream().mapToInt(c -> Ambiance.color(c, 0xFFFFFF)).toArray();
+		int edge = cover.edge != null ? Ambiance.color(cover.edge, 0xFFFFFF) : -1;
+		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
+		Matrix4f m = pose.last().pose();
+		List<Double> radii = seaRadii(from, from + 24, reach);
+		int segments = 128;
+		for (int i = 0; i + 1 < radii.size(); i++) {
+			double r0 = radii.get(i);
+			double r1 = radii.get(i + 1);
+			if (spread ? r0 > front + 3 : r1 < front - 3) {
+				continue;
+			}
+			for (int j = 0; j < segments; j++) {
+				double a0 = Math.PI * 2 * j / segments;
+				double a1 = Math.PI * 2 * (j + 1) / segments;
+				coverCorner(out, m, cover, colors, edge, r0, a0, y, front, spread, shown, time);
+				coverCorner(out, m, cover, colors, edge, r0, a1, y, front, spread, shown, time);
+				coverCorner(out, m, cover, colors, edge, r1, a1, y, front, spread, shown, time);
+				coverCorner(out, m, cover, colors, edge, r1, a0, y, front, spread, shown, time);
+			}
+		}
+	}
+
+	private static void coverCorner(VertexConsumer out, Matrix4f m, Transitions.Cover cover, int[] colors, int edge, double r,
+			double a, double y, double front, boolean spread, float shown, float time) {
+		double x = Math.cos(a) * r;
+		double z = Math.sin(a) * r;
+		// The front, jagged: fingers of ice or slick running ahead here and lagging there.
+		double jag = 5 * (valueNoise(Math.cos(a) * 2.5 + 7, 3, Math.sin(a) * 2.5 + 7) - 0.5)
+				+ 1.5 * (valueNoise(Math.cos(a) * 9 + 3, 5, Math.sin(a) * 9 + 3) - 0.5);
+		double inside = spread ? front + jag - r : r - (front + jag);
+		float cover01 = (float) Mth.clamp(inside / 1.6, 0, 1);
+		int alpha = Math.round(cover.alpha * cover01 * shown);
+		double patch = valueNoise(x * 0.09, 11, z * 0.09);
+		int color = colors[Math.min(colors.length - 1, (int) (patch * colors.length))];
+		if (colors.length > 1) {
+			double blend = valueNoise(x * 0.23 + 40, 13, z * 0.23);
+			color = lerpColor(color, colors[(int) (blend * colors.length) % colors.length], 0.4f);
+		}
+		float grain = (float) (valueNoise(x * 1.7, 17, z * 1.7) - 0.5) * 0.18f;
+		color = grain > 0 ? lerpColor(color, 0xFFFFFF, grain) : lerpColor(color, 0x000000, -grain);
+		if (edge >= 0 && inside > -1 && inside < 2.5) {
+			float glow = (float) (1 - Math.abs(inside - 0.7) / 1.8);
+			if (glow > 0) {
+				color = lerpColor(color, edge, glow * 0.85f);
+				alpha = Math.max(alpha, Math.round(cover.alpha * glow * shown));
+			}
+		}
+		vertex(out, m, new Vec3(x, y, z), color, alpha);
 	}
 
 	/** How much of the old sky and fog still shows: 1 as the transition starts, 0 once blended into the new. */
@@ -1188,6 +1279,7 @@ private static boolean irisChecked;
 		if (moment.flash != null) {
 			flashColor = Ambiance.color(moment.flash, 0xFFFFFF);
 			flashLeft = FLASH_TICKS;
+			flashTotal = FLASH_TICKS;
 		}
 		if (moment.text != null) {
 			hudText = moment.text;
@@ -1601,6 +1693,9 @@ private static boolean irisChecked;
 				eachTile(pose, camera, () -> drawVeins(pose, buffers, outgoing.veins, LEAVING_VEINS, time + tileShift, fade));
 			}
 		}
+		if (transition != null && transition.cover != null) {
+			drawCover(pose, buffers, transition.cover, time);
+		}
 		if (active.skyCracks != null) {
 			drawSkyCracks(pose, buffers, active.skyCracks, time);
 		}
@@ -1777,7 +1872,7 @@ private static boolean irisChecked;
 		if (flashLeft <= 0) {
 			return;
 		}
-		int alpha = Math.round((calm() ? 45f : 150f) * flashLeft / FLASH_TICKS);
+		int alpha = Math.round((calm() ? 45f : 150f) * Math.min(1f, flashLeft / (float) Math.min(FLASH_TICKS, flashTotal)));
 		graphics.fill(0, 0, graphics.guiWidth(), graphics.guiHeight(), (alpha << 24) | flashColor);
 	}
 
