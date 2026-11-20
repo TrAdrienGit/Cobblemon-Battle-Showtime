@@ -109,6 +109,8 @@ public final class BattleAmbiance {
 	private static List<UUID> followed;
 	private static String followedId;
 	private static int followTicks;
+	/** Ticks since this player's battle started ({@link #followOverride}). */
+	private static int sinceStart;
 	private static int flashLeft;
 	private static int nextBoltId = -2_000_000;
 	private static final Random RANDOM = new Random();
@@ -234,6 +236,7 @@ private static boolean irisChecked;
 		owned = true;
 		followed = List.copyOf(battleTrainers);
 		followedId = want[0] + "|" + want[1];
+		sinceStart = 0;
 	}
 
 	/**
@@ -302,9 +305,16 @@ private static boolean irisChecked;
 	/**
 	 * The ambiance imposed may change during the battle (2026-11-18: a Pokémon Reborn field changing, or gone and the
 	 * battle's own coming back): checked twice a second, the new one replaces the old behind a flash of its colour.
+	 * The first second, every tick and with no flash (2026-11-20): what another mod imposes is often only known once
+	 * Cobblemon has the battle, a tick after it starts, and the right place should be built behind the intro, not
+	 * swapped in when it ends.
 	 */
 	private static void followOverride() {
-		if (followed == null || ++followTicks % 10 != 0) {
+		if (followed == null) {
+			return;
+		}
+		sinceStart++;
+		if (sinceStart > 20 && ++followTicks % 10 != 0) {
 			return;
 		}
 		String[] want = wanted();
@@ -318,7 +328,8 @@ private static boolean irisChecked;
 		owned = true;
 		followed = keep;
 		followedId = id;
-		if (active != null && next != null) {
+		boolean intro = sinceStart <= 20 || Minecraft.getInstance().screen instanceof com.mystaria.showtime.battle.BattleIntroScreen;
+		if (active != null && next != null && !intro) {
 			flashColor = Ambiance.color(next.sky != null ? next.sky.fogColor : null, 0xFFFFFF);
 			flashLeft = FLASH_TICKS;
 		}
