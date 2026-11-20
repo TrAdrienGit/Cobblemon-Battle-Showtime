@@ -52,6 +52,13 @@ public final class Transitions {
 		public Camera camera;
 		/** A sheet spreading over the water (null: none), the ice freezing over or the slick spreading out. */
 		public Cover cover;
+		/** Fronts of particles running over the ground: fire spreading, poison seeping out, grass growing back. */
+		public List<Front> fronts = List.of();
+		/**
+		 * The old stadium's blocks stay until this tick (0: until the new ones are built), even when the new field stands
+		 * in another stadium: the place changes under a cloud or a flash a cue brings then.
+		 */
+		public int holdOld;
 		/** Ids qualified with the file's namespace (set at load). */
 		transient List<String> fromIds = List.of();
 		transient List<String> toIds = List.of();
@@ -85,6 +92,30 @@ public final class Transitions {
 		public float reach;
 		/** Ticks the sheet takes to fade once the front is out ("spread"). */
 		public int fade = 12;
+	}
+
+	/**
+	 * A front of particles running out from the field over the ground (or in toward it, {@code inward}), from tick
+	 * {@code start} over {@code ticks}, to {@code reach} blocks from the centre (0: three times the field's reach).
+	 */
+	public static final class Front {
+		public int start;
+		public int ticks = 30;
+		public float reach;
+		public boolean inward;
+		public String particle = "minecraft:flame";
+		/** Particles per block of the front's length, each tick. */
+		public float density = 0.5f;
+		/** How high over the ground they start (from, to) and how they move. */
+		public List<Float> height = List.of(0f, 0.5f);
+		public List<Float> motion = List.of(0f, 0.03f, 0f);
+		/** How far behind the front they spread, in blocks. */
+		public float depth = 1.5f;
+		/** A sound on the front every {@code soundEvery} ticks. */
+		public String sound;
+		public float volume = 0.6f;
+		public float pitch = 1f;
+		public int soundEvery = 5;
 	}
 
 	/** How the old props of one kind leave. */

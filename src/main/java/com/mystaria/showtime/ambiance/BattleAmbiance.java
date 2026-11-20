@@ -342,7 +342,7 @@ private static boolean irisChecked;
 		Ambiance old = active;
 		List<Placed> oldPlaced = List.copyOf(PLACED);
 		java.util.Map<Long, int[]> oldVeins = new java.util.LinkedHashMap<>(VEINS);
-		begin(next, keep, 0, play != null && java.util.Objects.equals(was[0], want[0])); // ends the old one: set again below
+		begin(next, keep, 0, play != null && (play.holdOld > 0 || java.util.Objects.equals(was[0], want[0]))); // ends the old one: set again below
 		owned = true;
 		followed = keep;
 		followedId = id;
@@ -367,7 +367,7 @@ private static boolean irisChecked;
 		if (play.veinsFade > 0 && old.veins != null) {
 			LEAVING_VEINS.putAll(oldVeins);
 		}
-		if (play.cover != null && "spread".equals(play.cover.mode)) {
+		if (play.holdOld > 0 || play.cover != null && "spread".equals(play.cover.mode)) {
 			com.mystaria.showtime.ambiance.blocks.BlockScenery.pin();
 		}
 		Transitions.Camera camera = play.camera;
@@ -382,8 +382,13 @@ private static boolean irisChecked;
 	/** A tick of the transition: its cues, the old props breaking; over once its time is up. */
 	private static void tickTransition(Minecraft mc) {
 		playCues(mc, ticks);
-		if (transition.cover != null && ticks >= transition.cover.start + transition.cover.ticks) {
+		int releaseAt = transition.holdOld > 0 ? transition.holdOld
+				: transition.cover != null && "spread".equals(transition.cover.mode) ? transition.cover.start + transition.cover.ticks : 0;
+		if (ticks >= releaseAt) {
 			com.mystaria.showtime.ambiance.blocks.BlockScenery.release();
+		}
+		for (Transitions.Front front : transition.fronts) {
+			runFront(mc, front);
 		}
 		boolean sounded = false;
 		for (Placed placed : LEAVING) {
@@ -435,6 +440,48 @@ private static boolean irisChecked;
 				mc.level.addParticle(dust, at2.x, at2.y + 0.15, at2.z, Math.cos(angle) * 0.04 + (RANDOM.nextDouble() - 0.5) * 0.04,
 						0.02 + RANDOM.nextDouble() * 0.05, Math.sin(angle) * 0.04 + (RANDOM.nextDouble() - 0.5) * 0.04);
 			}
+		}
+	}
+
+	/** A tick of a front of particles running over the ground; a sound somewhere on it now and then. */
+	private static void runFront(Minecraft mc, Transitions.Front front) {
+		if (mc.level == null || ticks < front.start || ticks > front.start + front.ticks) {
+			return;
+		}
+		ParticleOptions particle = particle(front.particle);
+		if (particle == null) {
+			return;
+		}
+		float k = Mth.clamp((ticks - front.start) / (float) Math.max(1, front.ticks), 0, 1);
+		float run = 1 - (1 - k) * (1 - k);
+		double from = fieldRadius * 0.15;
+		double reach = front.reach > 0 ? front.reach : fieldRadius * 3;
+		double r = front.inward ? reach - (reach - fieldRadius) * run : from + (reach - from) * run;
+		int count = (int) Math.min(420, Math.PI * 2 * r * front.density);
+		if (calm()) {
+			count /= 2;
+		}
+		float lo = front.height.isEmpty() ? 0 : front.height.get(0);
+		float hi = front.height.size() > 1 ? front.height.get(1) : lo;
+		double mx = front.motion.size() > 0 ? front.motion.get(0) : 0;
+		double my = front.motion.size() > 1 ? front.motion.get(1) : 0;
+		double mz = front.motion.size() > 2 ? front.motion.get(2) : 0;
+		for (int i = 0; i < count; i++) {
+			double angle = RANDOM.nextDouble() * Math.PI * 2;
+			double behind = RANDOM.nextDouble() * front.depth;
+			double rr = Math.max(0.5, front.inward ? r + behind : r - behind);
+			double x = Math.cos(angle) * rr;
+			double z = Math.sin(angle) * rr;
+			Vec3 at = center.add(onGround(x, z));
+			mc.level.addParticle(particle, at.x, at.y + lo + RANDOM.nextDouble() * (hi - lo), at.z,
+					mx + (RANDOM.nextDouble() - 0.5) * 0.02, my, mz + (RANDOM.nextDouble() - 0.5) * 0.02);
+		}
+		if (front.sound != null && (ticks - front.start) % Math.max(1, front.soundEvery) == 0) {
+			double angle = RANDOM.nextDouble() * Math.PI * 2;
+			double rr = Math.min(r, fieldRadius * 1.5);
+			Vec3 at = center.add(onGround(Math.cos(angle) * rr, Math.sin(angle) * rr));
+			mc.level.playLocalSound(at.x, at.y, at.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(front.sound)),
+					SoundSource.AMBIENT, front.volume, front.pitch * (0.85f + RANDOM.nextFloat() * 0.3f), false);
 		}
 	}
 
