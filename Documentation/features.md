@@ -114,7 +114,9 @@ remove it from roadmap.md.
   ambient sound and occasional sounds, screen filters (black and white, pixels, glitch, ripple, old TV, old film);
   since the 2026-11-10 quality pass also a mirror ball and dance floor, a neon grid, 8-bit sprites, butterflies,
   nebulae, a galaxy band, detailed planets, ground mist, veins (the veins and the neon grid follow the block
-  grid since 2026-11-20: strips through the blocks' middles, laid on each top, down each step), sky cracks, glitch cubes, will-o'-wisps and fireflies,
+  grid since 2026-11-20: strips through the blocks' middles, laid on each top, down each step; the mist, the
+  floor glows, dance floor, caustics and court lines too, cut along the blocks' edges and flat on each top, and every
+  layer follows the stadium's ground past the field, not the hidden world's), sky cracks, glitch cubes, will-o'-wisps and fireflies,
   ghosts, a moon, darkness flickers, soap bubbles, glowing mushrooms, a double rainbow, film scratches and dust,
   embers, a volcano, lava cracks, sea-floor caustics, light shafts, kelp, rising paper lanterns, real fireworks,
   ice glints, a fog wall, a horizon mirage, circling birds, a striped 80s sun, palm silhouettes, wormholes, floating

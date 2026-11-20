@@ -1701,18 +1701,7 @@ private static boolean irisChecked;
 				continue;
 			}
 			int color = Ambiance.color(lights.colors.get(i % lights.colors.size()), 0xFFFFFF);
-			int segments = 20;
-			Vec3[] rim = new Vec3[segments + 1];
-			for (int s = 0; s <= segments; s++) {
-				double a = Math.PI * 2 * s / segments;
-				rim[s] = onGround(at.x + Math.cos(a) * lights.size, at.z + Math.sin(a) * lights.size);
-			}
-			for (int s = 0; s < segments; s++) {
-				vertex(out, m, at, color, lights.alpha);
-				vertex(out, m, at, color, lights.alpha);
-				vertex(out, m, rim[s + 1], color, 0);
-				vertex(out, m, rim[s], color, 0);
-			}
+			floorDisc(out, m, at.x, at.z, lights.size, color, lights.alpha, 0.12);
 		}
 	}
 
@@ -1720,11 +1709,25 @@ private static boolean irisChecked;
 	private static final java.util.Map<Long, Double> GROUND = new java.util.HashMap<>();
 
 	/**
-	 * A point at {@code (x, z)} from the field's centre, laid on the top of the first solid block below the field's
-	 * height (from a little above it, so a step up counts), just over it. No ground within reach: the centre's height.
+	 * A point at {@code (x, z)} from the field's centre, just over the floor people see there ({@link #surfaceY}).
 	 */
 	private static Vec3 onGround(double x, double z) {
-		return new Vec3(x, groundAt(x, z) + 0.12, z);
+		return new Vec3(x, surfaceY(x, z) + 0.12, z);
+	}
+
+	/**
+	 * The top of the floor people see at {@code (x, z)}: the stadium's ground where one is shown, over the sea its
+	 * surface (2026-11-20: past the field the layers followed the hidden world's ground, floating over the stadium's
+	 * hills or sunk into them, which made the mist fold into odd shapes); the world's ground otherwise, the top of the
+	 * first solid block below the field's height (from a little above it, so a step up counts). No ground within reach:
+	 * the centre's height.
+	 */
+	private static double surfaceY(double x, double z) {
+		if (active == null || active.land == null && active.sea == null && active.hall == null) {
+			return groundAt(x, z);
+		}
+		double y = floorY(x, z) - 0.09;
+		return active.sea != null && !active.sea.under ? Math.max(y, seaLevel()) : y;
 	}
 
 	private static double groundAt(double x, double z) {
@@ -2078,10 +2081,8 @@ private static boolean irisChecked;
 		if (hole(x0, z0) || hole(x1, z0) || hole(x1, z1) || hole(x0, z1)) {
 			return;
 		}
-		vertex(out, m, onGround(x0, z0), color, alpha);
-		vertex(out, m, onGround(x1, z0), color, alpha);
-		vertex(out, m, onGround(x1, z1), color, alpha);
-		vertex(out, m, onGround(x0, z1), color, alpha);
+		decal(out, m, new double[] {x0, x1, x1, x0}, new double[] {z0, z0, z1, z1}, new float[] {alpha, alpha, alpha, alpha}, 4,
+				color, 0.12);
 	}
 
 	/** A thin line on the ground, from one point to another, {@code width} wide. */
@@ -2095,11 +2096,139 @@ private static boolean irisChecked;
 		if (hole(x0, z0) || hole(x1, z1)) {
 			return;
 		}
-		vertex(out, m, onGround(x0 + nx, z0 + nz), color, alpha0);
-		vertex(out, m, onGround(x1 + nx, z1 + nz), color, alpha1);
-		vertex(out, m, onGround(x1 - nx, z1 - nz), color, alpha1);
-		vertex(out, m, onGround(x0 - nx, z0 - nz), color, alpha0);
+		decal(out, m, new double[] {x0 + nx, x1 + nx, x1 - nx, x0 - nx}, new double[] {z0 + nz, z1 + nz, z1 - nz, z0 - nz},
+				new float[] {alpha0, alpha1, alpha1, alpha0}, 4, color, 0.12);
 	}
+	/** Whether the floor is a smooth stadium's (slopes, not blocks): flat shapes then follow it point by point. */
+	private static boolean smoothStadium() {
+		return !blocky() && (active.land != null || active.sea != null || active.hall != null || active.cavern != null);
+	}
+
+	/** Scratch room for {@link #decal}'s clipping (client thread). */
+	private static final double[][] CLIP_X = new double[2][24];
+	private static final double[][] CLIP_Z = new double[2][24];
+	private static final float[][] CLIP_A = new float[2][24];
+
+	/**
+	 * A flat shape on the floor (2026-11-20: the shapes were laid point by point on the ground, so across a step they
+	 * slanted into it or floated over the hollow, with hard lines where they went into the blocks): cut along the
+	 * blocks' edges, each piece flat on its own block's top, {@code lift} over it. On a smooth stadium, laid point by
+	 * point on its slopes as before. {@code xs, zs, alphas}: a convex polygon's {@code n} corners (at most 8) from the
+	 * field's centre and their opacity, blended across it.
+	 */
+	private static void decal(VertexConsumer out, Matrix4f m, double[] xs, double[] zs, float[] alphas, int n, int color, double lift) {
+		if (smoothStadium()) {
+			if (!hole(xs[0], zs[0])) {
+				for (int i = 1; i + 1 < n; i += 2) {
+					int last = Math.min(i + 2, n - 1);
+					decalVertex(out, m, xs[0], surfaceY(xs[0], zs[0]) + lift, zs[0], color, alphas[0]);
+					decalVertex(out, m, xs[i], surfaceY(xs[i], zs[i]) + lift, zs[i], color, alphas[i]);
+					decalVertex(out, m, xs[i + 1], surfaceY(xs[i + 1], zs[i + 1]) + lift, zs[i + 1], color, alphas[i + 1]);
+					decalVertex(out, m, xs[last], surfaceY(xs[last], zs[last]) + lift, zs[last], color, alphas[last]);
+				}
+			}
+			return;
+		}
+		double minX = xs[0];
+		double maxX = xs[0];
+		double minZ = zs[0];
+		double maxZ = zs[0];
+		for (int i = 1; i < n; i++) {
+			minX = Math.min(minX, xs[i]);
+			maxX = Math.max(maxX, xs[i]);
+			minZ = Math.min(minZ, zs[i]);
+			maxZ = Math.max(maxZ, zs[i]);
+		}
+		int bx0 = Mth.floor(center.x + minX);
+		int bx1 = Mth.floor(center.x + maxX - 1.0E-7);
+		int bz0 = Mth.floor(center.z + minZ);
+		int bz1 = Mth.floor(center.z + maxZ - 1.0E-7);
+		for (int bx = bx0; bx <= bx1; bx++) {
+			double left = bx - center.x;
+			for (int bz = bz0; bz <= bz1; bz++) {
+				double near = bz - center.z;
+				if (hole(left + 0.5, near + 0.5)) {
+					continue;
+				}
+				int k = n;
+				double[] px = xs;
+				double[] pz = zs;
+				float[] pa = alphas;
+				int buffer = 0;
+				// Kept by each side of the block in turn: x >= left, x <= left + 1, z >= near, z <= near + 1.
+				for (int side = 0; side < 4 && k >= 3; side++) {
+					k = clipSide(px, pz, pa, k, CLIP_X[buffer], CLIP_Z[buffer], CLIP_A[buffer], side < 2,
+							side < 2 ? (side == 0 ? left : left + 1) : (side == 2 ? near : near + 1), side % 2 == 0);
+					px = CLIP_X[buffer];
+					pz = CLIP_Z[buffer];
+					pa = CLIP_A[buffer];
+					buffer = 1 - buffer;
+				}
+				if (k < 3) {
+					continue;
+				}
+				double y = veinTop(left + 0.5, near + 0.5) + lift;
+				for (int i = 1; i + 1 < k; i += 2) {
+					int last = Math.min(i + 2, k - 1);
+					decalVertex(out, m, px[0], y, pz[0], color, pa[0]);
+					decalVertex(out, m, px[i], y, pz[i], color, pa[i]);
+					decalVertex(out, m, px[i + 1], y, pz[i + 1], color, pa[i + 1]);
+					decalVertex(out, m, px[last], y, pz[last], color, pa[last]);
+				}
+			}
+		}
+	}
+
+	/** One side of a block's clip: keeps the part of the polygon on the kept side of {@code bound} along x or z. */
+	private static int clipSide(double[] xs, double[] zs, float[] as, int n, double[] ox, double[] oz, float[] oa, boolean alongX,
+			double bound, boolean keepAbove) {
+		int k = 0;
+		for (int i = 0; i < n; i++) {
+			int j = (i + 1) % n;
+			double vi = (alongX ? xs[i] : zs[i]) - bound;
+			double vj = (alongX ? xs[j] : zs[j]) - bound;
+			boolean inI = keepAbove ? vi >= 0 : vi <= 0;
+			boolean inJ = keepAbove ? vj >= 0 : vj <= 0;
+			if (inI && k < ox.length) {
+				ox[k] = xs[i];
+				oz[k] = zs[i];
+				oa[k] = as[i];
+				k++;
+			}
+			if (inI != inJ && k < ox.length) {
+				double t = vi / (vi - vj);
+				ox[k] = xs[i] + (xs[j] - xs[i]) * t;
+				oz[k] = zs[i] + (zs[j] - zs[i]) * t;
+				oa[k] = (float) (as[i] + (as[j] - as[i]) * t);
+				k++;
+			}
+		}
+		return k;
+	}
+
+	private static void decalVertex(VertexConsumer out, Matrix4f m, double x, double y, double z, int color, float alpha) {
+		vertex(out, m, new Vec3(x, y, z), color, Math.round(alpha));
+	}
+
+	/** A round glow lying on the floor ({@link #decal}): {@code alpha} at its middle, nothing at its rim. */
+	private static void floorDisc(VertexConsumer out, Matrix4f m, double x, double z, double radius, int color, int alpha, double lift) {
+		int segments = radius < 1 ? 12 : 24;
+		double[] xs = new double[3];
+		double[] zs = new double[3];
+		float[] as = {alpha, 0, 0};
+		for (int s = 0; s < segments; s++) {
+			double a0 = Math.PI * 2 * s / segments;
+			double a1 = Math.PI * 2 * (s + 1) / segments;
+			xs[0] = x;
+			zs[0] = z;
+			xs[1] = x + Math.cos(a1) * radius;
+			zs[1] = z + Math.sin(a1) * radius;
+			xs[2] = x + Math.cos(a0) * radius;
+			zs[2] = z + Math.sin(a0) * radius;
+			decal(out, m, xs, zs, as, 3, color, lift);
+		}
+	}
+
 
 	/** Disco's floor: tiles on the ground lighting up on the beat, each with its colour and its own rhythm. */
 	private static void drawDanceFloor(PoseStack pose, MultiBufferSource buffers, Ambiance.DanceFloor floor, float time) {
@@ -2196,20 +2325,8 @@ private static boolean irisChecked;
 			if (hole(at)) {
 				continue;
 			}
-			int segments = 10;
 			float size = 0.32f + 0.18f * hashFloat(i * 104729);
-			Vec3 previous = null;
-			for (int sgm = 0; sgm <= segments; sgm++) {
-				double a = Math.PI * 2 * sgm / segments;
-				Vec3 rim = onGround(x + Math.cos(a) * size, z + Math.sin(a) * size);
-				if (previous != null) {
-					vertex(out, m, at, color, ball.alpha);
-					vertex(out, m, at, color, ball.alpha);
-					vertex(out, m, rim, color, 0);
-					vertex(out, m, previous, color, 0);
-				}
-				previous = rim;
-			}
+			floorDisc(out, m, x, z, size, color, ball.alpha, 0.13);
 		}
 		// A soft round glow round the ball (2026-11-10: a flat quad showed as a big square).
 		Vec3 centre = new Vec3(0, ball.height, 0);
@@ -2290,31 +2407,108 @@ private static boolean irisChecked;
 		return r << 16 | g << 8 | bl;
 	}
 
-	/** Mist: translucent layers just over the ground, their thickness changing in slow drifting patches. */
+	/**
+	 * Mist: level sheets of fog lying in the hollows, thick near the ground and thinning upward, their thickness
+	 * changing in slow drifting patches. 2026-11-20: sheets following the ground cut through the blocks or stepped up
+	 * with them, so every height change showed as a hard line. Now each sheet is level, a fixed height apart, and fades
+	 * to nothing where it comes down to the blocks under it: at each corner its opacity follows how high it is over the
+	 * highest of the four blocks meeting there, so it is already clear where it would touch a block, a step's face
+	 * included, and no edge can show. Seen edge-on a sheet thins too, so the sheets never read as slabs.
+	 */
 	private static void drawMist(PoseStack pose, MultiBufferSource buffers, Ambiance.Mist mist, float time) {
 		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.TINT);
 		Matrix4f m = pose.last().pose();
 		float radius = mist.radius > 0 ? mist.radius : fieldRadius * 1.5f;
 		int color = Ambiance.color(mist.color, 0xB0C0C8);
-		double cell = 2.0;
-		int n = (int) Math.ceil(radius / cell);
+		double height = Math.max(0.5, mist.height);
+		int layers = Math.max(1, mist.layers);
+		// Sheets close enough to blend into one another, never more than 0.6 apart.
+		double step = Mth.clamp(height / layers, 0.25, 0.6);
+		// Each sheet as dense as one of the old layers, whatever the spacing.
+		float density = (float) (mist.alpha * layers * step / height);
+		int bx0 = Mth.floor(center.x);
+		int bz0 = Mth.floor(center.z);
+		int n = Mth.ceil(radius) + 1;
+		int size = 2 * n + 1;
+		// Corner (i, j) is the blocks' corner at (bx0 - n + i, bz0 - n + j), from the field's centre.
+		double[] floor = new double[size * size];
+		float[] base = new float[size * size];
+		double lowest = Double.MAX_VALUE;
+		double highest = -Double.MAX_VALUE;
+		for (int i = 0; i < size; i++) {
+			double x = bx0 - n + i - center.x;
+			for (int j = 0; j < size; j++) {
+				double z = bz0 - n + j - center.z;
+				double d = Math.sqrt(x * x + z * z);
+				if (d > radius + 1.5 || hole(x, z)) {
+					continue;
+				}
+				double top = Math.max(Math.max(veinTop(x - 0.5, z - 0.5), veinTop(x + 0.5, z - 0.5)),
+						Math.max(veinTop(x - 0.5, z + 0.5), veinTop(x + 0.5, z + 0.5)));
+				floor[i * size + j] = top;
+				base[i * size + j] = (float) Mth.clamp((radius - d) / 4.0, 0, 1);
+				lowest = Math.min(lowest, top);
+				highest = Math.max(highest, top);
+			}
+		}
+		if (lowest > highest) {
+			return;
+		}
 		double t = time / 20.0 * mist.speed;
-		for (int layer = 0; layer < Math.max(1, mist.layers); layer++) {
-			double lift = 0.15 + mist.height * layer / Math.max(1, mist.layers);
-			for (int ix = -n; ix < n; ix++) {
-				for (int iz = -n; iz < n; iz++) {
-					double x0 = ix * cell;
-					double z0 = iz * cell;
-					double[][] corners = { {x0, z0}, {x0 + cell, z0}, {x0 + cell, z0 + cell}, {x0, z0 + cell} };
-					for (double[] c : corners) {
-						double d = Math.sqrt(c[0] * c[0] + c[1] * c[1]);
-						float edge = (float) Mth.clamp((radius - d) / 4.0, 0, 1);
-						double patch = 0.5 + 0.25 * Math.sin(c[0] / mist.scale + t + layer * 1.7)
-								+ 0.25 * Math.cos(c[1] / mist.scale * 0.8 - t * 0.7 + layer);
-						Vec3 at = onGround(c[0], c[1]).add(0, lift, 0);
-						int alpha = hole(c[0], c[1]) ? 0 : Math.round(mist.alpha * (float) patch * edge * nearFade(at, 0.5, 2.5));
-						vertex(out, m, at, color, alpha);
+		float[] alpha = new float[size * size];
+		Vec3[] at = new Vec3[size * size];
+		// The sheets sit at fixed heights in the world (not over the field's centre), from the lowest floor up.
+		int first = Mth.floor((center.y + lowest) / step) + 1;
+		int last = Mth.ceil((center.y + highest + height) / step);
+		for (int sheet = first; sheet <= last; sheet++) {
+			double level = sheet * step - center.y;
+			boolean any = false;
+			for (int i = 0; i < size; i++) {
+				double x = bx0 - n + i - center.x;
+				for (int j = 0; j < size; j++) {
+					int k = i * size + j;
+					alpha[k] = 0;
+					at[k] = null;
+					if (base[k] <= 0) {
+						continue;
 					}
+					double z = bz0 - n + j - center.z;
+					// A slow swell, so the sheets are not dead flat (its height counts in the clearance below).
+					double y = level + 0.12 * Math.sin(x * 0.35 + z * 0.27 + t * 0.6 + sheet);
+					double clear = y - floor[k];
+					if (clear <= 0 || clear >= height) {
+						at[k] = new Vec3(x, y, z);
+						continue;
+					}
+					// Clear at the ground, full a little over it, thinning upward and gone at the top.
+					double rise = Mth.clamp(clear / 0.45, 0, 1);
+					double fall = Mth.clamp((height - clear) / (height * 0.45), 0, 1);
+					double thick = rise * rise * (3 - 2 * rise) * fall * fall * (3 - 2 * fall) * (1 - 0.4 * clear / height);
+					double patch = 0.5 + 0.25 * Math.sin(x / mist.scale + t + sheet * 0.9)
+							+ 0.25 * Math.cos(z / mist.scale * 0.8 - t * 0.7 + sheet * 0.6);
+					Vec3 p = new Vec3(x, y, z);
+					double dist = Math.max(0.1, p.distanceTo(cameraRel));
+					float edgeOn = 0.25f + 0.75f * (float) Mth.clamp(Math.abs(y - cameraRel.y) / dist * 2.5, 0, 1);
+					at[k] = p;
+					alpha[k] = density * (float) (thick * patch) * base[k] * edgeOn * nearFade(p, 0.5, 2.5);
+					any = true;
+				}
+			}
+			if (!any) {
+				continue;
+			}
+			for (int i = 0; i < size - 1; i++) {
+				for (int j = 0; j < size - 1; j++) {
+					int k00 = i * size + j;
+					int k10 = k00 + size;
+					if (at[k00] == null || at[k10] == null || at[k10 + 1] == null || at[k00 + 1] == null
+							|| alpha[k00] + alpha[k10] + alpha[k10 + 1] + alpha[k00 + 1] < 2) {
+						continue;
+					}
+					vertex(out, m, at[k00], color, Math.round(alpha[k00]));
+					vertex(out, m, at[k10], color, Math.round(alpha[k10]));
+					vertex(out, m, at[k10 + 1], color, Math.round(alpha[k10 + 1]));
+					vertex(out, m, at[k00 + 1], color, Math.round(alpha[k00 + 1]));
 				}
 			}
 		}
@@ -2437,10 +2631,28 @@ private static boolean irisChecked;
 
 	/** The top of the block a vein runs over: the real ground's, snapped to its block where the stadium is blocks. */
 	private static double veinTop(double x, double z) {
-		double ground = groundAt(x, z);
-		boolean smoothStadium = !blocky() && (active.land != null || active.sea != null || active.hall != null || active.cavern != null);
-		return smoothStadium ? ground : Math.floor(center.y + ground + 0.25) - center.y;
+		if (smoothStadium()) {
+			return surfaceY(x, z);
+		}
+		// Each block's top is the same all over it: kept per block for this stadium (the mist asks for hundreds a frame).
+		if (BLOCK_TOPS_OWNER != active) {
+			BLOCK_TOPS.clear();
+			BLOCK_TOPS_OWNER = active;
+		}
+		int bx = Mth.floor(center.x + x);
+		int bz = Mth.floor(center.z + z);
+		long key = blockKey(bx, bz) * 31 + Mth.floor(center.y * 4);
+		Double top = BLOCK_TOPS.get(key);
+		if (top == null) {
+			top = surfaceY(bx + 0.5 - center.x, bz + 0.5 - center.z) + center.y;
+			BLOCK_TOPS.put(key, top);
+		}
+		return top - center.y;
 	}
+
+	/** {@link #veinTop}'s blocks, for the ambiance they were found under; emptied with the floors. */
+	private static final java.util.Map<Long, Double> BLOCK_TOPS = new java.util.HashMap<>();
+	private static Ambiance BLOCK_TOPS_OWNER;
 
 	/** One block of vein, half-width {@code w}: the middle square, an arm to each side it runs to, a drop down each step. */
 	private static void veinBlock(VertexConsumer out, Matrix4f m, double x, double top, double z, int arms, double[] below,
@@ -2736,7 +2948,7 @@ private static boolean irisChecked;
 				float breathe = 0.7f + 0.3f * Mth.sin(time / 30f + c + k);
 				Vec3 cap = foot.add(0, size * 1.1, 0);
 				if (glow) {
-					glowDisc(out, m, foot.add(0, 0.03, 0), new Vec3(0, 1, 0), size * 2.2f, color, Math.round(60 * breathe));
+					floorDisc(out, m, foot.x, foot.z, size * 2.2, color, Math.round(60 * breathe), 0.14);
 					glowDisc(out, m, cap, cameraRel.subtract(cap).normalize(), size * 1.6f, color, Math.round(45 * breathe));
 				} else {
 					mushroom(out, m, foot, size, color);
@@ -2940,15 +3152,18 @@ private static boolean irisChecked;
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(caustics.color, 0xA8F4FF);
 		float radius = Math.min(caustics.radius > 0 ? caustics.radius : fieldRadius * 1.35f, 22f);
-		double cell = 0.6;
+		// Half a block, lined up with the blocks (2026-11-20): each cell lies flat on one block's top.
+		double cell = 0.5;
 		int n = (int) Math.ceil(radius / cell);
 		double t = time / 20.0 * caustics.speed;
 		double s = caustics.scale;
+		double gx = Mth.floor(center.x) - center.x;
+		double gz = Mth.floor(center.z) - center.z;
 		float[][] light = new float[2 * n + 1][2 * n + 1];
 		for (int ix = -n; ix <= n; ix++) {
 			for (int iz = -n; iz <= n; iz++) {
-				double x = ix * cell;
-				double z = iz * cell;
+				double x = gx + ix * cell;
+				double z = gz + iz * cell;
 				double v1 = Math.sin(x * 0.9 * s + t * 1.1) + Math.sin(z * 1.1 * s - t * 0.9)
 						+ Math.sin((x * 0.6 - z * 0.8) * 1.3 * s + t * 0.7);
 				double v2 = Math.sin((x * 0.7 + z * 0.5) * 1.7 * s - t * 1.3) + Math.sin(z * 0.5 * s + x * 0.3 * s + t * 0.5);
@@ -2969,15 +3184,14 @@ private static boolean irisChecked;
 				if (a + b + c + d < 0.08f) {
 					continue; // most of the floor is between the lines
 				}
-				double x0 = (ix - n) * cell;
-				double z0 = (iz - n) * cell;
+				double x0 = gx + (ix - n) * cell;
+				double z0 = gz + (iz - n) * cell;
 				if (hole(x0, z0) || hole(x0 + cell, z0) || hole(x0 + cell, z0 + cell) || hole(x0, z0 + cell)) {
 					continue;
 				}
-				vertex(out, m, onGround(x0, z0), color, Math.round(caustics.alpha * a));
-				vertex(out, m, onGround(x0 + cell, z0), color, Math.round(caustics.alpha * b));
-				vertex(out, m, onGround(x0 + cell, z0 + cell), color, Math.round(caustics.alpha * c));
-				vertex(out, m, onGround(x0, z0 + cell), color, Math.round(caustics.alpha * d));
+				float k = caustics.alpha;
+				decal(out, m, new double[] {x0, x0 + cell, x0 + cell, x0}, new double[] {z0, z0, z0 + cell, z0 + cell},
+						new float[] {k * a, k * b, k * c, k * d}, 4, color, 0.12);
 			}
 		}
 	}
@@ -4184,7 +4398,7 @@ private static boolean irisChecked;
 			}
 		} else {
 			// A soft light on the field, where the battle stands.
-			glowDisc(out, m, onGround(0, 0).add(0, 0.04, 0), up, (float) fieldRadius, lightColor(cavern), 16);
+			floorDisc(out, m, 0, 0, fieldRadius, lightColor(cavern), 16, 0.14);
 			if (lava != null) {
 				drawLavaLake(out, m, cavern, lava, lavaIn, lavaOut, time, true);
 			}
@@ -4529,7 +4743,7 @@ private static boolean irisChecked;
 		double reach = Math.min(sea.radius, 72);
 		if (glow) {
 			glowDisc(out, m, new Vec3(0, surface - 0.3, 0), new Vec3(0, -1, 0), (float) (sea.depth * 1.1), look.light, 46);
-			glowDisc(out, m, onGround(0, 0).add(0, 0.04, 0), new Vec3(0, 1, 0), (float) fieldRadius, look.light, 14);
+			floorDisc(out, m, 0, 0, fieldRadius, look.light, 14, 0.14);
 			return;
 		}
 		if (!seaInBlocks) {
@@ -4773,6 +4987,7 @@ private static boolean irisChecked;
 	/** Heights and colours are relative to the field: built again when it moves, or the ambiance changes. */
 	private static void clearFloors() {
 		GROUND.clear();
+		BLOCK_TOPS.clear();
 		FLOOR_CACHES.clear();
 	}
 
@@ -6714,7 +6929,7 @@ for (int fx = -1; fx <= 1; fx++) {
 		float g = Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
 		float strength = crystalStrength(placed, time) * g;
 		beam(out, m, placed.base(), to, 0.25f, 1.6f, color, Math.round(34 * strength));
-		glowDisc(out, m, to.add(0, 0.05, 0), new Vec3(0, 1, 0), 1.4f, color, Math.round(55 * strength));
+		floorDisc(out, m, to.x, to.z, 1.4, color, Math.round(55 * strength), 0.15);
 	}
 
 	/** A thin ring lying flat (a ripple). */
@@ -7390,7 +7605,7 @@ for (int fx = -1; fx <= 1; fx++) {
 			Vec3 pool = onGround(SPOT_AIM[k].x, SPOT_AIM[k].z);
 			Vec3 from = lampBank(towers, (k * Math.max(1, towers.count / 2)) % Math.max(1, towers.count))[0];
 			beam(out, m, from, pool.add(0, 0.2, 0), 0.35f, 1.9f, color, spots.alpha);
-			glowDisc(out, m, pool.add(0, 0.04, 0), new Vec3(0, 1, 0), 2.4f, color, Math.round(spots.alpha * 1.5f));
+			floorDisc(out, m, pool.x, pool.z, 2.4, color, Math.round(spots.alpha * 1.5f), 0.14);
 		}
 	}
 
