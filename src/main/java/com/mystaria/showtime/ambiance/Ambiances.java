@@ -97,6 +97,7 @@ public final class Ambiances {
 				stadiums = stadiumRead;
 				presets = presetRead;
 				COMBINED.clear();
+				Transitions.load(manager);
 				// Stadiums built of blocks hold the old textures' coordinates: built again.
 				com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
 				LOG.info("{} battle ambiance(s), {} stadium(s), {} preset(s)", ambianceRead.size(), stadiumRead.size(),
@@ -139,6 +140,12 @@ public final class Ambiances {
 
 	private static String qualify(String namespace, String id) {
 		return id.contains(":") || NONE.equals(id) ? id : namespace + id;
+	}
+
+	/** The ambiance a preset {@code id} plays, else {@code id} itself. */
+	public static String baseAmbiance(String id) {
+		Preset preset = id == null ? null : presets.get(id);
+		return preset != null ? preset.ambiance() : id;
 	}
 
 	/** The ambiance {@code id} as the player would see it chosen alone: a preset brings its stadium along. */

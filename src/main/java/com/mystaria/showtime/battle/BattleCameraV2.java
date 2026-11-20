@@ -78,6 +78,12 @@ final class BattleCameraV2 {
 	private static long hitAt;
 	private static boolean impactShown = true;
 
+	/** A change of scene (an ambiance turning into another) being filmed wide, until then; the shake on it. */
+	private static long sceneUntil;
+	private static float shake;
+	private static long shakeStart;
+	private static long shakeEnd;
+
 	private static Vec3 anchorLocal;
 	private static Vec3 anchorOpponent;
 	private static Vec3 eye;
@@ -102,14 +108,24 @@ final class BattleCameraV2 {
 		look = null;
 		actionTarget = null;
 		impactShown = true;
+		sceneUntil = 0;
+		shakeEnd = 0;
 	}
 
 	static void onChoosing() {
-		holdUntil = Math.min(holdUntil, System.currentTimeMillis() + 600);
+		holdUntil = Math.max(sceneUntil, Math.min(holdUntil, System.currentTimeMillis() + 600));
+	}
+
+	/** Whether the change of scene is still being filmed: the other shots wait (a knock-out alone cuts in). */
+	private static boolean filmingScene(long now) {
+		return now < sceneUntil;
 	}
 
 	static void onAction(BattleStage stage, String user, String target) {
 		long now = System.currentTimeMillis();
+		if (filmingScene(now)) {
+			return;
+		}
 		if (target == null || target.equals(user)) {
 			impactShown = true;
 			actionTarget = null;
@@ -133,6 +149,9 @@ final class BattleCameraV2 {
 	}
 
 	static void onFocus(BattleStage stage, String pnx) {
+		if (filmingScene(System.currentTimeMillis())) {
+			return;
+		}
 		impactShown = true;
 		cutTo(pick(List.of(() -> portrait(() -> stage.pokemonAt(pnx), 1, 1.0), () -> portrait(() -> stage.pokemonAt(pnx), -1, 1.0),
 				() -> portrait(() -> stage.pokemonAt(pnx), 1, 0.75))), FOCUS_HOLD, System.currentTimeMillis());
@@ -140,12 +159,86 @@ final class BattleCameraV2 {
 
 	static void onKnockOut(Entity entity) {
 		impactShown = true;
+		sceneUntil = 0;
 		cutTo(pick(List.of(() -> knockOut(entity, 1), () -> knockOut(entity, -1))), KNOCK_OUT_HOLD, System.currentTimeMillis());
 	}
 
 	static void onThrow(Entity entity, float hold) {
+		if (filmingScene(System.currentTimeMillis())) {
+			return;
+		}
 		impactShown = true;
 		cutTo(pick(List.of(() -> portrait(() -> entity, 1, 1.1), () -> portrait(() -> entity, -1, 1.1))), hold, System.currentTimeMillis());
+	}
+
+	/**
+	 * The place changes round the battle (2026-11-20): the camera pulls back from where it is, up and away, to take in
+	 * the whole field for {@code seconds}, circling slowly, a shake on it. No cut: the flow of shots goes on.
+	 *
+	 * @param reach how far the field reaches round its centre, in blocks (the shot frames all of it)
+	 */
+	static void onSceneChange(float seconds, double reach, float shakeAmount, float shakeSeconds) {
+		long now = System.currentTimeMillis();
+		Field f = currentField;
+		Vec3 fromEye = eye;
+		Vec3 fromLook = look;
+		float startDegrees = f != null && fromEye != null
+				? (float) Math.toDegrees(Math.atan2(fromEye.z - f.center().z, fromEye.x - f.center().x))
+				: RANDOM.nextFloat() * 360f;
+		int direction = RANDOM.nextBoolean() ? 1 : -1;
+		impactShown = true;
+		actionTarget = null;
+		cutTo(pick(List.of(() -> sceneWide(startDegrees, direction, reach, fromEye, fromLook),
+				() -> sceneWide(startDegrees + 50 * direction, direction, reach, fromEye, fromLook),
+				() -> sceneWide(startDegrees - 50 * direction, direction, reach, fromEye, fromLook))), seconds, now);
+		sceneUntil = holdUntil;
+		shake(shakeAmount, shakeSeconds);
+	}
+
+	/** A jolt: {@code amount} blocks at first, dying out over {@code seconds}; a weaker one never cuts a stronger short. */
+	static void shake(float amount, float seconds) {
+		long now = System.currentTimeMillis();
+		if (amount <= 0 || seconds <= 0) {
+			return;
+		}
+		if (now < shakeEnd) {
+			double p = (now - shakeStart) / (double) Math.max(1, shakeEnd - shakeStart);
+			if (shake * (1 - p) * (1 - p) > amount) {
+				return;
+			}
+		}
+		shake = amount;
+		shakeStart = now;
+		shakeEnd = now + (long) (seconds * 1000);
+	}
+
+	/** Up and away from where the camera was, to a high wide circle round the whole field. */
+	private static Shot sceneWide(float startDegrees, int direction, double reach, Vec3 fromEye, Vec3 fromLook) {
+		return (f, t) -> {
+			double radius = Math.max(reach * 0.95, 5.0 + f.gap());
+			double angle = Math.toRadians(startDegrees + direction * 9.0 * t);
+			Vec3 wide = f.center().add(Math.cos(angle) * radius, radius * (0.42 + 0.03 * t), Math.sin(angle) * radius);
+			Vec3 aim = f.center().add(0, 0.3, 0);
+			double k = Math.min(1.0, t / 0.8);
+			k = k * k * (3 - 2 * k);
+			Vec3 eyeAt = fromEye == null ? wide : fromEye.lerp(wide, k);
+			Vec3 lookAt = fromLook == null ? aim : fromLook.lerp(aim, k);
+			return new Frame(eyeAt, lookAt, subjects(f));
+		};
+	}
+
+	/** The shake on the camera: sharp at first, dying out; smooth noise, never a jump. */
+	private static Vec3[] shaken(Vec3 at, Vec3 aim, long now) {
+		if (now >= shakeEnd || shake <= 0) {
+			return new Vec3[] {at, aim};
+		}
+		double p = (now - shakeStart) / (double) Math.max(1, shakeEnd - shakeStart);
+		double amount = shake * (1 - p) * (1 - p);
+		double s = (now - shakeStart) / 1000.0;
+		Vec3 move = new Vec3(Math.sin(s * 31) + 0.6 * Math.sin(s * 53 + 1.3), 0.7 * Math.sin(s * 41 + 2.1) + 0.4 * Math.sin(s * 67),
+				Math.sin(s * 37 + 0.7) + 0.6 * Math.sin(s * 59 + 2.9)).scale(amount * 0.5);
+		Vec3 turn = new Vec3(Math.sin(s * 23 + 0.4), Math.sin(s * 29 + 1.7), Math.sin(s * 19 + 2.2)).scale(amount * 0.6);
+		return new Vec3[] {at.add(move), aim.add(move).add(turn)};
 	}
 
 	// =====================================================================
@@ -200,7 +293,8 @@ final class BattleCameraV2 {
 			look = l[0];
 			lookVelocity = l[1];
 		}
-		return lookAt(eye, look);
+		Vec3[] shown = shaken(eye, look, now);
+		return lookAt(shown[0], shown[1]);
 	}
 
 	private static Field currentField;

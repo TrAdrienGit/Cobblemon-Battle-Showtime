@@ -41,6 +41,8 @@ public final class BlockScenery {
 	private static Key pendingKey;
 	private static CompletableFuture<SceneMesh> pending;
 	private static Key failedKey;
+	/** The stadium shown may stand in for another until that one is built (an ambiance turning into another, 2026-11-20). */
+	private static boolean holdOver;
 
 	private BlockScenery() {
 	}
@@ -107,7 +109,7 @@ public final class BlockScenery {
 			start(wanted, recipe);
 		}
 		// The previous build of the same stadium (before the field grew) stands in until the new one is ready.
-		if (shown == null || shownKey.stadium() != wanted.stadium()) {
+		if (shown == null || shownKey.stadium() != wanted.stadium() && !holdOver) {
 			return false;
 		}
 		Matrix4f toOrigin = new Matrix4f(pose.last().pose()).translate((float) (shown.originX - center.x), (float) -center.y,
@@ -116,8 +118,17 @@ public final class BlockScenery {
 		return true;
 	}
 
+	/**
+	 * The ambiance changes in the same place (2026-11-20: a transition between two fields of one stadium): the blocks
+	 * shown stay until the new ones are built, instead of the bare floor standing in meanwhile.
+	 */
+	public static void holdOver() {
+		holdOver = shown != null;
+	}
+
 	/** Forgets every stadium built (battle over, the ground's look changed, resource packs reloaded). */
 	public static void clear() {
+		holdOver = false;
 		shown = null;
 		shownKey = null;
 		pending = null; // its result, when it comes, is dropped
@@ -151,6 +162,7 @@ public final class BlockScenery {
 			SceneMesh mesh = done.join();
 			shown = mesh;
 			shownKey = key;
+			holdOver = false;
 			LOG.debug("Stadium blocks ready: {} quads in {} pieces", mesh.quads, mesh.pieces.size());
 		} catch (RuntimeException ex) {
 			LOG.warn("Stadium blocks could not be built, the smooth stadium stays", ex);

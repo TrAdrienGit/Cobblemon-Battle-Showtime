@@ -112,6 +112,14 @@ public final class BattleAmbiance {
 	/** Ticks since this player's battle started ({@link #followOverride}). */
 	private static int sinceStart;
 	private static int flashLeft;
+	/**
+	 * A transition playing (2026-11-20, see {@link Transitions}): the old ambiance, the props and veins of it that stay a
+	 * while to leave in their own way. Its clock is the new ambiance's {@link #ticks}, which starts with it.
+	 */
+	private static Transitions.Transition transition;
+	private static Ambiance outgoing;
+	private static final List<Placed> LEAVING = new ArrayList<>();
+	private static final java.util.Map<Long, int[]> LEAVING_VEINS = new java.util.LinkedHashMap<>();
 	private static int nextBoltId = -2_000_000;
 	private static final Random RANDOM = new Random();
 	private static final List<Floating> FLOATING = new ArrayList<>();
@@ -323,16 +331,176 @@ private static boolean irisChecked;
 			return;
 		}
 		List<UUID> keep = followed;
+		String[] was = followedId == null ? new String[] {null, null} : followedId.split("\\|", 2);
 		Ambiance next = Ambiances.resolve(want[1], want[0]);
-		begin(next, keep, 0); // ends the old one (and forgets what is followed): set again below
+		boolean intro = sinceStart <= 20 || Minecraft.getInstance().screen instanceof com.mystaria.showtime.battle.BattleIntroScreen;
+		// A transition of its own between the two (2026-11-20) plays instead of the cut behind a flash.
+		Transitions.Transition play = active != null && next != null && !intro
+				? Transitions.find(Ambiances.baseAmbiance(was[1]), Ambiances.baseAmbiance(want[1])) : null;
+		Ambiance old = active;
+		List<Placed> oldPlaced = List.copyOf(PLACED);
+		java.util.Map<Long, int[]> oldVeins = new java.util.LinkedHashMap<>(VEINS);
+		begin(next, keep, 0, play != null && java.util.Objects.equals(was[0], want[0])); // ends the old one: set again below
 		owned = true;
 		followed = keep;
 		followedId = id;
-		boolean intro = sinceStart <= 20 || Minecraft.getInstance().screen instanceof com.mystaria.showtime.battle.BattleIntroScreen;
-		if (active != null && next != null && !intro) {
+		if (play != null && active != null) {
+			startTransition(play, old, oldPlaced, oldVeins);
+		} else if (active != null && next != null && !intro) {
 			flashColor = Ambiance.color(next.sky != null ? next.sky.fogColor : null, 0xFFFFFF);
 			flashLeft = FLASH_TICKS;
 		}
+	}
+
+	/** The new ambiance is in: what of the old one leaves on its own stays a while, and the cues at 0 play. */
+	private static void startTransition(Transitions.Transition play, Ambiance old, List<Placed> oldPlaced, java.util.Map<Long, int[]> oldVeins) {
+		transition = play;
+		outgoing = old;
+		for (Placed placed : oldPlaced) {
+			if (play.leaving.containsKey(placed.prop().kind)) {
+				LEAVING.add(placed);
+			}
+		}
+		if (play.veinsFade > 0 && old.veins != null) {
+			LEAVING_VEINS.putAll(oldVeins);
+		}
+		Transitions.Camera camera = play.camera;
+		if (camera != null) {
+			float seconds = camera.seconds > 0 ? camera.seconds : play.ticks / 20f;
+			com.mystaria.showtime.battle.BattleCameraDirector.onSceneChange(seconds, fieldRadius * camera.reach,
+					calm() ? camera.shake * 0.3f : camera.shake, camera.shakeSeconds);
+		}
+		playCues(Minecraft.getInstance(), 0);
+	}
+
+	/** A tick of the transition: its cues, the old props breaking; over once its time is up. */
+	private static void tickTransition(Minecraft mc) {
+		playCues(mc, ticks);
+		boolean sounded = false;
+		for (Placed placed : LEAVING) {
+			Transitions.Leaving how = transition.leaving.get(placed.prop().kind);
+			if (how != null && ticks == Math.round(leaveStart(placed, how)) + how.flare) {
+				shatter(mc, placed, how, !sounded);
+				sounded = how.sound != null;
+			}
+		}
+		if (ticks >= transition.ticks) {
+			endTransition();
+		}
+	}
+
+	private static void endTransition() {
+		transition = null;
+		outgoing = null;
+		LEAVING.clear();
+		LEAVING_VEINS.clear();
+	}
+
+	private static void playCues(Minecraft mc, long at) {
+		for (Transitions.Cue cue : transition.cues) {
+			if (cue.at != at) {
+				continue;
+			}
+			playMoment(mc, cue);
+			if (mc.level == null) {
+				continue;
+			}
+			if (cue.shake > 0) {
+				com.mystaria.showtime.battle.BattleCameraDirector.shake(calm() ? cue.shake * 0.3f : cue.shake, cue.shakeSeconds);
+			}
+			cueDebris(mc, cue);
+			ParticleOptions dust = cue.dust > 0 ? particle(cue.dustParticle) : null;
+			if (dust == null) {
+				continue;
+			}
+			int count = calm() ? cue.dust / 2 : cue.dust;
+			for (int i = 0; i < count; i++) {
+				double angle = RANDOM.nextDouble() * Math.PI * 2;
+				double r = Math.sqrt(RANDOM.nextDouble()) * fieldRadius * cue.dustRadius;
+				Vec3 at2 = center.add(onGround(Math.cos(angle) * r, Math.sin(angle) * r));
+				mc.level.addParticle(dust, at2.x, at2.y + 0.15, at2.z, Math.cos(angle) * 0.04 + (RANDOM.nextDouble() - 0.5) * 0.04,
+						0.02 + RANDOM.nextDouble() * 0.05, Math.sin(angle) * 0.04 + (RANDOM.nextDouble() - 0.5) * 0.04);
+			}
+		}
+	}
+
+	/** A cue's bits of block: falling from above all over the field, and blown out from its centre. */
+	private static void cueDebris(Minecraft mc, Transitions.Cue cue) {
+		BlockState falling = cue.debris > 0 && cue.debrisBlock != null ? block(cue.debrisBlock) : Blocks.AIR.defaultBlockState();
+		if (!falling.isAir()) {
+			ParticleOptions bits = new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.BLOCK, falling);
+			int count = calm() ? cue.debris / 2 : cue.debris;
+			for (int i = 0; i < count; i++) {
+				double angle = RANDOM.nextDouble() * Math.PI * 2;
+				double r = Math.sqrt(RANDOM.nextDouble()) * fieldRadius * 1.1;
+				Vec3 at = center.add(onGround(Math.cos(angle) * r, Math.sin(angle) * r));
+				mc.level.addParticle(bits, at.x, at.y + 4 + RANDOM.nextDouble() * 6, at.z, (RANDOM.nextDouble() - 0.5) * 0.05,
+						-0.2 - RANDOM.nextDouble() * 0.3, (RANDOM.nextDouble() - 0.5) * 0.05);
+			}
+		}
+		BlockState blown = cue.burst > 0 && cue.burstBlock != null ? block(cue.burstBlock) : Blocks.AIR.defaultBlockState();
+		if (!blown.isAir()) {
+			ParticleOptions bits = new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.BLOCK, blown);
+			int count = calm() ? cue.burst / 2 : cue.burst;
+			for (int i = 0; i < count; i++) {
+				double angle = RANDOM.nextDouble() * Math.PI * 2;
+				double speed = 0.4 + RANDOM.nextDouble() * 0.6;
+				Vec3 at = center.add(onGround(Math.cos(angle) * 0.8, Math.sin(angle) * 0.8));
+				mc.level.addParticle(bits, at.x, at.y + 0.4 + RANDOM.nextDouble(), at.z, Math.cos(angle) * speed,
+						0.25 + RANDOM.nextDouble() * 0.45, Math.sin(angle) * speed);
+			}
+		}
+	}
+
+	/** When an old prop starts to leave (its flare), in the transition's ticks: one after another over the spread. */
+	private static double leaveStart(Placed placed, Transitions.Leaving how) {
+		return how.spread * hashFloat(placed.index() * 53 + 7);
+	}
+
+	/** An old crystal breaks: shards of its block fly, a sparkle, its sound (one a tick at most). */
+	private static void shatter(Minecraft mc, Placed placed, Transitions.Leaving how, boolean sound) {
+		if (mc.level == null) {
+			return;
+		}
+		Vec3 mid = center.add(placed.base()).add(placed.dir().scale(placed.length() * 0.4));
+		BlockState state = how.shards != null ? block(how.shards) : Blocks.AIR.defaultBlockState();
+		if (!state.isAir()) {
+			ParticleOptions shards = new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.BLOCK, state);
+			int count = calm() ? how.shardCount / 2 : how.shardCount;
+			for (int i = 0; i < count; i++) {
+				mc.level.addParticle(shards, mid.x + RANDOM.nextGaussian() * 0.3, mid.y + RANDOM.nextGaussian() * 0.3,
+						mid.z + RANDOM.nextGaussian() * 0.3, RANDOM.nextGaussian() * 0.15, 0.1 + RANDOM.nextDouble() * 0.2,
+						RANDOM.nextGaussian() * 0.15);
+			}
+		}
+		ParticleOptions sparkle = particle(how.sparkle);
+		for (int i = 0; sparkle != null && i < 5; i++) {
+			mc.level.addParticle(sparkle, mid.x + RANDOM.nextGaussian() * 0.4, mid.y + RANDOM.nextGaussian() * 0.4,
+					mid.z + RANDOM.nextGaussian() * 0.4, 0, 0.02, 0);
+		}
+		if (sound && how.sound != null) {
+			mc.level.playLocalSound(mid.x, mid.y, mid.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(how.sound)),
+					SoundSource.AMBIENT, how.volume, 0.75f + RANDOM.nextFloat() * 0.5f, false);
+		}
+	}
+
+	/** How much of the old sky and fog still shows: 1 as the transition starts, 0 once blended into the new. */
+	private static float oldShows() {
+		if (transition == null || outgoing == null || transition.blend <= 0) {
+			return 0;
+		}
+		float partial = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(false);
+		float k = Mth.clamp((ticks + partial) / transition.blend, 0, 1);
+		return 1 - k * k * (3 - 2 * k);
+	}
+
+	/** How far the new ambiance's mist has risen: 1 outside a transition. */
+	private static float arrived() {
+		if (transition == null || transition.arrive <= 0) {
+			return 1;
+		}
+		float k = Mth.clamp(ticks / (float) transition.arrive, 0, 1);
+		return k * k * (3 - 2 * k);
 	}
 
 	/**
@@ -636,6 +804,12 @@ private static boolean irisChecked;
 	}
 
 	public static void end() {
+		end(true);
+	}
+
+	/** {@code forgetBlocks} false: the stadium's blocks stand in until the next ambiance's are built (a transition). */
+	private static void end(boolean forgetBlocks) {
+		endTransition();
 		followed = null;
 		followedId = null;
 		owned = false;
@@ -674,7 +848,11 @@ private static boolean irisChecked;
 		SPOT_AIM[1] = null;
 		frustum = null;
 		landInBlocks = false;
-		com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
+		if (forgetBlocks) {
+			com.mystaria.showtime.ambiance.blocks.BlockScenery.clear();
+		} else {
+			com.mystaria.showtime.ambiance.blocks.BlockScenery.holdOver();
+		}
 	}
 
 	public static boolean active() {
@@ -682,7 +860,12 @@ private static boolean irisChecked;
 	}
 
 	private static void begin(Ambiance ambiance, Collection<UUID> battleTrainers, int preview) {
-		end();
+		begin(ambiance, battleTrainers, preview, false);
+	}
+
+	/** {@code samePlace}: the stadium stays the same, its blocks kept until the new ambiance's are built. */
+	private static void begin(Ambiance ambiance, Collection<UUID> battleTrainers, int preview, boolean samePlace) {
+		end(!samePlace);
 		Minecraft mc = Minecraft.getInstance();
 		if (ambiance == null || mc.level == null) {
 			return;
@@ -797,6 +980,9 @@ private static boolean irisChecked;
 		trackArea(mc);
 		if (center == null) {
 			return;
+		}
+		if (transition != null) {
+			tickTransition(mc);
 		}
 		if (distant && mc.player != null) {
 			double dx = mc.player.getX() - center.x;
@@ -946,7 +1132,12 @@ private static boolean irisChecked;
 			case "defeat" -> active.moments.defeat != null ? active.moments.defeat : noCelebration(active.moments.victory);
 			default -> active.moments.named == null ? null : active.moments.named.get(kind);
 		};
-		if (moment == null) {
+		playMoment(mc, moment);
+	}
+
+	/** A moment's effects: one of the battle's, or a transition's cue. */
+	private static void playMoment(Minecraft mc, Ambiance.Moment moment) {
+		if (moment == null || mc.level == null) {
 			return;
 		}
 		ParticleOptions particle = particle(moment.particle);
@@ -1151,19 +1342,19 @@ private static boolean irisChecked;
 	}
 
 	public static Vec3 skyColor(Vec3 world) {
-		return blend(world, global() && active.sky != null ? active.sky.skyColor : null);
+		return skyShown(world, sky -> sky.skyColor);
 	}
 
 	public static Vec3 cloudColor(Vec3 world) {
-		return blend(world, global() && active.sky != null ? active.sky.cloudColor : null);
+		return skyShown(world, sky -> sky.cloudColor);
 	}
 
 	/** The fog colour over the world's ({@code rgb} 0..1, changed in place). */
 	public static void fogColor(float[] rgb) {
-		if (!global() || active.sky == null || active.sky.fogColor == null) {
+		if (!global()) {
 			return;
 		}
-		Vec3 blended = blend(new Vec3(rgb[0], rgb[1], rgb[2]), active.sky.fogColor);
+		Vec3 blended = skyShown(new Vec3(rgb[0], rgb[1], rgb[2]), sky -> sky.fogColor);
 		rgb[0] = (float) blended.x;
 		rgb[1] = (float) blended.y;
 		rgb[2] = (float) blended.z;
@@ -1171,11 +1362,35 @@ private static boolean irisChecked;
 
 	/** Fog start / end in blocks, or NaN for the world's. */
 	public static float fogStart() {
-		return global() && active.sky != null && active.sky.fogStart != null ? active.sky.fogStart : Float.NaN;
+		return fogShown(sky -> sky.fogStart);
 	}
 
 	public static float fogEnd() {
-		return global() && active.sky != null && active.sky.fogEnd != null ? active.sky.fogEnd : Float.NaN;
+		return fogShown(sky -> sky.fogEnd);
+	}
+
+	/** A sky colour (one of {@code pick}) over the world's: the ambiance's, the old one's still showing in a transition. */
+	private static Vec3 skyShown(Vec3 world, java.util.function.Function<Ambiance.Sky, String> pick) {
+		if (!global()) {
+			return world;
+		}
+		Vec3 now = active.sky != null ? blend(world, active.sky, pick.apply(active.sky)) : world;
+		float old = oldShows();
+		if (old <= 0) {
+			return now;
+		}
+		Vec3 was = outgoing.sky != null ? blend(world, outgoing.sky, pick.apply(outgoing.sky)) : world;
+		return now.lerp(was, old);
+	}
+
+	private static float fogShown(java.util.function.Function<Ambiance.Sky, Float> pick) {
+		if (!global() || active.sky == null || pick.apply(active.sky) == null) {
+			return Float.NaN;
+		}
+		float now = pick.apply(active.sky);
+		float old = oldShows();
+		Float was = old > 0 && outgoing.sky != null ? pick.apply(outgoing.sky) : null;
+		return was == null ? now : Mth.lerp(old, now, was);
 	}
 
 	/** {@code LevelRendererHideWorldMixin}: no block of the world drawn. */
@@ -1207,13 +1422,13 @@ private static boolean irisChecked;
 		return active.sky.cloudHeight != null ? active.sky.cloudHeight : world;
 	}
 
-	private static Vec3 blend(Vec3 world, String hex) {
+	private static Vec3 blend(Vec3 world, Ambiance.Sky sky, String hex) {
 		if (hex == null) {
 			return world;
 		}
 		int rgb = Ambiance.color(hex, 0);
 		Vec3 target = new Vec3(((rgb >> 16) & 255) / 255.0, ((rgb >> 8) & 255) / 255.0, (rgb & 255) / 255.0);
-		return world.lerp(target, Mth.clamp(active.sky.strength, 0f, 1f));
+		return world.lerp(target, Mth.clamp(sky.strength, 0f, 1f));
 	}
 
 	// ---------------------------------------------------------------- drawing
@@ -1298,7 +1513,7 @@ private static boolean irisChecked;
 		}
 		if (active.islands != null || active.island != null || active.crowd != null || active.lightTowers != null
 				|| active.cavern != null || active.sea != null || active.land != null || active.hall != null
-				|| active.grass != null || active.flowers != null || !PLACED.isEmpty() || !ROCKS.isEmpty()) {
+				|| active.grass != null || active.flowers != null || !PLACED.isEmpty() || !LEAVING.isEmpty() || !ROCKS.isEmpty()) {
 			// Solid scenery first, writing depth: the glows drawn after are hidden behind it where they should be.
 			buffers.endBatch();
 			landInBlocks = false;
@@ -1376,7 +1591,15 @@ private static boolean irisChecked;
 			eachTile(pose, camera, () -> drawSprites(pose, buffers, active.sprites, time + tileShift));
 		}
 		if (active.veins != null) {
-			eachTile(pose, camera, () -> drawVeins(pose, buffers, active.veins, time + tileShift));
+			eachTile(pose, camera, () -> drawVeins(pose, buffers, active.veins, VEINS, time + tileShift, 1f));
+		}
+		if (transition != null && outgoing != null && outgoing.veins != null && !LEAVING_VEINS.isEmpty()) {
+			// The old veins die out, flickering.
+			float k = Mth.clamp(time / Math.max(1, transition.veinsFade), 0, 1);
+			float fade = (1 - k) * (1 - k) * (0.7f + 0.3f * Mth.sin(time * 2.3f));
+			if (fade > 0.01f) {
+				eachTile(pose, camera, () -> drawVeins(pose, buffers, outgoing.veins, LEAVING_VEINS, time + tileShift, fade));
+			}
 		}
 		if (active.skyCracks != null) {
 			drawSkyCracks(pose, buffers, active.skyCracks, time);
@@ -1411,7 +1634,7 @@ private static boolean irisChecked;
 		if (active.hall != null) {
 			drawHall(pose, buffers, active.hall, time, true);
 		}
-		if (!PLACED.isEmpty()) {
+		if (!PLACED.isEmpty() || !LEAVING.isEmpty()) {
 			drawProps(pose, buffers, time, true);
 		}
 		if (wormholeBurst >= 0 && !active.wormholes.isEmpty()) {
@@ -2418,7 +2641,7 @@ private static boolean irisChecked;
 		// Sheets close enough to blend into one another, never more than 0.6 apart.
 		double step = Mth.clamp(height / layers, 0.25, 0.6);
 		// Each sheet as dense as one of the old layers, whatever the spacing.
-		float density = (float) (mist.alpha * layers * step / height);
+		float density = (float) (mist.alpha * layers * step / height) * arrived();
 		int bx0 = Mth.floor(center.x);
 		int bz0 = Mth.floor(center.z);
 		int n = Mth.ceil(radius) + 1;
@@ -2586,7 +2809,8 @@ private static boolean irisChecked;
 	 * from its middle out to the sides it runs to, and down the side of a step to the block below; a thin hot core
 	 * inside. No two pieces overlap, so the glow is even along a vein.
 	 */
-	private static void drawVeins(PoseStack pose, MultiBufferSource buffers, Ambiance.Veins veins, float time) {
+	private static void drawVeins(PoseStack pose, MultiBufferSource buffers, Ambiance.Veins veins, java.util.Map<Long, int[]> cells,
+			float time, float fade) {
 		VertexConsumer out = ambianceBuffer(buffers, com.mystaria.showtime.ShowtimeRenderTypes.GLOW);
 		Matrix4f m = pose.last().pose();
 		int color = Ambiance.color(veins.color, 0xFF2A8A);
@@ -2594,7 +2818,7 @@ private static boolean irisChecked;
 		double t = time / 20.0 * veins.pulse;
 		int bx0 = Mth.floor(center.x);
 		int bz0 = Mth.floor(center.z);
-		for (var entry : VEINS.entrySet()) {
+		for (var entry : cells.entrySet()) {
 			int dx = (int) (entry.getKey() >> 32);
 			int dz = (int) (long) entry.getKey();
 			int arms = entry.getValue()[0];
@@ -2606,7 +2830,7 @@ private static boolean irisChecked;
 			}
 			float taper = (float) Mth.clamp(1 - walked / veins.length, 0.15, 1);
 			float pulse = (float) (0.45 + 0.55 * Math.max(0, Math.sin(walked * 0.9 - t * 3)));
-			int alpha = Math.round(veins.alpha * taper * pulse);
+			int alpha = Math.round(veins.alpha * taper * pulse * fade);
 			if (alpha < 3) {
 				continue;
 			}
@@ -6678,20 +6902,23 @@ for (int fx = -1; fx <= 1; fx++) {
 					}
 				}
 				case "crystal" -> {
-					drawCrystalCluster(out, m, placed, time, glow);
+					drawCrystalCluster(out, m, placed, time, glow, -1, 0);
 					if (glow && prop.beams > 0 && (placed.on() == Anchors.Kind.CEILING || placed.on() == Anchors.Kind.FLOAT)) {
 						if (beamProp != prop) {
 							beamProp = prop;
 							beamsLeft = prop.beams;
 						}
 						if (beamsLeft-- > 0) {
-							drawPrismBeam(out, m, placed, time);
+							drawPrismBeam(out, m, placed, time, -1);
 						}
 					}
 				}
 				default -> {
 				}
 			}
+		}
+		if (transition != null) {
+			drawLeaving(out, m, time, glow);
 		}
 		if (!glow) {
 			int rockColor = 0x5A4E42;
@@ -6710,6 +6937,39 @@ for (int fx = -1; fx <= 1; fx++) {
 				Vec3 at = new Vec3(r.from().x, y, r.from().z);
 				int c = active.cavern != null ? caveLit(active.cavern, rockColor, at, up) : shade(rockColor, up, 0.6f);
 				boulder(out, m, at, r.size(), r.spin() + t * 0.15, c, (int) r.at());
+			}
+		}
+	}
+
+	/**
+	 * The old ambiance's props leaving (a transition): each crystal trembles and flares white, then breaks apart and is
+	 * gone; the old prism beams fade out.
+	 */
+	private static void drawLeaving(VertexConsumer out, Matrix4f m, float time, boolean glow) {
+		Ambiance.Prop beamProp = null;
+		int beamsLeft = 0;
+		for (Placed placed : LEAVING) {
+			Transitions.Leaving how = transition.leaving.get(placed.prop().kind);
+			if (how == null || !"crystal".equals(placed.prop().kind) || nearFade(placed.base(), 1.0, 1.5) < 0.2f) {
+				continue;
+			}
+			double u = time - leaveStart(placed, how);
+			float flare = (float) Mth.clamp(u / Math.max(1, how.flare), 0, 1);
+			double broken = (u - how.flare) / Math.max(1, how.breakTicks);
+			if (broken >= 1) {
+				continue;
+			}
+			float scale = broken <= 0 ? 1f : (float) (1 - broken * broken);
+			drawCrystalCluster(out, m, placed, time, glow, scale, broken <= 0 ? flare : (float) (1 - broken));
+			Ambiance.Prop prop = placed.prop();
+			if (glow && prop.beams > 0 && (placed.on() == Anchors.Kind.CEILING || placed.on() == Anchors.Kind.FLOAT)) {
+				if (beamProp != prop) {
+					beamProp = prop;
+					beamsLeft = prop.beams;
+				}
+				if (beamsLeft-- > 0 && time < 12) {
+					drawPrismBeam(out, m, placed, time, 1 - time / 12f);
+				}
 			}
 		}
 	}
@@ -6741,21 +7001,33 @@ for (int fx = -1; fx <= 1; fx++) {
 		return prop.glow * (0.7f + 0.3f * Mth.sin(time / 20f * prop.pulse + placed.index() * 1.3f));
 	}
 
-	/** A crystal cluster on its anchor (a floating one turns slowly, crystals pointing every way), growing in. */
-	private static void drawCrystalCluster(VertexConsumer out, Matrix4f m, Placed placed, float time, boolean glow) {
+	/**
+	 * A crystal cluster on its anchor (a floating one turns slowly, crystals pointing every way), growing in.
+	 * {@code size} 0..1 overrides the growing (a crystal of an ambiance leaving, breaking apart; negative: growing in);
+	 * {@code flare} 0..1 makes it tremble and shine white.
+	 */
+	private static void drawCrystalCluster(VertexConsumer out, Matrix4f m, Placed placed, float time, boolean glow, float size, float flare) {
 		Ambiance.Prop prop = placed.prop();
 		if (prop.colors.isEmpty()) {
 			return;
 		}
 		int c = placed.index();
-		float g = Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
-		g = g * g * (3 - 2 * g);
+		float g;
+		if (size >= 0) {
+			g = size;
+		} else {
+			g = Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
+			g = g * g * (3 - 2 * g);
+		}
 		boolean floating = placed.on() == Anchors.Kind.FLOAT;
 		Vec3 base = floating ? placed.base().add(0, Math.sin(time / 30.0 + c) * 0.3, 0) : placed.base();
+		if (flare > 0) {
+			base = base.add(Math.sin(time * 3.1 + c) * 0.05 * flare, 0, Math.cos(time * 2.7 + c * 0.7) * 0.05 * flare);
+		}
 		double spin = floating ? time / 160.0 + c : 0;
 		int color = Ambiance.color(prop.colors.get(c % prop.colors.size()), 0x8AD8FF);
 		int accent = Ambiance.color(prop.colors.get((c + 1) % prop.colors.size()), color);
-		float strength = crystalStrength(placed, time);
+		float strength = crystalStrength(placed, time) * (1 + 2.5f * flare);
 		int many = 3 + (int) (hashFloat(c * 71 + 4) * 4);
 		double big = placed.length() * (floating ? 0.6 : 1);
 		for (int k = 0; k < many; k++) {
@@ -6770,6 +7042,9 @@ for (int fx = -1; fx <= 1; fx++) {
 			Vec3 tip = foot.add(dir.scale(length));
 			float width = (float) (length * 0.16) * crystalWidth(c, k);
 			int tint = k == 1 ? accent : color;
+			if (flare > 0) {
+				tint = lerpColor(tint, 0xFFFFFF, 0.6f * flare);
+			}
 			if (glow) {
 				crystalGlint(out, m, foot, tip, width, tint, strength, c * 7 + k);
 			} else {
@@ -6782,8 +7057,11 @@ for (int fx = -1; fx <= 1; fx++) {
 		}
 	}
 
-	/** A prism beam from a crystal on a ceiling (or floating) onto the field, swaying and changing colour. */
-	private static void drawPrismBeam(VertexConsumer out, Matrix4f m, Placed placed, float time) {
+	/**
+	 * A prism beam from a crystal on a ceiling (or floating) onto the field, swaying and changing colour; {@code fade}
+	 * 0..1: going out (a transition; negative: growing in with the crystal).
+	 */
+	private static void drawPrismBeam(VertexConsumer out, Matrix4f m, Placed placed, float time, float fade) {
 		Ambiance.Prop prop = placed.prop();
 		int n = prop.colors.size();
 		int b = placed.index();
@@ -6794,7 +7072,7 @@ for (int fx = -1; fx <= 1; fx++) {
 		int c0 = Ambiance.color(prop.colors.get((int) Math.floor(phase) % n), 0xFFFFFF);
 		int c1 = Ambiance.color(prop.colors.get(((int) Math.floor(phase) + 1) % n), 0xFFFFFF);
 		int color = lerpColor(c0, c1, (float) (phase - Math.floor(phase)));
-		float g = Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
+		float g = fade >= 0 ? fade : Mth.clamp(time / Math.max(1, prop.grow), 0, 1);
 		float strength = crystalStrength(placed, time) * g;
 		beam(out, m, placed.base(), to, 0.25f, 1.6f, color, Math.round(34 * strength));
 		floorDisc(out, m, to.x, to.z, 1.4, color, Math.round(55 * strength), 0.15);

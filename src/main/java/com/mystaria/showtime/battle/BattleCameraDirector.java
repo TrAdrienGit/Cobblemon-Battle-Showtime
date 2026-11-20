@@ -220,6 +220,24 @@ public final class BattleCameraDirector {
 		}
 	}
 
+	/**
+	 * The place changes round the battle (2026-11-20, an ambiance turning into another): the second camera pulls back to
+	 * film the whole field, {@code reach} blocks round its centre, for {@code seconds}, with a shake ({@code shake}
+	 * blocks at first, over {@code shakeSeconds}; 0 for none). The first camera keeps its course.
+	 */
+	public static void onSceneChange(float seconds, double reach, float shake, float shakeSeconds) {
+		if (battleActive && v2() && stage != null && seconds > 0) {
+			BattleCameraV2.onSceneChange(seconds, reach, shake, shakeSeconds);
+		}
+	}
+
+	/** The second camera shakes: {@code amount} blocks at first, dying out over {@code seconds}. */
+	public static void shake(float amount, float seconds) {
+		if (battleActive && v2()) {
+			BattleCameraV2.shake(amount, seconds);
+		}
+	}
+
 	/** A move's hit lands on {@code entity} (Cobblemon's impact cue): the second camera cuts onto it. */
 	public static void onHit(Entity entity) {
 		if (battleActive && v2()) {

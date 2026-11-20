@@ -1015,7 +1015,7 @@ public final class Ambiance {
 	 * What a moment of the battle adds: a burst of particles, a flash, a strike, a sound, a screen filter for a short
 	 * while.
 	 */
-	public static final class Moment {
+	public static class Moment {
 		public String particle;
 		public int count = 30;
 		public String flash;
