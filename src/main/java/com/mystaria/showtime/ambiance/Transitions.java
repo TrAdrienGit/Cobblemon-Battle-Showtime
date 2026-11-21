@@ -31,10 +31,12 @@ public final class Transitions {
 	private static final Logger LOG = LoggerFactory.getLogger(Transitions.class);
 	private static final Gson GSON = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 	private static final String FOLDER = "transitions";
+	/** No ambiance: a field going away, or one laid where there was none. */
+	public static final String NONE = "none";
 
 	/** A transition, as written in its file. */
 	public static final class Transition {
-		/** The ambiances it goes from and to (ids, "*" for any). */
+		/** The ambiances it goes from and to (ids, "*" for any, "none" for no ambiance). */
 		public List<String> from = List.of();
 		public List<String> to = List.of();
 		/** How long it plays, in ticks. */
@@ -183,28 +185,33 @@ public final class Transitions {
 	}
 
 	private static String qualify(String namespace, String id) {
-		return "*".equals(id) || id.contains(":") ? id : namespace + id;
+		return "*".equals(id) || NONE.equals(id) || id.contains(":") ? id : namespace + id;
 	}
 
 	/**
-	 * The transition from the ambiance {@code from} to {@code to} (ids; a preset counts for its ambiance), or null: the
-	 * first naming both exactly, else one with a "*" on a side.
+	 * The transition from the ambiance {@code from} to {@code to} (ids, "none" for no ambiance; a preset counts for its
+	 * ambiance), or null: one naming both exactly, else one naming the ambiance left (its way of leaving, whatever comes),
+	 * else one naming the ambiance coming (its way of arriving, from anything).
 	 */
 	public static Transition find(String from, String to) {
 		if (from == null || to == null) {
 			return null;
 		}
-		Transition loose = null;
+		Transition leaving = null;
+		Transition arriving = null;
 		for (Transition transition : all) {
 			boolean fromExact = transition.fromIds.contains(from);
 			boolean toExact = transition.toIds.contains(to);
 			if (fromExact && toExact) {
 				return transition;
 			}
-			if (loose == null && (fromExact || transition.fromIds.contains("*")) && (toExact || transition.toIds.contains("*"))) {
-				loose = transition;
+			if (leaving == null && fromExact && transition.toIds.contains("*")) {
+				leaving = transition;
+			}
+			if (arriving == null && toExact && transition.fromIds.contains("*")) {
+				arriving = transition;
 			}
 		}
-		return loose;
+		return leaving != null ? leaving : arriving;
 	}
 }

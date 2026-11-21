@@ -162,7 +162,10 @@ of its own plays instead of the cut behind a flash: two or three seconds in whic
 battle. The new ambiance is in from the first tick; what of the old one the file names
 stays a while to leave.
 
-- `from`, `to`: ambiance ids (a preset counts for its ambiance; `*` for any). An exact pair wins over one with a `*`.
+- `from`, `to`: ambiance ids (a preset counts for its ambiance; `*` for any; `none` for no ambiance). An exact pair
+  wins, then a departure (`from` exact, `to` `*`), then an arrival (`from` `*`, `to` exact). A field going away (to no
+  ambiance) plays its transition through an empty ambiance, ended once the transition is over; one laid where there was
+  none plays with no old ambiance to leave.
   Unqualified ids take the file's namespace: a file in another mod names Showtime's ambiances in full
   (`cobblemon_battle_showtime:cave`). Every namespace's `transitions/` folder is read.
 - `camera` (optional; the second camera only): it pulls back from where it is, up and away, to circle the whole field

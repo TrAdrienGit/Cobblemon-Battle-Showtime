@@ -336,9 +336,19 @@ private static boolean irisChecked;
 		String[] was = followedId == null ? new String[] {null, null} : followedId.split("\\|", 2);
 		Ambiance next = Ambiances.resolve(want[1], want[0]);
 		boolean intro = sinceStart <= 20 || Minecraft.getInstance().screen instanceof com.mystaria.showtime.battle.BattleIntroScreen;
-		// A transition of its own between the two (2026-11-20) plays instead of the cut behind a flash.
-		Transitions.Transition play = active != null && next != null && !intro
-				? Transitions.find(Ambiances.baseAmbiance(was[1]), Ambiances.baseAmbiance(want[1])) : null;
+		// A transition of its own between the two (2026-11-20) plays instead of the cut behind a flash. To or from no
+		// ambiance too: a field going away leaves through an empty ambiance, ended once the transition is over.
+		Transitions.Transition play = null;
+		boolean leaving = false;
+		if (!intro && (active != null || next != null)) {
+			String from = active != null ? Ambiances.baseAmbiance(was[1]) : Transitions.NONE;
+			String to = next != null ? Ambiances.baseAmbiance(want[1]) : Transitions.NONE;
+			play = Transitions.find(from, to);
+			if (play != null && next == null) {
+				next = new Ambiance();
+				leaving = true;
+			}
+		}
 		Ambiance old = active;
 		List<Placed> oldPlaced = List.copyOf(PLACED);
 		java.util.Map<Long, int[]> oldVeins = new java.util.LinkedHashMap<>(VEINS);
@@ -348,6 +358,7 @@ private static boolean irisChecked;
 		followedId = id;
 		if (play != null && active != null) {
 			startTransition(play, old, oldPlaced, oldVeins);
+			farewell = leaving;
 		} else if (active != null && next != null && !intro) {
 			flashColor = Ambiance.color(next.sky != null ? next.sky.fogColor : null, 0xFFFFFF);
 			flashLeft = FLASH_TICKS;
@@ -355,16 +366,37 @@ private static boolean irisChecked;
 		}
 	}
 
+	/** The empty ambiance a field went away through is to end (its transition is over), and it ends. */
+	private static boolean farewell;
+	private static boolean farewellDue;
+
+	private static void endFarewell() {
+		farewellDue = false;
+		farewell = false;
+		if (active == null || followed == null) {
+			return;
+		}
+		List<UUID> keep = followed;
+		String id = followedId;
+		begin(null, keep, 0, false);
+		owned = true;
+		followed = keep;
+		followedId = id;
+	}
+
 	/** The new ambiance is in: what of the old one leaves on its own stays a while, and the cues at 0 play. */
 	private static void startTransition(Transitions.Transition play, Ambiance old, List<Placed> oldPlaced, java.util.Map<Long, int[]> oldVeins) {
 		transition = play;
 		outgoing = old;
+		if (old == null) {
+			oldPlaced = List.of();
+		}
 		for (Placed placed : oldPlaced) {
 			if (play.leaving.containsKey(placed.prop().kind)) {
 				LEAVING.add(placed);
 			}
 		}
-		if (play.veinsFade > 0 && old.veins != null) {
+		if (play.veinsFade > 0 && old != null && old.veins != null) {
 			LEAVING_VEINS.putAll(oldVeins);
 		}
 		if (play.holdOld > 0 || play.cover != null && "spread".equals(play.cover.mode)) {
@@ -400,6 +432,7 @@ private static boolean irisChecked;
 		}
 		if (ticks >= transition.ticks) {
 			endTransition();
+			farewellDue = farewell;
 		}
 	}
 
@@ -948,6 +981,8 @@ private static boolean irisChecked;
 	/** {@code forgetBlocks} false: the stadium's blocks stand in until the next ambiance's are built (a transition). */
 	private static void end(boolean forgetBlocks) {
 		endTransition();
+		farewell = false;
+		farewellDue = false;
 		followed = null;
 		followedId = null;
 		owned = false;
@@ -1086,6 +1121,9 @@ private static boolean irisChecked;
 		if (mc.level != null && !mc.isPaused()) {
 			followOverride();
 			followArea(mc);
+			if (farewellDue) {
+				endFarewell();
+			}
 		}
 		if (active == null || mc.level == null || mc.isPaused()) {
 			if (active != null && mc.level == null) {
