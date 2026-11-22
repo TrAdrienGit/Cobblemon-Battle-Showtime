@@ -72,6 +72,12 @@ final class SceneLevel implements LevelReader {
 	/** Column (x, z) -> its lowest stored block's y. A column absent is outside the part. */
 	private final Long2IntOpenHashMap bottoms = new Long2IntOpenHashMap();
 	private final Long2ByteOpenHashMap blockLight = new Long2ByteOpenHashMap();
+	/**
+	 * The real world's light where it was read (real blocks dressed, 2026-11-22): a hub under a roof is lit by its
+	 * lamps, not by the sky; with the sky's light alone, the dressed blocks came out black.
+	 */
+	private final Long2ByteOpenHashMap realSky = new Long2ByteOpenHashMap();
+	private final Long2ByteOpenHashMap realBlock = new Long2ByteOpenHashMap();
 	private final Ground ground;
 	private final Level host;
 	private final Holder<Biome> biome;
@@ -123,8 +129,18 @@ final class SceneLevel implements LevelReader {
 	}
 
 	private int light(long key) {
-		int own = blockLight.get(key);
+		int own = Math.max(blockLight.get(key), realBlock.get(key));
 		return lightOf == null ? own : Math.max(own, lightOf.blockLight.get(key));
+	}
+
+	/** The real world's sky and block light at {@code key}, read on the client thread. */
+	void realLight(long key, int sky, int block) {
+		realSky.put(key, (byte) sky);
+		realBlock.put(key, (byte) block);
+	}
+
+	private int sky(long key) {
+		return realSky.containsKey(key) ? realSky.get(key) : skyLight;
 	}
 
 	SceneLevel waterTint(int rgb) {
@@ -220,12 +236,12 @@ final class SceneLevel implements LevelReader {
 
 	@Override
 	public int getBrightness(LightLayer layer, BlockPos pos) {
-		return layer == LightLayer.SKY ? skyLight : light(pos.asLong());
+		return layer == LightLayer.SKY ? sky(pos.asLong()) : light(pos.asLong());
 	}
 
 	@Override
 	public int getRawBrightness(BlockPos pos, int darkening) {
-		return Math.max(skyLight - darkening, light(pos.asLong()));
+		return Math.max(sky(pos.asLong()) - darkening, light(pos.asLong()));
 	}
 
 	@Override

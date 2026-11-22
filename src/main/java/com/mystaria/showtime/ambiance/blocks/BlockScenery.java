@@ -97,11 +97,47 @@ public final class BlockScenery {
 	}
 
 	/**
+	 * A stadium seen from around a battle (2026-11-22): the real blocks round the field dressed in its blocks, none
+	 * added ({@link ReskinScene}). {@code stadium}: what is shown (by identity); {@code checker}: a hall's dark squares,
+	 * or null. Drawn a hair towards the camera, over the real blocks it covers. False while not ready.
+	 */
+	public static boolean drawReskin(PoseStack pose, MultiBufferSource buffers, Vec3 center, Vec3 camera, Frustum frustum,
+			Object stadium, java.util.List<String> top, java.util.List<String> checker, float tile, java.util.List<String> soil,
+			java.util.List<String> rock, Ambiance.Land land, Ambiance.Grass grass, Ambiance.Flowers flowers, double reach) {
+		Key wanted = new Key(stadium, "reskin", center, (float) reach);
+		java.util.List<LandScene.Plants.Kind> plants = land != null ? LandScene.Plants.kinds(land, grass, flowers, reach)
+				: java.util.List.of();
+		pose.pushPose();
+		// Scaled round the camera: every vertex a thousandth closer, so these win over the real faces under them.
+		pose.last().pose().set(new Matrix4f().scaling(0.999f).mul(pose.last().pose()));
+		boolean drawn = draw(wanted, () -> ReskinScene.recipe(top, checker, tile, soil, rock, plants, center, reach), pose, buffers, center,
+				camera, frustum);
+		if (drawn && reskinLogged != shown) {
+			reskinLogged = shown;
+			LOG.debug("Dressed blocks drawn: {} of {} pieces in view", visiblePieces(camera, frustum), shown.pieces.size());
+		}
+		pose.popPose();
+		return drawn;
+	}
+
+	/**
 	 * A box hall's mirror planes as built of blocks (absolute x west, x east, z north, z south), across which the people
 	 * in it are drawn mirrored.
 	 */
 	public static double[] hallMirrorPlanes(Vec3 center, double half) {
 		return HallScene.mirrorPlanes(center, half);
+	}
+
+	private static SceneMesh reskinLogged;
+
+	private static int visiblePieces(Vec3 camera, Frustum frustum) {
+		int n = 0;
+		for (SceneMesh.Piece piece : shown.pieces) {
+			if (frustum == null || frustum.isVisible(piece.box().move(shown.originX, 0, shown.originZ))) {
+				n++;
+			}
+		}
+		return n;
 	}
 
 	private static boolean draw(Key wanted, Supplier<Supplier<SceneMesh>> recipe, PoseStack pose, MultiBufferSource buffers,
@@ -177,7 +213,11 @@ public final class BlockScenery {
 			shown = mesh;
 			shownKey = key;
 			holdOver = false;
-			LOG.debug("Stadium blocks ready: {} quads in {} pieces", mesh.quads, mesh.pieces.size());
+			if ("reskin".equals(key.look())) {
+				LOG.debug("Blocks round a battle seen from afar dressed: {} quads", mesh.quads);
+			} else {
+				LOG.debug("Stadium blocks ready: {} quads in {} pieces", mesh.quads, mesh.pieces.size());
+			}
 		} catch (RuntimeException ex) {
 			LOG.warn("Stadium blocks could not be built, the smooth stadium stays", ex);
 			failedKey = key;

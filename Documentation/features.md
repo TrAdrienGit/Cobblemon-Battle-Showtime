@@ -129,7 +129,10 @@ remove it from roadmap.md.
 - Placed on the floor of the battle (2026-11-10): its height is the lowest of the trainers and the active Pokémon,
   and floor lights are laid point by point on the block surface below them, following hollows, steps and slopes.
 - Seen from afar: a player near a battle's field sees its decorations; the world-wide parts (time, sky, weather,
-  filter, sound) apply once inside the field's circle.
+  filter, sound) apply once inside the field's circle. Its stadium is not built there (2026-11-22): the real whole
+  blocks round the field are dressed in the stadium's blocks, lit by the world's own light, with Minecraft's plants on
+  top; no block is added, so the people around still walk where they did. Another mod can impose an ambiance on a
+  battle seen from afar (`ShowtimeHooks.addDistantAmbianceOverride`).
 - Resource packs can add ambiances. Another mod can force one for a battle (`ShowtimeHooks.setAmbianceOverride`).
 - Stadiums and ambiances split (2026-11-19, [stadiums.md](stadiums.md)): a **stadium** is the place (the void, Ultra
   Island, the arena, a cave vault, a volcanic den), an **ambiance** what is added on top; any of one goes with any of

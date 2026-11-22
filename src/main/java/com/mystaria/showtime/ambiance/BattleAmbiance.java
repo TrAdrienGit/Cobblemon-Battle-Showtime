@@ -325,7 +325,8 @@ private static boolean irisChecked;
 	 * swapped in when it ends.
 	 */
 	private static void followOverride() {
-		if (followed == null) {
+		// No battle left (a spectator's back button drops it without an end): nothing imposed changes, no transition.
+		if (followed == null || com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle() == null) {
 			return;
 		}
 		sinceStart++;
@@ -698,6 +699,8 @@ private static boolean irisChecked;
 		}
 		distant = true;
 		distantSpots = spots;
+		org.slf4j.LoggerFactory.getLogger("cobblemon_battle_showtime").debug("Battle seen from afar: stadium {}, ambiance {}, blocks dressed: {}",
+				want[0], want[1], reskinned());
 		inside = true; // corrected at the first tick: off if the player stands outside
 		updateField(Minecraft.getInstance().level);
 		placeProps(Minecraft.getInstance().level, active); // the field is only known now
@@ -722,6 +725,15 @@ private static boolean irisChecked;
 
 	/** Twice a second: the scene imposed over the battle seen from afar changed (its field did), it is played again. */
 	private static void followDistant() {
+		// Held but not shown: once nothing of this player's holds the ambiance any more (a battle they watched is over,
+		// 2026-11-22: the hub's ambiance took its place), the battle seen from afar comes back. A preview gives it back
+		// itself when it ends.
+		if (!distant && heldDistantSpots != null && followed == null && (active == null || area != null) && previewLeft == 0) {
+			if (++distantTicks % 20 == 0) {
+				startDistant(heldDistantId, heldDistantSpots);
+			}
+			return;
+		}
 		if (!distant || heldDistantSpots == null || ++distantTicks % 10 != 0) {
 			return;
 		}
@@ -1620,8 +1632,47 @@ private static boolean irisChecked;
 	}
 
 	/** {@code LevelRendererHideWorldMixin}: no block of the world drawn. */
+	/**
+	 * A stadium seen from around a battle (2026-11-22): not built, its blocks dress the real ones round the field, so
+	 * the people there still see where they walk (no hole covered, no wall raised).
+	 */
+	private static boolean reskinned() {
+		return distant && active != null && (active.cavern != null || active.sea != null || active.land != null || active.hall != null);
+	}
+
+	private static void drawReskin(PoseStack pose, MultiBufferSource buffers) {
+		List<String> top;
+		List<String> checker = null;
+		float tile = 1;
+		List<String> soil;
+		List<String> rock;
+		Object stadium;
+		if (active.hall != null) {
+			Ambiance.Hall hall = active.hall;
+			stadium = hall;
+			top = hall.floorBlocks;
+			if (hall.checker != null) {
+				checker = hall.checkerBlocks;
+				tile = hall.tile;
+			}
+			soil = hall.wallBlocks;
+			rock = hall.wallBlocks;
+		} else {
+			Ambiance.Ground blocks = active.land != null ? active.land.blocks : active.sea != null ? active.sea.blocks : active.cavern.blocks;
+			stadium = active.land != null ? active.land : active.sea != null ? active.sea : active.cavern;
+			if (blocks == null) {
+				blocks = new Ambiance.Ground();
+			}
+			top = blocks.surface;
+			rock = blocks.bands != null && !blocks.bands.isEmpty() ? blocks.bands : blocks.rock;
+			soil = active.cavern != null ? blocks.rock : blocks.soil;
+		}
+		com.mystaria.showtime.ambiance.blocks.BlockScenery.drawReskin(pose, buffers, center, cameraWorld, frustum, stadium, top, checker,
+				tile, soil, rock, active.land, active.grass, active.flowers, Math.min(48, fieldRadius + 16));
+	}
+
 	public static boolean hidesWorld() {
-		return global() && active.hideWorld;
+		return global() && active.hideWorld && !distant; // seen from around a battle, the world stays (2026-11-22)
 	}
 
 	/** Rain shown (0..1), or {@code world}'s. */
@@ -1746,32 +1797,36 @@ private static boolean irisChecked;
 			seaInBlocks = false;
 			caveInBlocks = false;
 			hallInBlocks = false;
-			if (active.cavern != null) {
-				drawCavern(pose, buffers, active.cavern, time, false);
+			if (reskinned()) {
+				drawReskin(pose, buffers);
+			} else {
+				if (active.cavern != null) {
+					drawCavern(pose, buffers, active.cavern, time, false);
+				}
+				if (active.sea != null) {
+					drawSea(pose, buffers, active.sea, time, false);
+				}
+				if (active.land != null) {
+					drawLand(pose, buffers, active.land, time, false);
+				}
+				if (active.hall != null) {
+					drawHall(pose, buffers, active.hall, time, false);
+				}
 			}
-			if (active.sea != null) {
-				drawSea(pose, buffers, active.sea, time, false);
-			}
-			if (active.land != null) {
-				drawLand(pose, buffers, active.land, time, false);
-			}
-			if (active.hall != null) {
-				drawHall(pose, buffers, active.hall, time, false);
-			}
-			if (active.grass != null && !landInBlocks) {
+			if (active.grass != null && !landInBlocks && !reskinned()) {
 				eachTile(pose, camera, () -> drawGrass(pose, buffers, active.grass, time + tileShift));
 			}
-			if (active.flowers != null && !landInBlocks) {
+			if (active.flowers != null && !landInBlocks && !reskinned()) {
 				eachTile(pose, camera, () -> drawFlowers(pose, buffers, active.flowers, time + tileShift));
 			}
 			drawProps(pose, buffers, time, false);
 			if (active.islands != null) {
 				drawIslands(pose, buffers, active.islands, time, false);
 			}
-			if (active.island != null) {
+			if (active.island != null && !distant) {
 				drawFieldIsland(pose, buffers, active.island, time, false);
 			}
-			if (active.crowd != null) {
+			if (active.crowd != null && !distant) {
 				drawStands(pose, buffers, active.crowd, time, false);
 			}
 			if (active.lightTowers != null) {
@@ -1848,20 +1903,22 @@ private static boolean irisChecked;
 		if (active.islands != null) {
 			drawIslands(pose, buffers, active.islands, time, true);
 		}
-		if (active.island != null) {
+		if (active.island != null && !distant) {
 			drawFieldIsland(pose, buffers, active.island, time, true);
 		}
-		if (active.cavern != null) {
-			drawCavern(pose, buffers, active.cavern, time, true);
-		}
-		if (active.sea != null) {
-			drawSea(pose, buffers, active.sea, time, true);
-		}
-		if (active.land != null) {
-			drawLand(pose, buffers, active.land, time, true);
-		}
-		if (active.hall != null) {
-			drawHall(pose, buffers, active.hall, time, true);
+		if (!reskinned()) {
+			if (active.cavern != null) {
+				drawCavern(pose, buffers, active.cavern, time, true);
+			}
+			if (active.sea != null) {
+				drawSea(pose, buffers, active.sea, time, true);
+			}
+			if (active.land != null) {
+				drawLand(pose, buffers, active.land, time, true);
+			}
+			if (active.hall != null) {
+				drawHall(pose, buffers, active.hall, time, true);
+			}
 		}
 		if (!PLACED.isEmpty() || !LEAVING.isEmpty()) {
 			drawProps(pose, buffers, time, true);
@@ -5240,6 +5297,9 @@ private static boolean irisChecked;
 
 	/** The place's floor at (x, z): a land's, an islet's, a seabed's, a hall's; else the real ground's top. */
 	private static double floorY(double x, double z) {
+		if (distant) {
+			return groundAt(x, z) + 0.12; // seen from around: the real ground, the stadium only dresses it
+		}
 		if (active.land != null) {
 			return landY(active.land, x, z);
 		}
@@ -6987,7 +7047,9 @@ for (int fx = -1; fx <= 1; fx++) {
 			return;
 		}
 		double ground = groundAt(0, 0);
-		if (ambiance.cavern != null) {
+		if (distant) {
+			// Seen from around a battle: no vault nor walls of its own, the props go on the real blocks (below).
+		} else if (ambiance.cavern != null) {
 			anchors = vaultAnchors(ambiance.cavern);
 		} else if (ambiance.sea != null) {
 			anchors = seaAnchors(ambiance.sea);
