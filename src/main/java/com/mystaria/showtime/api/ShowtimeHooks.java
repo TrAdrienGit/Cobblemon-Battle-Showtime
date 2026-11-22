@@ -202,6 +202,37 @@ public final class ShowtimeHooks {
 		return ambianceOverride.get();
 	}
 
+	private static final java.util.List<java.util.function.Supplier<String>> DISTANT_LAYERS = new java.util.concurrent.CopyOnWriteArrayList<>();
+	private static java.util.function.Supplier<String> distantFieldStadium = () -> null;
+
+	/**
+	 * (1.8, 2026-11-22) Like {@link #addAmbianceOverride}, for a battle seen from afar (not this player's own, not
+	 * watched): an ambiance imposed over the one that battle came with while it answers non-null, read again twice a
+	 * second. Phantasmon Events: the ambiance of the Pokémon Reborn field in play there, for those standing around.
+	 */
+	public static void addDistantAmbianceOverride(java.util.function.Supplier<String> layer) {
+		DISTANT_LAYERS.add(layer);
+	}
+
+	public static String distantAmbianceOverride() {
+		for (java.util.function.Supplier<String> layer : DISTANT_LAYERS) {
+			String id = layer.get();
+			if (id != null) {
+				return id;
+			}
+		}
+		return null;
+	}
+
+	/** (1.8, 2026-11-22) Like {@link #setFieldStadium}, for a battle seen from afar. */
+	public static void setDistantFieldStadium(java.util.function.Supplier<String> stadium) {
+		distantFieldStadium = stadium == null ? () -> null : stadium;
+	}
+
+	public static String distantFieldStadium() {
+		return distantFieldStadium.get();
+	}
+
 	private static java.util.function.Supplier<AmbianceArea> areaAmbiance = () -> null;
 
 	/**

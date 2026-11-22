@@ -264,6 +264,11 @@ private static boolean irisChecked;
 	 * base scene's, or its preset's; else the player's own.
 	 */
 	private static String[] scene(String imposed, String base) {
+		return scene(imposed, base, false);
+	}
+
+	/** {@code fromAfar}: for a battle seen from afar, whose field suggests its stadium through its own hook. */
+	private static String[] scene(String imposed, String base, boolean fromAfar) {
 		String imposedAmbiance = imposed == null ? "" : Ambiances.sceneAmbiance(imposed);
 		String ambiance = imposedAmbiance.isEmpty() ? ownChoice() : imposedAmbiance;
 		String stadium = ShowtimeHooks.stadiumOverride();
@@ -283,7 +288,7 @@ private static boolean irisChecked;
 			stadium = Ambiances.isPreset(imposedAmbiance) ? null : ownStadium();
 		}
 		if (Ambiances.FIELD_STADIUM.equals(stadium)) {
-			String suggested = ShowtimeHooks.fieldStadium();
+			String suggested = fromAfar ? ShowtimeHooks.distantFieldStadium() : ShowtimeHooks.fieldStadium();
 			stadium = suggested == null ? NONE : suggested;
 		}
 		return new String[] {stadium, ambiance};
@@ -679,10 +684,13 @@ private static boolean irisChecked;
 	 * player's own — restricted to its field, whose sides {@code spots} gives. Never over this player's own battle.
 	 */
 	public static void startDistant(String id, java.util.function.Supplier<List<Vec3>> spots) {
+		heldDistantId = id; // held even under this player's battle or a preview: it comes back after a preview
+		heldDistantSpots = spots;
 		if (active() && !distant && area == null) {
 			return;
 		}
-		String[] want = scene(id == null || id.isEmpty() ? null : id, null);
+		String[] want = distantScene(id);
+		distantKey = want[0] + "|" + want[1];
 		begin(Ambiances.resolve(want[1], want[0]), List.of(), 0);
 		owned = true;
 		if (active == null) {
@@ -693,6 +701,41 @@ private static boolean irisChecked;
 		inside = true; // corrected at the first tick: off if the player stands outside
 		updateField(Minecraft.getInstance().level);
 		placeProps(Minecraft.getInstance().level, active); // the field is only known now
+	}
+
+	/**
+	 * The battle seen from afar this player holds (2026-11-22), kept while a preview of the menu stands in for it, so
+	 * it comes back once the preview is over (it used to end, and the hub's ambiance took its place).
+	 */
+	private static String heldDistantId;
+	private static java.util.function.Supplier<List<Vec3>> heldDistantSpots;
+	/** The scene it shows ({@code stadium|ambiance}), checked twice a second against what is imposed over it. */
+	private static String distantKey;
+	private static int distantTicks;
+
+	/** A battle seen from afar's scene: what another mod imposes over it (a Reborn field), over its own ({@code id}). */
+	private static String[] distantScene(String id) {
+		String own = id == null || id.isEmpty() ? null : id;
+		String imposed = ShowtimeHooks.distantAmbianceOverride();
+		return imposed == null ? scene(own, null, true) : scene(imposed, own, true);
+	}
+
+	/** Twice a second: the scene imposed over the battle seen from afar changed (its field did), it is played again. */
+	private static void followDistant() {
+		if (!distant || heldDistantSpots == null || ++distantTicks % 10 != 0) {
+			return;
+		}
+		String[] want = distantScene(heldDistantId);
+		if (!java.util.Objects.equals(want[0] + "|" + want[1], distantKey)) {
+			startDistant(heldDistantId, heldDistantSpots);
+		}
+	}
+
+	/** The menu's preview is over: the battle seen from afar it stood in for comes back. */
+	private static void resumeDistant() {
+		if (heldDistantSpots != null && !active()) {
+			startDistant(heldDistantId, heldDistantSpots);
+		}
 	}
 
 	/** The player's own ambiance, or none once it is reserved and no longer unlocked for them. */
@@ -712,6 +755,9 @@ private static boolean irisChecked;
 
 	/** The battle seen from afar is over (or no longer seen). */
 	public static void endDistant() {
+		heldDistantId = null;
+		heldDistantSpots = null;
+		distantKey = null;
 		if (distant) {
 			end();
 		}
@@ -971,6 +1017,7 @@ private static boolean irisChecked;
 	public static void endPreview() {
 		if (previewLeft > 0) {
 			end();
+			resumeDistant();
 		}
 	}
 
@@ -1120,6 +1167,7 @@ private static boolean irisChecked;
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && !mc.isPaused()) {
 			followOverride();
+			followDistant();
 			followArea(mc);
 			if (farewellDue) {
 				endFarewell();
@@ -1134,6 +1182,7 @@ private static boolean irisChecked;
 		ticks++;
 		if (previewLeft > 0 && --previewLeft == 0) {
 			end();
+			resumeDistant();
 			return;
 		}
 		if (flashLeft > 0) {
