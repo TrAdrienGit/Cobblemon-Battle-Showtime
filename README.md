@@ -28,6 +28,12 @@ server and nothing for the other players to install.
   screen, corrupted, inferno, abyss, sakura festival, blizzard, mirage, synthwave, ultra space, champion's stage; a
   "calm effects" setting turns off strobes and flashes.
   Resource packs can add more.
+- **Stadiums of Minecraft's own blocks**: the battle can move to a place of its own (meadow, forest, desert, summit,
+  temple, sea, seabed, caves, a volcanic den, a factory, a mirror hall, a big top...), built block by block, so
+  shader packs light it like the world. Any stadium goes with any ambiance, and a setting picks the scene from the
+  biome you stand in.
+- **Seen from afar**: players near a battle see its ambiance too, with the real blocks round the field dressed in
+  the stadium's blocks.
 - **Animated trainers** (with Player Animation Library): guard, throw, recall, attack order, victory and defeat, with
   several animation profiles to pick from.
 - **Your own battle music**: drop `.ogg` files in a resource pack for battles, victories and defeats; pick,

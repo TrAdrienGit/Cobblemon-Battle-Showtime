@@ -4,7 +4,8 @@ Written 2026-11-10 from a recording of every ambiance in a real battle (about 40
 clearly its own, readable (the Pokémon always visible), never blinding, and richer in detail. Some must stay simple:
 simple is a quality too (Starry Night, Silver Screen, Storm).
 
-Status: **in progress**. Tick items off here as they land; move finished ambiances to features.md.
+Status: **done** (2026-11-10). Every step below landed and was validated in game the same day; the finished
+ambiances are in features.md. Kept as the record of the pass. Later work on places: [stadiums.md](stadiums.md).
 
 Done 2026-11-10 (built, not yet seen in game): E1 soft capped cones with near-camera fade (`beam`), new layers
 `mirror_ball`, `dance_floor`, `neon_grid`, `sprites`, `critters` and a moment `text`, a `TINT` render type for solid

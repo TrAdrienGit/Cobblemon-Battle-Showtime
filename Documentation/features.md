@@ -190,6 +190,12 @@ remove it from roadmap.md.
 - Ambiances laid on a place (2026-11-19, API `ShowtimeHooks.setAreaAmbiance`): outside battles, a box of the world
   another mod names (Phantasmon Events: a hub) plays an ambiance for whoever stands in it, fixed to the box, not to the
   player: 24-block tiles, every floor of each with its own effects, none over voids or liquids; a battle takes over and the place's comes back after.
+- Transitions between two ambiances (2026-11-20, `ambiance/Transitions`, format in data-formats.md): when the
+  ambiance another mod imposes changes during a battle (a League Reborn field turning into another), a scene of two or
+  three seconds plays instead of a cut behind a flash: the second camera pulls back and circles the field, the ground
+  shakes, the old place's props leave (crystals shatter, veins die out) while the new one rises. Departures to no
+  ambiance and arrivals from none too (2026-11-21). The content lives in the driving mod (Phantasmon Events: one file
+  per Reborn field change). Validated in game.
 - The Temple's marble pavement (2026-11-19): 2-block tiles on the world's grid, each its own shade, joints between
   them, grey veins running across; in blocks whatever the ground setting (land option `tiles`).
 

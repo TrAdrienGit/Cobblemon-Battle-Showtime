@@ -15,7 +15,6 @@ features.md.
 
 ## Later
 
-- **Ambiance for spectators of foreign battles**: an API call so the driving mod can pass the battle's ambiance on.
 - **Per-ambiance music**: an ambiance may name a music folder, used when the player's pack has one.
 - **More intros**, each after another game's style, and a setting to pick a favourite or random.
 - **Capture effects** for wild battles, as an option, if wild battles ever get staged (they are left alone on
