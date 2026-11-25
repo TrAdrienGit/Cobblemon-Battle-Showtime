@@ -83,6 +83,21 @@ public final class ShowtimeHooks {
 		return musicScreen.apply(parent);
 	}
 
+	private static java.util.function.Supplier<BattlePanelStyle> panelStyle = () -> BattlePanelStyle.SHOWTIME;
+
+	/**
+	 * The colours of the panel over Cobblemon's battle screen, asked each frame (2026-11-25): Phantasmon gives the
+	 * look chosen in its menu. A null answer means Showtime's own.
+	 */
+	public static void setPanelStyle(java.util.function.Supplier<BattlePanelStyle> style) {
+		panelStyle = style;
+	}
+
+	public static BattlePanelStyle panelStyle() {
+		BattlePanelStyle style = panelStyle.get();
+		return style == null ? BattlePanelStyle.SHOWTIME : style;
+	}
+
 	/**
 	 * Other trainers' animation profiles (phase E3): Phantasmon gives each player's choice for a moment id
 	 * ({@code guard}, {@code send_out}...), or null for the default. The local player's own comes from Showtime's

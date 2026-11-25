@@ -24,6 +24,7 @@ Everything else is internal and may change at any time. All calls on the client 
 | `setGlowKeeper(IntPredicate)` | Entity ids whose glowing outline must be kept. |
 | `setForeignPacketCheck(BooleanSupplier)` | True while Cobblemon's handlers run a packet of *your* battle: the classic path then ignores it. |
 | `setMusicScreen(Function<Screen, Screen>)` | Replace the music screen opened from the menu. |
+| `setPanelStyle(Supplier<BattlePanelStyle>)` | (1.7.39) The colours of the panel over Cobblemon's battle screen (music, volume, buttons), asked each frame; null = Showtime's own (`BattlePanelStyle.SHOWTIME`). A button accent equal to one of `BattleButton`'s named colours is drawn in the style's matching one. Phantasmon gives the look chosen in its menu. |
 | `setTrainerProfiles(BiFunction<UUID, String, String>)` | Animation of another trainer for a moment (from your own sync); null = the default. |
 | `setLocalProfileListener(Consumer<Map<String,String>>)` | Told when the local player changes their animation profile (to sync it). |
 | `setTrainersListener(Consumer<Collection<UUID>>)` | Told which trainers a battle starts with (to fetch their profiles). |

@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 import com.mystaria.showtime.api.BattleButton;
+import com.mystaria.showtime.api.BattlePanelStyle;
 import com.mystaria.showtime.api.ShowtimeHooks;
 import com.mystaria.showtime.audio.BattleMusic;
 import com.mystaria.showtime.audio.MusicSettings;
@@ -30,7 +31,8 @@ public final class BattleScreenButtons {
 
 	/**
 	 * One compact card (2026-11-08: fewer boxes on screen, room for Cobblemon Battle Extras): the track and
-	 * "next" on one row, the volume under it, then the buttons, thinner. Cobblemon's colours, as Showtime's menu.
+	 * "next" on one row, the volume under it, then the buttons, thinner. Cobblemon's colours, as Showtime's menu, unless
+	 * another mod gives its look ({@link ShowtimeHooks#setPanelStyle}).
 	 */
 	private static final int W = 124;
 	private static final int H = 14;
@@ -53,14 +55,10 @@ public final class BattleScreenButtons {
 	private static final int SMALL = 16;
 	private static final int NEXT_W = 22;
 
-	// Cobblemon's greys and teal, as Showtime's menu.
-	private static final int CARD = 0xE02F2F2F;
-	private static final int EDGE = 0xFF676767;
-	private static final int BG_TOP = 0xFF4B4B4B;
-	private static final int BG_BOTTOM = 0xFF3D3D3D;
-	private static final int BG_HOVER_TOP = 0xFF5A5A5A;
-	private static final int BG_HOVER_BOTTOM = 0xFF4B4B4B;
+	// Colours: Showtime's own (Cobblemon's greys), or another mod's look (ShowtimeHooks.setPanelStyle, 2026-11-25).
 	private static final int SHINE = 0x30FFFFFF;
+	/** The style of the frame being drawn. Render thread only. */
+	private static BattlePanelStyle style = BattlePanelStyle.SHOWTIME;
 
 	private static boolean listOpen;
 	private static int listScroll;
@@ -221,6 +219,7 @@ public final class BattleScreenButtons {
 
 	private static void render(Screen screen, GuiGraphics g, int mouseX, int mouseY) {
 		Font font = Minecraft.getInstance().font;
+		style = ShowtimeHooks.panelStyle();
 		int x = x(screen);
 		g.pose().pushPose();
 		g.pose().translate(0, 0, 400);
@@ -228,8 +227,8 @@ public final class BattleScreenButtons {
 		List<BattleButton> shown = shown();
 		// One card behind everything.
 		int bottom = buttonY(shown.size()) - GAP;
-		g.fill(x - PAD, TOP - PAD, x + W + PAD, bottom + PAD, CARD);
-		outline(g, x - PAD, TOP - PAD, W + PAD * 2, bottom - TOP + PAD * 2, EDGE);
+		g.fill(x - PAD, TOP - PAD, x + W + PAD, bottom + PAD, style.card());
+		outline(g, x - PAD, TOP - PAD, W + PAD * 2, bottom - TOP + PAD * 2, style.edge());
 
 		// The player: title (opens the list) and next, then − volume +.
 		ResourceLocation current = BattleMusic.current();
@@ -245,14 +244,14 @@ public final class BattleScreenButtons {
 		int barX = x + SMALL + GAP;
 		int barW = W - (SMALL + GAP) * 2;
 		button(g, font, x, cy, SMALL, CONTROLS_H, in(mouseX, mouseY, x, cy, SMALL, CONTROLS_H), "−", BattleButton.CYAN);
-		g.fill(barX, cy, barX + barW, cy + CONTROLS_H, 0xFF1A1A1A);
+		g.fill(barX, cy, barX + barW, cy + CONTROLS_H, style.well());
 		int filled = Math.round((barW - 2) * ShowtimeConfig.musicVolume());
-		g.fill(barX + 1, cy + 1, barX + 1 + filled, cy + CONTROLS_H - 1, BattleButton.GREEN);
+		g.fill(barX + 1, cy + 1, barX + 1 + filled, cy + CONTROLS_H - 1, style.green());
 		String percent = Math.round(ShowtimeConfig.musicVolume() * 100) + " %";
 		g.pose().pushPose();
 		g.pose().translate(barX + barW / 2f, cy + 1.5f, 0);
 		g.pose().scale(0.8f, 0.8f, 1f);
-		g.drawString(font, percent, -font.width(percent) / 2, 0, 0xFFFFFFFF, true);
+		g.drawString(font, percent, -font.width(percent) / 2, 0, style.text(), true);
 		g.pose().popPose();
 		button(g, font, barX + barW + GAP, cy, SMALL, CONTROLS_H, in(mouseX, mouseY, barX + barW + GAP, cy, SMALL, CONTROLS_H), "+", BattleButton.CYAN);
 
@@ -272,23 +271,23 @@ public final class BattleScreenButtons {
 			} else {
 				int lx = listX(screen);
 				int rows = Math.min(LIST_ROWS, tracks.size());
-				g.fillGradient(lx, TOP, lx + LIST_W, TOP + rows * ROW + 4, BG_TOP, BG_BOTTOM);
-				outline(g, lx, TOP, LIST_W, rows * ROW + 4, EDGE);
+				g.fillGradient(lx, TOP, lx + LIST_W, TOP + rows * ROW + 4, style.top(), style.bottom());
+				outline(g, lx, TOP, LIST_W, rows * ROW + 4, style.edge());
 				for (int i = 0; i < rows; i++) {
 					ResourceLocation file = tracks.get(listScroll + i);
 					int ry = TOP + 2 + i * ROW;
 					boolean hovered = in(mouseX, mouseY, lx, ry, LIST_W, ROW);
 					if (hovered) {
-						g.fill(lx + 1, ry, lx + LIST_W - 1, ry + ROW, BG_HOVER_TOP);
+						g.fill(lx + 1, ry, lx + LIST_W - 1, ry + ROW, style.hoverTop());
 					}
 					String name = BattleMusic.title(file);
 					name = font.width(name) > LIST_W - 10 ? font.plainSubstrByWidth(name, LIST_W - 14) + "…" : name;
-					g.drawString(font, name, lx + 5, ry + 2, file.equals(current) ? BattleButton.GREEN : 0xFFFFFFFF, true);
+					g.drawString(font, name, lx + 5, ry + 2, file.equals(current) ? style.green() : style.text(), true);
 				}
 				if (tracks.size() > LIST_ROWS) {
 					int barH = Math.max(8, rows * ROW * LIST_ROWS / tracks.size());
 					int barY = TOP + 2 + (rows * ROW - barH) * listScroll / Math.max(1, tracks.size() - LIST_ROWS);
-					g.fill(lx + LIST_W - 3, barY, lx + LIST_W - 1, barY + barH, BattleButton.CYAN);
+					g.fill(lx + LIST_W - 3, barY, lx + LIST_W - 1, barY + barH, style.cyan());
 				}
 			}
 		}
@@ -296,13 +295,14 @@ public final class BattleScreenButtons {
 	}
 
 	private static void button(GuiGraphics g, Font font, int x, int y, int w, int h, boolean hovered, String label, int accent) {
-		// A raised Cobblemon-grey key: light top edge, dark bottom edge, the accent on a thin left bar.
-		g.fillGradient(x, y, x + w, y + h, hovered ? BG_HOVER_TOP : BG_TOP, hovered ? BG_HOVER_BOTTOM : BG_BOTTOM);
+		// A raised key: light top edge, dark bottom edge, the accent on a thin left bar.
+		accent = style.accent(accent);
+		g.fillGradient(x, y, x + w, y + h, hovered ? style.hoverTop() : style.top(), hovered ? style.hoverBottom() : style.bottom());
 		g.fill(x, y, x + w, y + 1, SHINE);
 		g.fill(x, y + h - 1, x + w, y + h, 0x60000000);
 		g.fill(x, y, x + 2, y + h, accent);
 		String text = font.width(label) > w - 10 ? font.plainSubstrByWidth(label, w - 14) + "…" : label;
-		g.drawString(font, text, x + 2 + (w - 2 - font.width(text)) / 2, y + (h - 8) / 2 + 1, hovered ? 0xFFFFFFFF : accent, true);
+		g.drawString(font, text, x + 2 + (w - 2 - font.width(text)) / 2, y + (h - 8) / 2 + 1, hovered ? style.text() : accent, true);
 	}
 
 	private static void outline(GuiGraphics g, int x, int y, int w, int h, int color) {
