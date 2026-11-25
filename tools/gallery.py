@@ -55,6 +55,29 @@ if KIND == "set_pieces":
              "fps=10,scale=400:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];"
              "[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
              "-loop", "0", os.path.join(OUT, name + "_400px.gif")])
+    # The three chained with crossfades, looping without a jump (as the other reels, clips of different lengths).
+    paths = [os.path.join(clips, f"{i:02d}_{name}.mp4") for i, (name, _, _) in enumerate(CLIPS, 1)]
+    lengths = [end - start for _, start, end in CLIPS]
+    inputs = []
+    for p in paths + [paths[0]]:
+        inputs += ["-i", p]
+    n = len(paths)
+    parts = [f"[{n}:v]trim=0:{FADE},setpts=PTS-STARTPTS[head]"]
+    prev, offset = "[0:v]", lengths[0] - FADE
+    for k in range(1, n):
+        parts.append(f"{prev}[{k}:v]xfade=transition=fade:duration={FADE}:offset={offset:.3f}[x{k}]")
+        prev, offset = f"[x{k}]", offset + lengths[k] - FADE
+    parts.append(f"{prev}[head]xfade=transition=fade:duration={FADE}:offset={offset:.3f}[all]")
+    parts.append(f"[all]trim={FADE}:{offset + FADE:.3f},setpts=PTS-STARTPTS[reel]")
+    reel = os.path.join(OUT, KIND + "_reel.mp4")
+    run(inputs + ["-filter_complex", ";".join(parts), "-map", "[reel]", "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", reel])
+    run(["-i", reel, "-vf",
+         "fps=12,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=sierra2_4a",
+         "-loop", "0", os.path.join(OUT, KIND + ".gif")])
+    run(["-i", reel, "-vf",
+         "fps=8,scale=400:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];"
+         "[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
+         "-loop", "0", os.path.join(OUT, KIND + "_400px.gif")])
     print("done")
     sys.exit(0)
 
