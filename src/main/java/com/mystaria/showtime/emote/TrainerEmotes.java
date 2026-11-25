@@ -272,6 +272,28 @@ public final class TrainerEmotes {
 		}
 	}
 
+	/**
+	 * A set piece's gesture (2026-11-25, {@code BattleShowtime}): {@code entity} plays {@code name} at once, then goes back
+	 * to the guard. Nothing when it is not a player or Player Animation Library is missing.
+	 */
+	public static void special(Entity entity, String name) {
+		Minecraft mc = Minecraft.getInstance();
+		if (PLAYER == null || !(entity instanceof Player player) || mc.level == null) {
+			return;
+		}
+		for (Map.Entry<UUID, Trainer> entry : TRAINERS.entrySet()) {
+			if (ShowtimeHooks.player(mc.level, entry.getKey()) == entity) {
+				entry.getValue().queue.clear();
+				entry.getValue().playing = Moment.ATTACK; // not a loop: the guard waits for the gesture's end
+				break;
+			}
+		}
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(NAMESPACE, name);
+		if (!PLAYER.play(player, id) && MISSING.add(id.toString())) {
+			LOG.warn("Trainer animation {} not found", id);
+		}
+	}
+
 	/** The battle is over: the guard stops, a victory or defeat still playing ends first. */
 	public static void end() {
 		inBattle = false;

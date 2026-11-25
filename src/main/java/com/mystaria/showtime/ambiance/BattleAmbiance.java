@@ -1717,6 +1717,9 @@ private static boolean irisChecked;
 	 * where they are.
 	 */
 	public static void render(WorldRenderContext context) {
+		if (com.mystaria.showtime.battle.BattleShowtime.hidesWorld()) {
+			return; // a set piece's backdrop stands in for the stadium too (2026-11-25)
+		}
 		if (area == null || center == null) {
 			renderScene(context);
 			return;

@@ -64,6 +64,8 @@ remove it from roadmap.md.
   intro can name its star, whose intro it is, so that it features them on both screens.
 - The trainers are drawn at any distance during the intro; the stand-ins keep their own angle.
 - The battle runs underneath; Cobblemon's battle screen comes back when the intro ends.
+- After an intro, the filmed send-outs (opponent's Pokémon, then ours over the shoulder) blend straight into the
+  battle camera's first shot when it films the battle (2026-11-25), back to the player's view only when it is off.
 
 ## Moves (`move/`)
 
@@ -98,11 +100,30 @@ remove it from roadmap.md.
 - **End-of-turn damage**: Cobblemon's own effects for Leech Seed, Fire Spin and Infestation; Magma Storm plays Fire
   Spin's.
 
-## Set pieces (`battle/BattleShowtime`, `battle/ShowtimeOverlay`)
+## Set pieces (`battle/BattleShowtime`, `battle/SetPieceScene`, `battle/ShowtimeOverlay`)
 
 - Mega Evolution, Primal Reversion, Z-Power and Terastallization each have a set piece on both clients; the battle
   screen steps aside meanwhile.
-- A terastallized Pokémon glows in its Tera type's colour.
+- Since 2026-11-25 they are staged in the world, like the games' cut scenes, instead of a 2D layer: each starts on the
+  trainer (the stage's trainer nearest to the Pokémon), follows the power to the Pokémon, then stays on it. The 2D
+  layer keeps only the letterbox and the flashes between moments.
+  - Mega (7.2 s): Key Stone on the wrist, rainbow link, black silhouettes of trainer and Pokémon on a pink burst,
+    faceted shell wrapped in ribbons that cracks with gold and shatters into its facets (model switch), light rays
+    and the emblem (Ω / α for Primal) over the new form.
+  - Z-Move (6.2 s): Z-Crystal and golden spirals, stream of power, golden blaze under a giant Z with a dolly zoom,
+    pillar of light and shockwaves.
+  - Tera (7.4 s): Tera Orb charged above the trainer's head under a night sky, thrown, crystal star, hexagonal
+    prisms growing round the Pokémon, shatter into a shard spray, the Pokémon crystalline under its Tera jewel.
+- The trainer (a player, with Player Animation Library) gestures meanwhile: `special_mega` touches the Key Stone and
+  thrusts the arm forward, `special_z` crosses the arms then thrusts one forward, `special_tera` raises both arms to
+  the sky round the orb, then throws it.
+- The Mega shell fills in until it hides the Pokémon, which curls up inside it meanwhile (drawn smaller, so nothing
+  sticks out); the shatter is the reveal, the new form bursting back to its size. The
+  Z-Move shows its emblem, a Z-Crystal with a bold Z, over the Pokémon until the release.
+- During the most stylised moments the world's blocks, the stadium and every other entity are hidden behind the set's
+  backdrop (`hidesWorld`, `hides`).
+- A terastallized Pokémon keeps a crystal tint of its Tera type (`LivingEntityRendererTintMixin`) and glows in its
+  colour until the end of the battle.
 
 ## Ambiances (`ambiance/`)
 

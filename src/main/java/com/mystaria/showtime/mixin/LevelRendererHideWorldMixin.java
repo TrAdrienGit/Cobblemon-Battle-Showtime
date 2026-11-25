@@ -22,7 +22,7 @@ abstract class LevelRendererHideWorldMixin {
 	@Inject(method = "renderSectionLayer", at = @At("HEAD"), cancellable = true)
 	private void showtime$hideTerrain(RenderType layer, double x, double y, double z, Matrix4f frustum, Matrix4f projection,
 			CallbackInfo ci) {
-		if (BattleAmbiance.hidesWorld()) {
+		if (BattleAmbiance.hidesWorld() || com.mystaria.showtime.battle.BattleShowtime.hidesWorld()) {
 			ci.cancel();
 		}
 	}

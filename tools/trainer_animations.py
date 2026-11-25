@@ -319,6 +319,54 @@ ANIMATIONS += [
     ]),
 ]
 
+# The set pieces' gestures (2026-11-25), played by BattleShowtime on the Pokémon's trainer: not moments, so they never
+# show among the profile's variants. Timed on the set pieces: the trainer is on screen for their first seconds.
+ANIMATIONS += [
+    animation("special_mega", "Mega Evolution: touches the Key Stone on the wrist, then thrusts the arm towards the Pokemon.", [
+        (0, "INOUTSINE", merge(neutral(), GUARD)),
+        (6, "OUTQUAD", {"head": {"pitch": 0.3, "yaw": 0},
+                        "rightArm": {"pitch": -1.3, "yaw": 0.5, "roll": 0, "bend": ELBOW * 1.4},
+                        "leftArm": {"pitch": -1.2, "yaw": -0.6, "roll": 0, "bend": ELBOW * 1.0}}),
+        (24, "INOUTSINE", {"rightArm": {"pitch": -1.35}, "leftArm": {"pitch": -1.25}}),
+        (28, "OUTBACK", {"torso": {"pitch": -0.08, "yaw": -0.2}, "head": {"pitch": 0.05, "yaw": 0.2},
+                         "rightArm": {"pitch": -1.6, "yaw": 0.05, "roll": 0, "bend": 0},
+                         "leftArm": {"pitch": -0.2, "yaw": 0, "roll": -0.1, "bend": ELBOW * 0.9},
+                         "rightLeg": {"pitch": -0.3, "bend": KNEE * 0.35}, "leftLeg": {"pitch": 0.25}}),
+        (60, "INOUTSINE", {"rightArm": {"pitch": -1.55}}),
+        (74, "INOUTSINE", GUARD),
+    ]),
+
+    animation("special_z", "Z-Move: arms crossed before the chest, then one arm thrust forward in a wide stance.", [
+        (0, "INOUTSINE", merge(neutral(), GUARD)),
+        (6, "OUTQUAD", {"torso": {"pitch": -0.08}, "head": {"pitch": 0.15},
+                        "rightArm": {"pitch": -1.35, "yaw": 0.7, "roll": 0, "bend": ELBOW * 1.2},
+                        "leftArm": {"pitch": -1.35, "yaw": -0.7, "roll": 0, "bend": ELBOW * 1.2}}),
+        (22, "INOUTSINE", {"rightArm": {"pitch": -1.4}, "leftArm": {"pitch": -1.4}}),
+        (28, "OUTBACK", {"torso": {"pitch": -0.1, "yaw": -0.25}, "head": {"pitch": 0.1, "yaw": 0.25},
+                         "rightArm": {"pitch": -1.6, "yaw": 0, "bend": 0},
+                         "leftArm": {"pitch": 0.3, "yaw": 0, "roll": -0.15, "bend": ELBOW * 1.3},
+                         "rightLeg": {"pitch": -0.35, "bend": KNEE * 0.45}, "leftLeg": {"pitch": 0.3, "bend": KNEE * 0.2}}),
+        (56, "INOUTSINE", {"rightArm": {"pitch": -1.55}}),
+        (68, "INOUTSINE", GUARD),
+    ]),
+
+    animation("special_tera", "Terastallization: both arms raised to the sky, palms almost joined round the Tera Orb, then thrown forward.", [
+        (0, "INOUTSINE", merge(neutral(), GUARD)),
+        (10, "OUTQUAD", {"torso": {"pitch": 0.04, "yaw": 0}, "head": {"pitch": -0.5, "yaw": 0},
+                         "rightArm": {"pitch": -2.95, "yaw": 0, "roll": 0.36, "bend": ELBOW * 0.2},
+                         "leftArm": {"pitch": -2.95, "yaw": 0, "roll": -0.36, "bend": ELBOW * 0.2},
+                         "rightLeg": {"pitch": -0.05, "bend": KNEE * 0.05}, "leftLeg": {"pitch": 0.05, "bend": KNEE * 0.05}}),
+        (22, "INOUTSINE", {"rightArm": {"pitch": -3.02, "roll": 0.4}, "leftArm": {"pitch": -3.02, "roll": -0.4}}),
+        (34, "INOUTSINE", {"rightArm": {"pitch": -2.95, "roll": 0.36}, "leftArm": {"pitch": -2.95, "roll": -0.36}}),
+        (40, "OUTBACK", {"torso": {"pitch": -0.12}, "head": {"pitch": 0.05},
+                         "rightArm": {"pitch": -1.7, "roll": 0.15, "bend": 0},
+                         "leftArm": {"pitch": -1.7, "roll": -0.15, "bend": 0},
+                         "rightLeg": {"pitch": -0.3, "bend": KNEE * 0.4}, "leftLeg": {"pitch": 0.25, "bend": KNEE * 0.1}}),
+        (58, "INOUTSINE", {"rightArm": {"pitch": -1.65}, "leftArm": {"pitch": -1.65}}),
+        (70, "INOUTSINE", GUARD),
+    ]),
+]
+
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)

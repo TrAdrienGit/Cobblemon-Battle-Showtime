@@ -18,7 +18,10 @@ abstract class EntityRendererCinematicMixin {
 	@Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
 	private void showtime$introTrainers(Entity entity, Frustum frustum, double camX, double camY, double camZ,
 			CallbackInfoReturnable<Boolean> cir) {
-		if (BattleCinematic.forcedVisible(entity)) {
+		if (com.mystaria.showtime.battle.BattleShowtime.hides(entity)) {
+			// A set piece's backdrop stands in for the world: only its trainer and Pokémon are on it (2026-11-25).
+			cir.setReturnValue(false);
+		} else if (BattleCinematic.forcedVisible(entity)) {
 			cir.setReturnValue(true);
 		}
 	}

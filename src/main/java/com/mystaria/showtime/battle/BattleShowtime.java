@@ -25,36 +25,42 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import com.mystaria.showtime.api.ShowtimeHooks;
 import com.mystaria.showtime.api.Transformation;
 
 /**
- * The battle gimmicks as set pieces (2026-10-06), on both clients' scene. While one plays,
- * the camera is taken ({@code CameraMixin}, {@code GameRendererShowtimeMixin}), Cobblemon's battle screen and the HUD are
- * hidden, the 2D layer is drawn by {@link ShowtimeOverlay}, and a battle that can wait for it does (Phantasmon's
- * host engine, {@link #pauseSeconds}).
+ * The battle gimmicks as set pieces (2026-10-06; staged in the world since 2026-11-25), on both clients' scene. While
+ * one plays, the camera is taken ({@code CameraMixin}, {@code GameRendererShowtimeMixin}), Cobblemon's battle screen and
+ * the HUD are hidden, and a battle that can wait for it does (Phantasmon's host engine, {@link #pauseSeconds}). This
+ * class keeps the timeline, the camera, the sounds and the models' colours; {@link SetPieceScene} draws the set in the
+ * world, {@link ShowtimeOverlay} only the letterbox and the flashes.
+ *
+ * <p>Each one starts on the trainer, as in the games: the camera finds the Pokémon's trainer (the stage's trainer
+ * nearest to it, and the person standing there), films the gesture, follows the power to the Pokémon, then stays on
+ * it. During the most stylised moments the world and every other entity are hidden behind the set's backdrop
+ * ({@link #hidesWorld}, {@link #hides}).
  *
  * <ul>
- *   <li><b>Mega Evolution</b> (after X/Y's): the scene darkens, motes of light are drawn into the Pokémon, a white
- *   cocoon wrapped in swirling pink ribbons, rainbow flares, the shell turns lilac and cracks with golden light,
- *   shatters — the model switches in the flash — and the Mega symbol appears over a rainbow burst.
- *   <b>Primal Reversion</b>: the same in Groudon's red / Kyogre's blue, with Ω / α.</li>
- *   <li><b>Z-Move</b>: golden aura, rising rings, a dolly zoom onto the Pokémon under a spinning Z-Crystal emblem,
- *   a fast orbit, then the Z-Power released in a shockwave.</li>
- *   <li><b>Terastallization</b>: crystal shards in the Tera type's colour spiral in and encase the Pokémon in a
- *   faceted crystal, which shatters under the Tera jewel; from then on the Pokémon glows in its Tera colour with
- *   floating motes and shards, until the end of the battle (kept through switches).</li>
+ *   <li><b>Mega Evolution</b>: Key Stone, light link, black silhouettes on a pink burst, cocoon, shatter (the model
+ *   switches in the flash), the new form under its emblem. <b>Primal Reversion</b>: the same in Groudon's red /
+ *   Kyogre's blue, with Ω / α.</li>
+ *   <li><b>Z-Move</b>: Z-Crystal, stream of power, golden blaze under a giant Z with a dolly zoom, release.</li>
+ *   <li><b>Terastallization</b>: Tera Orb charged and thrown, crystal star, crystal growing round the Pokémon,
+ *   shatter, the Pokémon crystalline under its Tera jewel; from then on it keeps a crystal tint and glows in its Tera
+ *   colour until the end of the battle (kept through switches).</li>
  * </ul>
  * Client thread only.
  */
 public final class BattleShowtime {
 
 	public enum Kind {
-		MEGA(5.2f), PRIMAL(5.2f), Z_MOVE(3.8f), TERA(4.0f);
+		MEGA(7.2f), PRIMAL(7.2f), Z_MOVE(6.2f), TERA(7.4f);
 
 		final float seconds;
 
@@ -64,9 +70,18 @@ public final class BattleShowtime {
 	}
 
 	/** When each set piece's climax happens (model switch, release, shatter), in seconds. */
-	static final float MEGA_SHATTER = 3.3f;
-	static final float Z_RELEASE = 2.6f;
-	static final float TERA_SHATTER = 2.3f;
+	static final float MEGA_SHATTER = 4.8f;
+	static final float Z_RELEASE = 4.6f;
+	static final float TERA_SHATTER = 5.0f;
+	/** How long the Mega shell takes to close (from 3.2 s), the Pokémon shrinking inside it meanwhile. */
+	static final float MEGA_COVERED = 0.95f;
+
+	/** When the world and the other entities are hidden behind the set's backdrop, per kind: from, to (seconds). */
+	private static final float[] MEGA_HIDDEN = { 2.45f, 4.85f };
+	private static final float[] Z_HIDDEN = { 2.65f, 4.6f };
+	private static final float[] TERA_HIDDEN = { 0.45f, 6.1f };
+	/** How far from the stage's trainer position a person may stand and still be taken for the trainer. */
+	private static final double TRAINER_REACH = 2.5;
 
 	private static final Random RANDOM = new Random();
 
@@ -78,6 +93,13 @@ public final class BattleShowtime {
 	private static String teraType;
 	private static boolean climaxDone;
 	private static final Set<String> cues = new HashSet<>();
+	/** The Pokémon's trainer: the person standing there (may be null), where they stand, how tall they are. */
+	private static LivingEntity trainer;
+	private static Vec3 trainerAt = Vec3.ZERO;
+	private static double trainerTall = 1.8;
+	/** From the trainer to the Pokémon, flat; and its right. Fixed for the whole set piece. */
+	private static Vec3 forward = new Vec3(0, 0, 1);
+	private static Vec3 right = new Vec3(-1, 0, 0);
 
 	/** Battle Pokémon uuid → Tera type, for the whole battle (its entity is rebuilt on each switch-in). */
 	private static final Map<String, String> teraByPokemon = new HashMap<>();
@@ -133,6 +155,47 @@ public final class BattleShowtime {
 		start = System.currentTimeMillis();
 		climaxDone = false;
 		cues.clear();
+		findTrainer(target);
+		// The trainer's gesture (players only: Player Animation Library animates players).
+		com.mystaria.showtime.emote.TrainerEmotes.special(trainer, switch (which) {
+			case MEGA, PRIMAL -> "special_mega";
+			case Z_MOVE -> "special_z";
+			case TERA -> "special_tera";
+		});
+	}
+
+	/**
+	 * The trainer of {@code target}: the stage's trainer position nearest to it, and the person (not a Pokémon) nearest
+	 * to that within {@link #TRAINER_REACH}. Without a stage position, a point a few blocks behind the Pokémon.
+	 */
+	private static void findTrainer(PokemonEntity target) {
+		Vec3 feet = target.position();
+		Vec3 spot = null;
+		var stage = BattleCameraDirector.stage();
+		if (stage != null) {
+			for (boolean local : new boolean[] { true, false }) {
+				Vec3 at = stage.trainerPosition(local);
+				if (at != null && (spot == null || at.distanceToSqr(feet) < spot.distanceToSqr(feet))) {
+					spot = at;
+				}
+			}
+		}
+		if (spot == null || spot.distanceToSqr(feet) < 0.25) {
+			spot = feet.subtract(Vec3.directionFromRotation(0, target.getYRot()).scale(3.5));
+		}
+		trainer = null;
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level != null) {
+			Vec3 near = spot;
+			trainer = level.getEntitiesOfClass(LivingEntity.class, new AABB(spot, spot).inflate(TRAINER_REACH),
+					e -> !(e instanceof PokemonEntity) && e.isAlive())
+					.stream().min(java.util.Comparator.comparingDouble(e -> e.position().distanceToSqr(near))).orElse(null);
+		}
+		trainerAt = trainer != null ? trainer.position() : spot;
+		trainerTall = trainer != null ? trainer.getBbHeight() : 1.8;
+		Vec3 flat = new Vec3(feet.x - trainerAt.x, 0, feet.z - trainerAt.z);
+		forward = flat.lengthSqr() < 1.0E-4 ? Vec3.directionFromRotation(0, target.getYRot()).scale(-1) : flat.normalize();
+		right = new Vec3(-forward.z, 0, forward.x);
 	}
 
 	public static boolean playing() {
@@ -188,6 +251,129 @@ public final class BattleShowtime {
 		entity = null;
 		change = null;
 		kind = null;
+		trainer = null;
+	}
+
+	// =====================================================================
+	// What the scene and the mixins read
+	// =====================================================================
+
+	/**
+	 * The colour a living entity's model is drawn with this frame (ARGB), or -1 for its own ({@code
+	 * LivingEntityRendererTintMixin}): the Mega silhouettes in black, the Pokémon turning to crystal, a terastallized
+	 * Pokémon's lasting crystal tint.
+	 */
+	public static int modelColor(Entity candidate) {
+		if (playing()) {
+			float t = time();
+			boolean actor = candidate == entity || (trainer != null && candidate == trainer);
+			if (actor && (kind == Kind.MEGA || kind == Kind.PRIMAL) && t >= 2.42f && t < 3.1f) {
+				return 0xFF0C0A10;
+			}
+			if (candidate == entity && kind == Kind.TERA && t >= 3.0f) {
+				// Turning to crystal inside the growth, then crystalline.
+				float k = t < TERA_SHATTER ? smooth((t - 3.0f) / 1.6f) : 1f;
+				return 0xFF000000 | mix(0xFFFFFF, mix(color(), 0xFFFFFF, 0.45f), k);
+			}
+		}
+		if (glowing.isEmpty()) {
+			return -1;
+		}
+		String type = glowing.get(candidate.getId());
+		if (type == null) {
+			return -1;
+		}
+		float shimmer = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 400.0 + candidate.getId());
+		return 0xFF000000 | mix(teraColor(type), 0xFFFFFF, 0.45f + 0.15f * shimmer);
+	}
+
+	/** Whether the world's blocks are hidden this frame: the set's backdrop stands in for them. */
+	public static boolean hidesWorld() {
+		if (!playing()) {
+			return false;
+		}
+		float[] hidden = switch (kind) {
+			case MEGA, PRIMAL -> MEGA_HIDDEN;
+			case Z_MOVE -> Z_HIDDEN;
+			case TERA -> TERA_HIDDEN;
+		};
+		float t = time();
+		return t >= hidden[0] && t < hidden[1];
+	}
+
+	/** Whether {@code candidate} is hidden this frame: everyone but the trainer and the Pokémon, while the world is. */
+	public static boolean hides(Entity candidate) {
+		return candidate != entity && candidate != trainer && hidesWorld();
+	}
+
+	/**
+	 * How big {@code candidate} is drawn this frame, about its middle ({@code LivingEntityRendererTintMixin}): the Pokémon
+	 * curling up inside the closing Mega shell, so that none of it sticks out (2026-11-25: hiding it at once was seen
+	 * as a pop), then bursting back out at the shatter.
+	 */
+	public static float modelScale(Entity candidate) {
+		if (candidate != entity || !playing() || (kind != Kind.MEGA && kind != Kind.PRIMAL)) {
+			return 1f;
+		}
+		float t = time();
+		if (t < 3.2f) {
+			return 1f;
+		}
+		if (t < MEGA_SHATTER) {
+			return Mth.lerp(smooth((t - 3.2f) / MEGA_COVERED), 1f, 0.55f);
+		}
+		float k = Mth.clamp((t - MEGA_SHATTER) / 0.35f, 0f, 1f);
+		// Out with a little overshoot.
+		float back = 1f + 2.2f * (float) Math.pow(k - 1, 3) + 1.2f * (float) Math.pow(k - 1, 2);
+		return Mth.lerp(back, 0.55f, 1f);
+	}
+
+	static Vec3 center(float pt) {
+		return entity.getPosition(pt).add(0, entity.getBbHeight() / 2.0, 0);
+	}
+
+	static Vec3 feet(float pt) {
+		return entity.getPosition(pt);
+	}
+
+	static Vec3 trainerFeet() {
+		return trainer != null && trainer.isAlive() ? trainer.position() : trainerAt;
+	}
+
+	static double trainerHeight() {
+		return trainerTall;
+	}
+
+	static Vec3 forward() {
+		return forward;
+	}
+
+	static Vec3 right() {
+		return right;
+	}
+
+	/** The trainer's raised wrist (the Key Stone). */
+	static Vec3 hand() {
+		return trainerFeet().add(0, trainerTall * 0.68, 0).add(forward.scale(0.42)).add(right.scale(0.18));
+	}
+
+	/** Before the trainer's chest (the Z-Crystal). */
+	static Vec3 chest() {
+		return trainerFeet().add(0, trainerTall * 0.62, 0).add(forward.scale(0.2));
+	}
+
+	/** The Tera Orb at {@code t}: held up above the trainer's head, thrown in an arc, hanging over the Pokémon. */
+	static Vec3 orb(float t) {
+		Vec3 held = trainerFeet().add(0, trainerTall + 0.55 + 0.05 * Math.sin(t * 4), 0).add(forward.scale(0.15));
+		Vec3 over = entity.position().add(0, Math.max(1.0, radius()) * 2 + 1.0, 0);
+		if (t < 1.7f) {
+			return held;
+		}
+		if (t >= 2.5f) {
+			return over;
+		}
+		float k = smooth((t - 1.7f) / 0.8f);
+		return held.lerp(over, k).add(0, Math.sin(k * Math.PI) * (1.5 + held.distanceTo(over) * 0.15), 0);
 	}
 
 	// =====================================================================
@@ -275,90 +461,57 @@ public final class BattleShowtime {
 	private static void tickMega(ClientLevel level, float t) {
 		boolean primal = kind == Kind.PRIMAL;
 		boolean kyogre = "kyogre".equals(species());
-		int[] palette = primal ? (kyogre ? new int[] { 0x2A6CFF, 0x7FE0FF, 0xFFFFFF } : new int[] { 0xFF3A1A, 0xFFB030, 0xFFFFFF })
-				: new int[] { 0xFF5FD2, 0xB45CFF, 0xFFFFFF, 0xFFE070 };
 		Vec3 c = center();
 		double r = radius();
-		cue("start", t >= 0f, primal ? SoundEvents.BEACON_ACTIVATE : SoundEvents.BEACON_ACTIVATE, primal ? 0.6f : 1.3f, 1f);
-		cue("hum1", t >= 0.5f, SoundEvents.AMETHYST_BLOCK_RESONATE, 0.8f, 1f);
-		cue("hum2", t >= 0.8f, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0f, 1f);
-		cue("hum3", t >= 1.1f, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.3f, 1f);
-		cue("cocoon", t >= 1.3f, SoundEvents.BEACON_AMBIENT, primal ? 0.8f : 1.5f, 1f);
-		cue("swell", t >= 2.5f, SoundEvents.BEACON_POWER_SELECT, primal ? 0.5f : 0.8f, 1f);
-		cue("crack", t >= 2.9f, SoundEvents.AMETHYST_BLOCK_BREAK, 0.6f, 1f);
-		cue("cry", t >= MEGA_SHATTER + 0.5f, null, 1f, 1f);
-
-		if (t >= 0.4f && t < 1.6f) {
-			// Motes of light drawn into the Pokémon.
-			for (int i = 0; i < 6; i++) {
-				Vec3 from = c.add(randomUnit().scale(r * 4.5));
-				Vec3 velocity = c.subtract(from).scale(1 / 22.0);
-				level.addParticle(ParticleTypes.END_ROD, from.x, from.y, from.z, velocity.x, velocity.y, velocity.z);
-			}
-		}
-		if (t >= 1.2f && t < MEGA_SHATTER) {
-			// The ribbons' double helix round the cocoon.
-			int tick = Math.round(t * 20);
-			for (int strand = 0; strand < 3; strand++) {
-				for (int k = 0; k < 2; k++) {
-					double progress = ((tick * 2 + k + strand * 7) % 30) / 30.0;
-					double angle = progress * Math.PI * 4 + strand * Math.PI * 2 / 3 + t * 5;
-					double ring = r * 1.35;
-					level.addParticle(dust(palette[(strand + k) % palette.length], 1.6f),
-							c.x + Math.cos(angle) * ring, c.y - r * 1.1 + progress * r * 2.4, c.z + Math.sin(angle) * ring, 0, 0, 0);
-				}
-			}
-			if (t >= 2.4f) {
-				// Flares licking up from below.
-				for (int i = 0; i < 4; i++) {
-					double angle = RANDOM.nextDouble() * Math.PI * 2;
-					int color = primal ? palette[RANDOM.nextInt(2)] : rainbow(RANDOM.nextFloat());
-					level.addParticle(dust(color, 2.2f), c.x + Math.cos(angle) * r * 1.2, c.y - r, c.z + Math.sin(angle) * r * 1.2,
-							0, 0.12, 0);
-				}
-			}
+		cue("stone", t >= 0.15f, SoundEvents.AMETHYST_BLOCK_CHIME, primal ? 0.7f : 1.2f, 1f);
+		cue("hum1", t >= 0.45f, SoundEvents.AMETHYST_BLOCK_RESONATE, 0.8f, 1f);
+		cue("hum2", t >= 0.85f, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.0f, 1f);
+		cue("link", t >= 1.3f, SoundEvents.BEACON_ACTIVATE, primal ? 0.6f : 1.3f, 1f);
+		cue("burst", t >= 2.4f, SoundEvents.BEACON_POWER_SELECT, primal ? 0.7f : 1.6f, 1f);
+		cue("cocoon", t >= 3.1f, SoundEvents.BEACON_AMBIENT, primal ? 0.8f : 1.5f, 1f);
+		cue("swell", t >= 4.0f, SoundEvents.BEACON_POWER_SELECT, primal ? 0.5f : 0.8f, 1f);
+		cue("crack1", t >= 4.3f, SoundEvents.AMETHYST_BLOCK_BREAK, 0.6f, 1f);
+		cue("crack2", t >= 4.6f, SoundEvents.AMETHYST_BLOCK_BREAK, 0.8f, 1f);
+		cue("cry", t >= MEGA_SHATTER + 0.6f, null, 1f, 1f);
+		if (t >= 0.2f && t < 1.3f && RANDOM.nextInt(3) == 0) {
+			Vec3 hand = hand();
+			level.addParticle(ParticleTypes.END_ROD, hand.x, hand.y, hand.z, (RANDOM.nextDouble() - 0.5) * 0.06, 0.03,
+					(RANDOM.nextDouble() - 0.5) * 0.06);
 		}
 		if (!climaxDone && t >= MEGA_SHATTER) {
 			climax();
 		}
-		if (t >= MEGA_SHATTER + 0.1f && t < MEGA_SHATTER + 1.4f) {
+		if (t >= MEGA_SHATTER + 0.1f && t < MEGA_SHATTER + 1.8f) {
 			for (int i = 0; i < 3; i++) {
 				double angle = RANDOM.nextDouble() * Math.PI * 2;
-				level.addParticle(primal ? dust(palette[RANDOM.nextInt(2)], 1.2f) : dust(0xFFE070, 1.2f),
-						c.x + Math.cos(angle) * r, c.y - r + RANDOM.nextDouble() * r * 2, c.z + Math.sin(angle) * r, 0, 0.05, 0);
+				int color = primal ? (kyogre ? 0x7FE0FF : 0xFFB030) : (RANDOM.nextBoolean() ? 0xFFE070 : rainbow(RANDOM.nextFloat()));
+				level.addParticle(dust(color, 1.2f), c.x + Math.cos(angle) * r, c.y - r + RANDOM.nextDouble() * r * 2, c.z + Math.sin(angle) * r,
+						0, 0.05, 0);
 			}
 		}
 	}
 
 	private static void tickZMove(ClientLevel level, float t) {
-		Vec3 c = center();
 		Vec3 feet = entity.position();
 		double r = radius();
 		cue("start", t >= 0f, SoundEvents.BEACON_POWER_SELECT, 1.5f, 1f);
 		cue("charge1", t >= 0.3f, SoundEvents.RESPAWN_ANCHOR_CHARGE, 0.8f, 1f);
 		cue("charge2", t >= 0.9f, SoundEvents.RESPAWN_ANCHOR_CHARGE, 1.0f, 1f);
-		cue("charge3", t >= 1.5f, SoundEvents.RESPAWN_ANCHOR_CHARGE, 1.3f, 1f);
-		cue("spin", t >= 1.9f, SoundEvents.ELYTRA_FLYING, 1.8f, 0.6f);
-		if (t >= 0.2f && t < Z_RELEASE) {
-			// Golden aura rising, rings climbing round the Pokémon.
-			for (int i = 0; i < 5; i++) {
+		cue("stream", t >= 1.5f, SoundEvents.BEACON_ACTIVATE, 1.6f, 1f);
+		cue("blaze", t >= 2.4f, SoundEvents.BLAZE_SHOOT, 0.6f, 0.8f);
+		cue("charge3", t >= 3.0f, SoundEvents.RESPAWN_ANCHOR_CHARGE, 1.3f, 1f);
+		cue("spin", t >= 3.9f, SoundEvents.ELYTRA_FLYING, 1.8f, 0.6f);
+		if (t >= 2.4f && t < Z_RELEASE) {
+			// Embers rising round the Pokémon.
+			for (int i = 0; i < 3; i++) {
 				double angle = RANDOM.nextDouble() * Math.PI * 2;
 				double rr = r * (0.8 + 0.5 * RANDOM.nextDouble());
-				level.addParticle(dust(RANDOM.nextBoolean() ? 0xFFC020 : 0xFFF080, 1.3f),
-						feet.x + Math.cos(angle) * rr, feet.y + RANDOM.nextDouble() * r * 0.5, feet.z + Math.sin(angle) * rr, 0, 0.18, 0);
+				level.addParticle(dust(RANDOM.nextBoolean() ? 0xFFC020 : 0xFFF080, 1.1f),
+						feet.x + Math.cos(angle) * rr, feet.y + RANDOM.nextDouble() * r, feet.z + Math.sin(angle) * rr, 0, 0.2, 0);
 			}
-			if (RANDOM.nextBoolean()) {
-				level.addParticle(ParticleTypes.ELECTRIC_SPARK, c.x, c.y, c.z, (RANDOM.nextDouble() - 0.5) * 0.4, 0.2, (RANDOM.nextDouble() - 0.5) * 0.4);
-			}
-			double ringHeight = ((t * 1.6) % 1.0) * r * 3;
-			for (int k = 0; k < 14; k++) {
-				double angle = k * Math.PI * 2 / 14 + t * 4;
-				level.addParticle(dust(0xFFD040, 1.0f), feet.x + Math.cos(angle) * r * 1.4, feet.y + ringHeight, feet.z + Math.sin(angle) * r * 1.4,
-						0, 0, 0);
-			}
-			if (t >= 1.0f) {
-				level.addParticle(ParticleTypes.END_ROD, c.x + (RANDOM.nextDouble() - 0.5) * r, feet.y, c.z + (RANDOM.nextDouble() - 0.5) * r,
-						0, 0.25, 0);
+			if (RANDOM.nextInt(3) == 0) {
+				level.addParticle(ParticleTypes.ELECTRIC_SPARK, feet.x, feet.y + r, feet.z, (RANDOM.nextDouble() - 0.5) * 0.4, 0.2,
+						(RANDOM.nextDouble() - 0.5) * 0.4);
 			}
 		}
 		if (!climaxDone && t >= Z_RELEASE) {
@@ -369,24 +522,22 @@ public final class BattleShowtime {
 	private static void tickTera(ClientLevel level, float t) {
 		Vec3 c = center();
 		double r = radius();
-		int rgb = color();
-		cue("start", t >= 0f, SoundEvents.AMETHYST_BLOCK_CHIME, 1.0f, 1f);
-		cue("grow1", t >= 0.5f, SoundEvents.AMETHYST_CLUSTER_PLACE, 0.8f, 1f);
-		cue("grow2", t >= 0.9f, SoundEvents.AMETHYST_CLUSTER_PLACE, 1.0f, 1f);
-		cue("grow3", t >= 1.3f, SoundEvents.AMETHYST_CLUSTER_PLACE, 1.2f, 1f);
-		cue("grow4", t >= 1.7f, SoundEvents.AMETHYST_CLUSTER_PLACE, 1.5f, 1f);
-		cue("crack", t >= 2.0f, SoundEvents.AMETHYST_BLOCK_BREAK, 1.4f, 1f);
-		if (t >= 0.4f && t < 2.0f) {
-			// Crystal chips spiralling in.
-			for (int i = 0; i < 5; i++) {
-				double angle = RANDOM.nextDouble() * Math.PI * 2;
-				double rr = r * 3.2;
-				Vec3 from = new Vec3(c.x + Math.cos(angle) * rr, c.y + (RANDOM.nextDouble() - 0.4) * r * 2, c.z + Math.sin(angle) * rr);
-				Vec3 inward = c.subtract(from).scale(0.06);
-				Vec3 swirl = new Vec3(-Math.sin(angle), 0, Math.cos(angle)).scale(0.15);
-				level.addParticle(i % 2 == 0 ? shard(teraType) : dust(rgb, 1.5f), from.x, from.y, from.z,
-						inward.x + swirl.x, inward.y, inward.z + swirl.z);
-			}
+		cue("start", t >= 0.2f, SoundEvents.AMETHYST_BLOCK_CHIME, 1.0f, 1f);
+		cue("charge", t >= 0.6f, SoundEvents.BEACON_AMBIENT, 1.8f, 1f);
+		cue("ring", t >= 1.1f, SoundEvents.AMETHYST_BLOCK_RESONATE, 1.4f, 1f);
+		cue("throw", t >= 1.7f, SoundEvents.FIREWORK_ROCKET_LAUNCH, 1.4f, 0.8f);
+		cue("star", t >= 2.5f, SoundEvents.AMETHYST_BLOCK_BREAK, 1.6f, 1f);
+		cue("twinkle", t >= 2.55f, SoundEvents.FIREWORK_ROCKET_TWINKLE, 1.2f, 0.7f);
+		cue("grow1", t >= 3.0f, SoundEvents.AMETHYST_CLUSTER_PLACE, 0.8f, 1f);
+		cue("grow2", t >= 3.4f, SoundEvents.AMETHYST_CLUSTER_PLACE, 1.0f, 1f);
+		cue("grow3", t >= 3.8f, SoundEvents.AMETHYST_CLUSTER_PLACE, 1.2f, 1f);
+		cue("grow4", t >= 4.2f, SoundEvents.AMETHYST_CLUSTER_PLACE, 1.5f, 1f);
+		cue("crack", t >= 4.6f, SoundEvents.AMETHYST_BLOCK_BREAK, 1.4f, 1f);
+		cue("cry", t >= TERA_SHATTER + 0.6f, null, 1f, 1f);
+		if (t >= 3.0f && t < TERA_SHATTER && RANDOM.nextInt(2) == 0) {
+			// Chips falling off the growing crystal.
+			double angle = RANDOM.nextDouble() * Math.PI * 2;
+			level.addParticle(shard(teraType), c.x + Math.cos(angle) * r * 1.2, c.y + r * 0.5, c.z + Math.sin(angle) * r * 1.2, 0, 0.05, 0);
 		}
 		if (!climaxDone && t >= TERA_SHATTER) {
 			climax();
@@ -550,14 +701,14 @@ public final class BattleShowtime {
 		float t = time();
 		return switch (kind) {
 			case Z_MOVE -> {
-				if (t < 0.35f) {
+				if (t < 2.4f) {
 					yield 1.0;
 				}
-				if (t < 1.9f) {
-					yield Mth.lerp(smooth((t - 0.35f) / 1.55f), 1.0f, 1.35f);
+				if (t < 4.0f) {
+					yield Mth.lerp(smooth((t - 2.4f) / 1.6f), 1.0f, 1.35f);
 				}
 				if (t < Z_RELEASE) {
-					yield Mth.lerp(smooth((t - 1.9f) / 0.7f), 1.35f, 1.15f);
+					yield Mth.lerp(smooth((t - 4.0f) / 0.6f), 1.35f, 1.15f);
 				}
 				yield punch(t - Z_RELEASE, 0.72f, Math.max(0f, 1f - (t - (kind.seconds - 0.5f)) / 0.5f) * 0.15f + 1f);
 			}
@@ -578,26 +729,46 @@ public final class BattleShowtime {
 
 	private static BattleCinematic.CameraPose megaShot(float t, float pt) {
 		double r = radius();
-		if (t < MEGA_SHATTER) {
-			float k = t / MEGA_SHATTER;
-			float shake = t > 2.9f ? 0.03f + 0.1f * (t - 2.9f) / 0.4f : 0f;
-			return orbit(pt, -20f + 40f * smooth(k), 1.0 - 0.25 * k, r * 0.3, 0, shake, t);
+		if (t < 1.3f) {
+			// The Key Stone: close on the trainer's wrist, pushing in.
+			return closeUp(hand(), smooth(t / 1.3f), 2.3, 1.5, 0.75, -0.15, t);
 		}
-		float k = Math.min(1f, (t - MEGA_SHATTER) / 1.1f);
+		if (t < 2.4f) {
+			// The light link: from the side, trainer and Pokémon in one frame.
+			return sideShot(smooth((t - 1.3f) / 1.1f), 0.95, 0.85, t, 0f);
+		}
+		if (t < 3.1f) {
+			// The silhouettes: the same frame, closer.
+			return sideShot(smooth((t - 2.4f) / 0.7f), 0.8, 0.72, t, 0f);
+		}
+		if (t < MEGA_SHATTER) {
+			float k = (t - 3.1f) / (MEGA_SHATTER - 3.1f);
+			float shake = t > 4.3f ? 0.03f + 0.12f * (t - 4.3f) / 0.5f : 0f;
+			return orbit(pt, -30f + 50f * smooth(k), 1.05 - 0.3 * k, r * 0.3, 0, shake, t);
+		}
+		float k = Math.min(1f, (t - MEGA_SHATTER) / 1.6f);
 		float shake = 0.25f * (float) Math.exp(-(t - MEGA_SHATTER) * 6);
 		// Pulled back by the blast, then looking up at the new form.
-		return orbit(pt, 15f - 15f * smooth(k), Mth.lerp(easeOut(Math.min(1f, (t - MEGA_SHATTER) / 0.4f)), 0.7f, 1.35f), -r * 0.25, r * 0.25,
-				shake, t);
+		return orbit(pt, 20f - 20f * smooth(k), Mth.lerp(easeOut(Math.min(1f, (t - MEGA_SHATTER) / 0.4f)), 0.7f, 1.35f), -r * 0.25,
+				r * 0.25, shake, t);
 	}
 
 	private static BattleCinematic.CameraPose zShot(float t, float pt) {
 		double r = radius();
-		if (t < 1.9f) {
-			float k = smooth(Math.max(0f, t - 0.35f) / 1.55f);
+		if (t < 1.5f) {
+			// The Z-Crystal before the trainer: low, from three quarters, pushing in.
+			return closeUp(chest(), smooth(t / 1.5f), 2.6, 1.8, -0.9, -0.35, t);
+		}
+		if (t < 2.4f) {
+			return sideShot(smooth((t - 1.5f) / 0.9f), 1.0, 0.9, t, 0f);
+		}
+		float z = t - 2.4f;
+		if (z < 1.6f) {
+			float k = smooth(z / 1.6f);
 			return orbit(pt, Mth.lerp(k, 140f, 100f), Mth.lerp(k, 2.2f, 0.9f), r * 0.2, 0, 0f, t);
 		}
 		if (t < Z_RELEASE) {
-			float k = smooth((t - 1.9f) / 0.7f);
+			float k = smooth((z - 1.6f) / 0.6f);
 			return orbit(pt, Mth.lerp(k, 100f, -20f), 0.9, Mth.lerp(k, r * 0.1, r * 0.4), 0, 0.03f, t);
 		}
 		float k = easeOut(Math.min(1f, (t - Z_RELEASE) / 0.6f));
@@ -606,18 +777,64 @@ public final class BattleShowtime {
 
 	private static BattleCinematic.CameraPose teraShot(float t, float pt) {
 		double r = radius();
-		if (t < 2.0f) {
-			float k = smooth(t / 2.0f);
-			return orbit(pt, Mth.lerp(k, -15f, 25f), Mth.lerp(k, 1.0f, 0.85f), r * 0.5, 0, 0f, t);
+		if (t < 1.7f) {
+			// The Tera Orb held up: low, looking up past the trainer's face at it.
+			Vec3 look = trainerFeet().add(0, trainerTall * 0.85, 0).lerp(orb(t), 0.6);
+			return closeUp(look, smooth(t / 1.7f), 2.6, 2.0, 0.6, -0.7, t);
+		}
+		if (t < 2.5f) {
+			// The throw: from the side, following the orb.
+			BattleCinematic.CameraPose side = sideShot(smooth((t - 1.7f) / 0.8f), 1.05, 0.95, t, 0f);
+			return lookAt(side.position(), side.position().lerp(orb(t), 0.5).lerp(orb(t), 0.5));
+		}
+		if (t < 3.0f) {
+			// The star over the Pokémon: looking up at it.
+			float k = smooth((t - 2.5f) / 0.5f);
+			return orbit(pt, -10f + 10f * k, 1.25, -r * 0.2, Mth.lerp(k, r * 1.6, r * 1.0), 0f, t);
 		}
 		if (t < TERA_SHATTER) {
-			float k = (t - 2.0f) / 0.3f;
-			return orbit(pt, 25f, Mth.lerp(k, 0.85f, 0.7f), r * 0.5, 0, 0.05f + 0.1f * k, t);
+			float k = (t - 3.0f) / (TERA_SHATTER - 3.0f);
+			float shake = t > 4.6f ? 0.04f + 0.1f * (t - 4.6f) / 0.4f : 0f;
+			return orbit(pt, Mth.lerp(smooth(k), -35f, 30f), Mth.lerp(k, 1.3f, 0.95f), r * 0.6, r * 0.2, shake, t);
 		}
 		float k = easeOut(Math.min(1f, (t - TERA_SHATTER) / 0.4f));
-		float slow = Math.min(1f, (t - TERA_SHATTER) / 1.5f);
-		return orbit(pt, 25f + 10f * slow, Mth.lerp(k, 0.7f, 1.3f), Mth.lerp(k, r * 0.5, -r * 0.1), r * 0.15,
+		float slow = Math.min(1f, (t - TERA_SHATTER) / 2.0f);
+		return orbit(pt, 30f + 12f * slow, Mth.lerp(k, 0.75f, 1.3f), Mth.lerp(k, r * 0.5, -r * 0.1), r * 0.3,
 				0.2f * (float) Math.exp(-(t - TERA_SHATTER) * 6), t);
+	}
+
+	/**
+	 * Close on the trainer: in front of them (between them and their Pokémon), {@code side} blocks to their right,
+	 * {@code height} above {@code look}, coming from {@code far} to {@code near} blocks as {@code k} goes to 1.
+	 */
+	private static BattleCinematic.CameraPose closeUp(Vec3 look, float k, double far, double near, double side, double height, float t) {
+		double d = Mth.lerp(k, far, near);
+		Vec3 position = look.add(forward.scale(d)).add(right.scale(side)).add(0, height + 0.05 * Math.sin(t * 1.3), 0);
+		return lookAt(position, look);
+	}
+
+	/**
+	 * From the side of the line between the trainer and the Pokémon, both in frame, drifting along it; {@code far} and
+	 * {@code near} scale the distance as {@code k} goes to 1.
+	 */
+	private static BattleCinematic.CameraPose sideShot(float k, double far, double near, float t, float shake) {
+		Vec3 feet = entity.position();
+		Vec3 trainerFeet = trainerFeet();
+		Vec3 mid = trainerFeet.lerp(feet, 0.5).add(0, Math.max(trainerTall * 0.6, radius()), 0);
+		double half = trainerFeet.distanceTo(feet) * 0.5 + radius() + 0.6;
+		double d = Mth.clamp(half * 1.55, 3.2, 18.0) * Mth.lerp(k, far, near);
+		Vec3 position = mid.add(right.scale(d)).add(forward.scale(Mth.lerp(k, -0.6, 0.6))).add(0, 0.6 + d * 0.08, 0);
+		if (shake > 0f) {
+			position = position.add(Math.sin(t * 71) * shake, Math.sin(t * 53 + 1) * shake, Math.cos(t * 67) * shake);
+		}
+		return lookAt(position, mid);
+	}
+
+	private static BattleCinematic.CameraPose lookAt(Vec3 position, Vec3 target) {
+		Vec3 d = target.subtract(position);
+		float yaw = (float) Math.toDegrees(Math.atan2(-d.x, d.z));
+		float pitch = (float) -Math.toDegrees(Math.atan2(d.y, Math.sqrt(d.x * d.x + d.z * d.z)));
+		return new BattleCinematic.CameraPose(position, yaw, pitch, true);
 	}
 
 	/**
@@ -653,7 +870,7 @@ public final class BattleShowtime {
 	}
 
 	/** Half the Pokémon's larger dimension, at least half a block. */
-	private static double radius() {
+	static double radius() {
 		return Math.max(0.5, Math.max(entity.getBbHeight(), entity.getBbWidth()) / 2.0);
 	}
 

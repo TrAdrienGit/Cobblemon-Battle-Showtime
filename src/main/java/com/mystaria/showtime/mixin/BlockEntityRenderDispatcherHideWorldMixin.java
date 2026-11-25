@@ -20,7 +20,7 @@ abstract class BlockEntityRenderDispatcherHideWorldMixin {
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
 	private <E extends BlockEntity> void showtime$hideBlockEntities(E blockEntity, float partialTick, PoseStack pose,
 			MultiBufferSource buffers, CallbackInfo ci) {
-		if (BattleAmbiance.hidesWorld()) {
+		if (BattleAmbiance.hidesWorld() || com.mystaria.showtime.battle.BattleShowtime.hidesWorld()) {
 			ci.cancel();
 		}
 	}

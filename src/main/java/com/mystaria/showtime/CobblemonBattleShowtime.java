@@ -73,6 +73,7 @@ public class CobblemonBattleShowtime implements ClientModInitializer {
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.BallRecall::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.FieldEffects::render);
 		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.move.PokemonEffects::render);
+		WorldRenderEvents.AFTER_ENTITIES.register(com.mystaria.showtime.battle.SetPieceScene::render);
 		HudRenderCallback.EVENT.register((graphics, tickCounter) -> {
 			com.mystaria.showtime.ambiance.BattleAmbiance.renderHud(graphics);
 			BattleCinematic.renderHud(graphics);

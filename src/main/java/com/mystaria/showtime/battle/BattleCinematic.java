@@ -572,9 +572,15 @@ public final class BattleCinematic {
 		if (t < SHOT_SELF_END) {
 			return shoulder;
 		}
-		// Blend back to the player's own view.
+		// Blend into the battle camera's shot when it films the battle, else back to the player's own view (2026-11-25:
+		// blending to the player's eyes then cutting to the battle camera was seen as a jump into the head and out).
 		float k = (t - SHOT_SELF_END) / (float) (BLEND_END - SHOT_SELF_END);
 		float s = k * k * (3 - 2 * k);
+		CameraPose next = BattleCameraDirector.cameraPose(camera, partialTick);
+		if (next != null) {
+			return new CameraPose(shoulder.position().lerp(next.position(), s), Mth.rotLerp(s, shoulder.yaw(), next.yaw()),
+					Mth.lerp(s, shoulder.pitch(), next.pitch()), true);
+		}
 		Vec3 position = shoulder.position().lerp(camera.getPosition(), s);
 		return new CameraPose(position, Mth.rotLerp(s, shoulder.yaw(), camera.getYRot()),
 				Mth.lerp(s, shoulder.pitch(), camera.getXRot()), k < 0.9f);

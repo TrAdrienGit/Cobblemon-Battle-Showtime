@@ -18,6 +18,7 @@
 		"ClassicBattleEndHandlerMixin",
 		"ClassicBattleMusicHandlerMixin",
 		"LivingEntityRendererFacingMixin",
+		"LivingEntityRendererTintMixin",
 		"PokemonLungeRenderMixin",
 		"EmoteBattleInitializeHandlerMixin",
 		"EmoteBattleMessageHandlerMixin",
