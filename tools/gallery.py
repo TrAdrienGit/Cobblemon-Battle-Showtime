@@ -1,14 +1,15 @@
-"""Builds the gallery from in-game recordings: python tools/gallery.py ambiances|intros
+"""Builds the gallery from in-game recordings: python tools/gallery.py ambiances|intros|set_pieces
 
 For each ambiance or intro: a screenshot and a 3-second clip, then a reel chaining them with crossfades that loops
 without a jump (MP4, a 640 px GIF and a lighter 400 px GIF), in art/<kind>/. The recordings and the time of each
-clip are listed in SETS.
+clip are listed in SETS. Set pieces are longer and shown one by one: a clip and a GIF each (640 px and 400 px), no
+reel. The ffmpeg used can be given in the FFMPEG environment variable.
 """
 import os
 import subprocess
 import sys
 
-FF = r"C:\Users\adrie\AppData\Roaming\Python\Python313\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe"
+FF = os.environ.get("FFMPEG") or r"C:\Users\adrie\AppData\Roaming\Python\Python313\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v9.0.2.exe"
 KIND = sys.argv[1] if len(sys.argv) > 1 else "ambiances"
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "art")
 SETS = {
@@ -24,6 +25,9 @@ SETS = {
         ("dp_blinds", 71.0, 73.5), ("black_white", 77.5, 80.0), ("xy", 83.0, 85.0), ("oras_silhouette", 88.5, 90.5),
         ("sm_vortex", 95.5, 98.0), ("usum_surge", 102.5, 104.5), ("sword_shield", 109.5, 111.0),
         ("sv_showdown", 116.5, 118.0)]),
+    # Set pieces (2026-11-25): (name, start, end), each played whole.
+    "set_pieces": (r"D:\Main_user_data\Video\Enregistrements d’écran\Enregistrement de l'écran 2026-11-25 234749.mp4", 0, [
+        ("mega_evolution", 23.2, 30.0), ("z_move", 50.2, 56.0), ("terastallization", 74.9, 81.7)]),
 }
 SRC, HAS_SHOT, CLIPS = SETS[KIND]
 OUT = os.path.join(ROOT, KIND)
@@ -32,14 +36,32 @@ LEN, FADE = 3.0, 0.6
 TOP = {"intros": 30}.get(KIND, 0)
 CROP = ["-vf", f"crop=iw:ih-{TOP}:0:{TOP}"] if TOP else []
 
+
+def run(args):
+    subprocess.run([FF, "-hide_banner", "-loglevel", "error", "-y"] + args, check=True)
+
+
+if KIND == "set_pieces":
+    clips = os.path.join(OUT, "clips")
+    os.makedirs(clips, exist_ok=True)
+    for i, (name, start, end) in enumerate(CLIPS, 1):
+        clip = os.path.join(clips, f"{i:02d}_{name}.mp4")
+        run(["-ss", str(start), "-i", SRC, "-t", f"{end - start:.2f}", "-an", "-c:v", "libx264", "-crf", "18",
+             "-pix_fmt", "yuv420p", "-r", "30", clip])
+        run(["-i", clip, "-vf",
+             "fps=15,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=sierra2_4a",
+             "-loop", "0", os.path.join(OUT, name + ".gif")])
+        run(["-i", clip, "-vf",
+             "fps=10,scale=400:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];"
+             "[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle",
+             "-loop", "0", os.path.join(OUT, name + "_400px.gif")])
+    print("done")
+    sys.exit(0)
+
 shots = os.path.join(OUT, "screenshots")
 clips = os.path.join(OUT, "clips")
 os.makedirs(shots, exist_ok=True)
 os.makedirs(clips, exist_ok=True)
-
-
-def run(args):
-    subprocess.run([FF, "-hide_banner", "-loglevel", "error", "-y"] + args, check=True)
 
 
 paths = []
