@@ -4,15 +4,20 @@
   "accent": "#FFD040",
   "layers": [
     {
-      "motif": "orb",
+      "motif": "hiddenpower",
+      "phase": "wind"
+    },
+    {
+      "motif": "hiddenpower",
       "phase": "travel"
     },
     {
-      "motif": "flames_on",
+      "motif": "hiddenpower",
       "phase": "hit",
+      "duration": 22,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ]

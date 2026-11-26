@@ -5,23 +5,18 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "barrage",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:end_rod",
-        "minecraft:cherry_leaves"
+        "minecraft:end_rod"
       ]
     },
     {
-      "motif": "rays",
+      "motif": "playrough",
       "phase": "hit",
-      "size": 0.7,
+      "duration": 28,
       "particles": [
-        "minecraft:end_rod",
-        "minecraft:cherry_leaves"
+        "minecraft:poof",
+        "minecraft:end_rod"
       ]
     }
   ]

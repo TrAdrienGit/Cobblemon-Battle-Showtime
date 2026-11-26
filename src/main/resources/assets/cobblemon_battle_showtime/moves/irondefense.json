@@ -4,8 +4,12 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "shell",
-      "phase": "self"
+      "motif": "irondefense",
+      "phase": "self",
+      "duration": 38,
+      "particles": [
+        "minecraft:wax_on"
+      ]
     }
   ]
 }

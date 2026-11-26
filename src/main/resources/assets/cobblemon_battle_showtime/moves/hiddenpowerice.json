@@ -4,16 +4,19 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "orb",
+      "motif": "hiddenpower",
+      "phase": "wind"
+    },
+    {
+      "motif": "hiddenpower",
       "phase": "travel"
     },
     {
-      "motif": "freeze",
+      "motif": "hiddenpower",
       "phase": "hit",
-      "size": 0.7,
+      "duration": 22,
       "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
+        "minecraft:snowflake"
       ]
     }
   ]

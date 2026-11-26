@@ -1,10 +1,10 @@
 {
   "category": "physical",
-  "color": "#6A40FF",
-  "accent": "#C8B0FF",
+  "color": "#8040FF",
+  "accent": "#FF4060",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "outrage",
       "phase": "wind",
       "duration": 20,
       "particles": [
@@ -16,22 +16,14 @@
       "phase": "travel"
     },
     {
-      "motif": "barrage",
+      "motif": "outrage",
       "phase": "hit",
+      "duration": 30,
       "particles": [
-        "minecraft:dragon_breath",
-        "minecraft:reverse_portal"
-      ]
-    },
-    {
-      "motif": "impact",
-      "phase": "hit",
-      "size": 1.3,
-      "delay": 10,
-      "particles": [
-        "minecraft:dragon_breath",
-        "minecraft:reverse_portal"
+        "minecraft:crit",
+        "minecraft:dragon_breath"
       ]
     }
-  ]
+  ],
+  "size": 1.2
 }

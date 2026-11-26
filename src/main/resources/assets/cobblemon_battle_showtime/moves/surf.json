@@ -1,20 +1,23 @@
 {
   "category": "special",
   "color": "#2E8BFF",
-  "accent": "#B8ECFF",
+  "accent": "#8FD8FF",
   "layers": [
     {
-      "motif": "wave",
-      "phase": "travel",
-      "duration": 22
+      "motif": "surf",
+      "phase": "wind",
+      "duration": 24,
+      "particles": [
+        "minecraft:splash"
+      ]
     },
     {
-      "motif": "splash",
+      "motif": "surf",
       "phase": "hit",
-      "size": 1.3,
+      "duration": 22,
       "particles": [
         "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:bubble_pop"
       ]
     }
   ],

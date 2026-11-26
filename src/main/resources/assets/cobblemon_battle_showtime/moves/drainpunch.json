@@ -5,24 +5,18 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "fist",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     },
     {
-      "motif": "heal",
+      "motif": "drainpunch",
       "phase": "hit",
-      "delay": 6,
-      "duration": 16,
+      "duration": 30,
       "particles": [
         "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:happy_villager"
       ]
     }
   ]

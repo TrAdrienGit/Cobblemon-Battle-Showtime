@@ -8,20 +8,11 @@
       "phase": "travel"
     },
     {
-      "motif": "kick",
+      "motif": "tripleaxel",
       "phase": "hit",
+      "duration": 34,
       "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
-      ]
-    },
-    {
-      "motif": "freeze",
-      "phase": "hit",
-      "delay": 10,
-      "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
+        "minecraft:snowflake"
       ]
     }
   ]

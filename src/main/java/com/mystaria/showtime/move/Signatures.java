@@ -37,9 +37,9 @@ import net.minecraft.world.phys.Vec3;
  */
 final class Signatures {
 
-	private static final Vec3 UP = new Vec3(0, 1, 0);
+	static final Vec3 UP = new Vec3(0, 1, 0);
 
-	private static final Set<String> NAMES = Set.of("earthquake", "knockoff", "stealthrock", "uturn", "flipturn", "swordsdance",
+	static final Set<String> NAMES = Set.of("earthquake", "knockoff", "stealthrock", "uturn", "flipturn", "swordsdance",
 			"roost", "toxic", "rapidspin", "defog", "earthpower", "recover", "moonblast", "substitute", "stoneedge", "focusblast",
 			"voltswitch", "icespinner", "thunderbolt", "calmmind", "suckerpunch", "dracometeor", "bodypress", "mysticalfire",
 			"nastyplot", "hurricane", "thunderwave", "taunt_rage", "ironhead", "psyshock", "crunch", "headlongrush", "pursuit",
@@ -94,7 +94,7 @@ final class Signatures {
 			case "willowisp" -> willOWisp(c);
 			case "powerwhip" -> powerWhip(c);
 			default -> {
-				return false;
+				return Signatures2.render(c);
 			}
 		}
 		return true;
@@ -107,7 +107,7 @@ final class Signatures {
 	static boolean tick(Context c, ClientLevel level) {
 		String motif = c.layer().motif;
 		if (!NAMES.contains(motif)) {
-			return false;
+			return Signatures2.tick(c, level);
 		}
 		switch (motif) {
 			case "earthquake" -> earthquakeTick(c, level);
@@ -149,7 +149,7 @@ final class Signatures {
 	// =====================================================================
 
 	/** Where the earthquake's wave front is: it leaves the user at a steady pace, whatever the target's distance. */
-	private static float quakeFront(Context c) {
+	static float quakeFront(Context c) {
 		return c.k() * 11f;
 	}
 
@@ -157,7 +157,7 @@ final class Signatures {
 	 * Earthquake: the user stamps and the ground itself heaves, blocks of it lifting in rings that run out across the
 	 * field (a second, weaker wave after the first), jolting the target as the front passes under it.
 	 */
-	private static void earthquake(Context c) {
+	static void earthquake(Context c) {
 		Vec3 centre = c.move().user().position();
 		double dist = flatDist(centre, c.move().aimFeet());
 		float reach = (float) Math.max(6, dist + 3);
@@ -183,7 +183,7 @@ final class Signatures {
 		}
 	}
 
-	private static void earthquakeTick(Context c, ClientLevel level) {
+	static void earthquakeTick(Context c, ClientLevel level) {
 		if (c.t() < 1f) {
 			BattleCameraDirector.shake(0.3f, 1.8f);
 		}
@@ -203,7 +203,7 @@ final class Signatures {
 	}
 
 	/** Ground blocks lifting where a wave front ({@code front} blocks out from {@code centre}) passes, out to {@code reach}. */
-	private static void heave(Context c, Vec3 centre, float front, float reach, float amp, BlockState state) {
+	static void heave(Context c, Vec3 centre, float front, float reach, float amp, BlockState state) {
 		for (float r = 0.9f; r <= reach; r += 0.68f) {
 			float x = (front - r) / 1.4f;
 			if (x <= 0 || x >= 1) {
@@ -221,7 +221,7 @@ final class Signatures {
 	}
 
 	/** Earth Power: the ground glows and trembles under the target, then bursts in a column of light and earth. */
-	private static void earthPower(Context c) {
+	static void earthPower(Context c) {
 		Vec3 feet = c.move().aimFeet();
 		float s = c.size();
 		float k = c.k();
@@ -273,7 +273,7 @@ final class Signatures {
 	}
 
 	/** Stone Edge: two rings of sharp stones stabbing up out of the ground round the target, one after the other. */
-	private static void stoneEdge(Context c) {
+	static void stoneEdge(Context c) {
 		Vec3 feet = c.move().aimFeet();
 		float s = c.size();
 		BlockState rock = Motifs.block(c, Blocks.DEEPSLATE.defaultBlockState());
@@ -311,7 +311,7 @@ final class Signatures {
 	}
 
 	/** Stealth Rock: pointed stones tossed over to the foe's side, floating and turning round it, then lying in wait. */
-	private static void stealthRock(Context c) {
+	static void stealthRock(Context c) {
 		int n = c.count(6);
 		Vec3 feet = c.move().aimFeet();
 		float s = c.size();
@@ -339,7 +339,7 @@ final class Signatures {
 	}
 
 	/** Spikes: a handful of metal spikes thrown in an arc, landing point up before the target, each with a glint. */
-	private static void spikes(Context c) {
+	static void spikes(Context c) {
 		float s = c.size();
 		Vec3 feet = c.move().aimFeet();
 		Vec3 from = c.mouth();
@@ -373,7 +373,7 @@ final class Signatures {
 	}
 
 	/** Body Press: the landing spot marked under the target, then the crash: the ground heaves, a dome of dust. */
-	private static void bodyPress(Context c) {
+	static void bodyPress(Context c) {
 		float s = c.size();
 		Vec3 feet = c.move().aimFeet();
 		if (phase(c).equals("wind")) {
@@ -402,7 +402,7 @@ final class Signatures {
 	}
 
 	/** Headlong Rush: the ground torn up in the user's wake as it charges, then blasted out round the target. */
-	private static void headlongRush(Context c) {
+	static void headlongRush(Context c) {
 		float s = c.size();
 		Vec3 from = c.move().user().position();
 		Vec3 to = c.move().aimFeet();
@@ -444,11 +444,11 @@ final class Signatures {
 	// Blows
 	// =====================================================================
 
-	private static final Item[] KNOCKED = { Items.APPLE, Items.GOLDEN_APPLE, Items.ENDER_PEARL, Items.EMERALD, Items.AMETHYST_SHARD,
+	static final Item[] KNOCKED = { Items.APPLE, Items.GOLDEN_APPLE, Items.ENDER_PEARL, Items.EMERALD, Items.AMETHYST_SHARD,
 			Items.SWEET_BERRIES };
 
 	/** Knock Off: a wide backhand swipe, and the target's held item sent spinning away with a glint. */
-	private static void knockOff(Context c) {
+	static void knockOff(Context c) {
 		Vec3 at = c.aim();
 		float s = c.size() * Math.max(1f, c.move().targetHeight() * 0.8f);
 		Vec3 dir = flat(c.toTarget());
@@ -479,13 +479,13 @@ final class Signatures {
 		}
 	}
 
-	private static Vec3 thrown(Vec3 from, Vec3 launch, float p, float s, double floor) {
+	static Vec3 thrown(Vec3 from, Vec3 launch, float p, float s, double floor) {
 		Vec3 at = from.add(launch.scale(p)).add(0, (3.2 * p - 3.8 * p * p) * s, 0);
 		return at.y < floor ? new Vec3(at.x, floor, at.z) : at;
 	}
 
 	/** Sucker Punch: a shadow slips along the ground behind the target, and the blow comes up from there. */
-	private static void suckerPunch(Context c) {
+	static void suckerPunch(Context c) {
 		float s = c.size();
 		Vec3 dir = flat(c.toTarget());
 		Vec3 behind = c.move().aimFeet().add(dir.scale(c.move().targetWidth() * 0.5 + 0.7)).add(0, 0.1, 0);
@@ -521,7 +521,7 @@ final class Signatures {
 	}
 
 	/** Jagged cracks of light breaking out from a blow, facing the camera. */
-	private static void cracks(Context c, Vec3 at, float q, float s, int color) {
+	static void cracks(Context c, Vec3 at, float q, float s, int color) {
 		RandomSource jag = RandomSource.create(71);
 		Vec3[] b = c.screen(at);
 		for (int i = 0; i < 6; i++) {
@@ -537,7 +537,7 @@ final class Signatures {
 	}
 
 	/** Pursuit: three dark comets hunting the target down on curving paths, then a cross of dark slashes. */
-	private static void pursuit(Context c) {
+	static void pursuit(Context c) {
 		float s = c.size();
 		Vec3 from = c.userCentre();
 		Vec3 to = c.aim();
@@ -578,7 +578,7 @@ final class Signatures {
 	}
 
 	/** Crunch: huge spectral jaws gaping over the target, slamming shut, the bite cracking it. */
-	private static void crunch(Context c) {
+	static void crunch(Context c) {
 		Vec3 at = c.aim();
 		Vec3[] b = c.screen(at);
 		float s = c.size() * Math.max(1.2f, c.move().targetHeight() * 0.95f);
@@ -614,7 +614,7 @@ final class Signatures {
 	}
 
 	/** Iron Head: the head turns to gleaming steel, then the blow throws sparks of metal back off the target. */
-	private static void ironHead(Context c) {
+	static void ironHead(Context c) {
 		float s = c.size();
 		if (phase(c).equals("wind")) {
 			Entity user = c.move().user();
@@ -656,7 +656,7 @@ final class Signatures {
 	}
 
 	/** Power Whip: a thick vine of leaves raised high, lashed down onto the target with a crack, then drawn back. */
-	private static void powerWhip(Context c) {
+	static void powerWhip(Context c) {
 		float s = c.size();
 		Vec3 from = c.mouth();
 		Vec3 to = c.aim();
@@ -717,7 +717,7 @@ final class Signatures {
 	 * U-turn and Flip Turn: the user strikes on its way and turns back, its trail drawing a U round the target (Flip
 	 * Turn somersaults over the turn).
 	 */
-	private static void uTurn(Context c, boolean flip) {
+	static void uTurn(Context c, boolean flip) {
 		float s = c.size();
 		Vec3 from = c.userCentre();
 		Vec3 to = c.aim();
@@ -753,7 +753,7 @@ final class Signatures {
 	}
 
 	/** Along the U-turn, {@code u} 0 → 1: out to the target, round a half circle beside it, back to the user. */
-	private static Vec3 uPath(Context c, float u, boolean flip) {
+	static Vec3 uPath(Context c, float u, boolean flip) {
 		float s = c.size();
 		Vec3 from = c.userCentre();
 		Vec3 to = c.aim();
@@ -781,7 +781,7 @@ final class Signatures {
 	}
 
 	/** Rapid Spin: a whirl round the user as it spins in, then the target struck and debris flung clear. */
-	private static void rapidSpin(Context c) {
+	static void rapidSpin(Context c) {
 		float s = c.size();
 		Entity user = c.move().user();
 		if (!phase(c).equals("hit")) {
@@ -821,7 +821,7 @@ final class Signatures {
 	}
 
 	/** Ice Spinner: a saw of ice shards whirling round the user, flung out in all directions on the hit. */
-	private static void iceSpinner(Context c) {
+	static void iceSpinner(Context c) {
 		float s = c.size();
 		BlockState ice = Blocks.PACKED_ICE.defaultBlockState();
 		if (!phase(c).equals("hit")) {
@@ -866,7 +866,7 @@ final class Signatures {
 	// =====================================================================
 
 	/** Focus Blast: a great orb crackling with a corona, rings spinning round it, and an explosion on the target. */
-	private static void focusBlast(Context c) {
+	static void focusBlast(Context c) {
 		float s = c.size();
 		if (!phase(c).equals("travel")) {
 			blast(c, c.aim(), c.k(), 1.3f);
@@ -895,7 +895,7 @@ final class Signatures {
 	}
 
 	/** An explosion: a swelling fireball, rings in three planes, rays, a white flash. */
-	private static void blast(Context c, Vec3 at, float k, float scale) {
+	static void blast(Context c, Vec3 at, float k, float scale) {
 		float s = c.size() * scale;
 		float fade = 1 - k;
 		float grow = ease(Math.min(1, k * 2.5f));
@@ -916,7 +916,7 @@ final class Signatures {
 	}
 
 	/** Volt Switch: a spark zigzagging to the target, then the charge leaping back to the user, who flashes away. */
-	private static void voltSwitch(Context c) {
+	static void voltSwitch(Context c) {
 		float s = c.size();
 		Vec3 from = c.mouth();
 		Vec3 to = c.aim();
@@ -957,13 +957,13 @@ final class Signatures {
 	}
 
 	/** A zigzag from {@code from} to {@code to}: two and a half zigs, widest halfway. */
-	private static Vec3 zig(Vec3 from, Vec3 to, Vec3 sd, float p, float s) {
+	static Vec3 zig(Vec3 from, Vec3 to, Vec3 sd, float p, float s) {
 		float tri = Math.abs((p * 5) % 2f - 1f) * 2 - 1;
 		return from.lerp(to, p).add(sd.scale(tri * 0.55 * s * Math.sin(p * Math.PI))).add(0, 0.2 * Math.sin(p * Math.PI), 0);
 	}
 
 	/** Arcs crackling between random points round {@code at}, re-drawn every two ticks. */
-	private static void sparks(Context c, Vec3 at, float r, int count, float width) {
+	static void sparks(Context c, Vec3 at, float r, int count, float width) {
 		RandomSource jag = RandomSource.create((long) (c.t() / 2) * 13);
 		for (int i = 0; i < count; i++) {
 			Vec3 p1 = at.add(randomUnit(jag).scale(r));
@@ -973,7 +973,7 @@ final class Signatures {
 	}
 
 	/** Thunderbolt: three thick bolts forking from the user onto the target, which flashes in a cage of sparks. */
-	private static void thunderbolt(Context c) {
+	static void thunderbolt(Context c) {
 		float s = c.size();
 		Vec3 from = c.mouth();
 		Vec3 to = c.aim();
@@ -1011,7 +1011,7 @@ final class Signatures {
 	}
 
 	/** Thunder Wave: jagged rings of electricity rolling to the target, then a crackling cage round it. */
-	private static void thunderWave(Context c) {
+	static void thunderWave(Context c) {
 		float s = c.size();
 		Vec3 from = c.mouth();
 		Vec3 axis = c.aim().subtract(from);
@@ -1047,7 +1047,7 @@ final class Signatures {
 	}
 
 	/** A ring of {@code points} zigzags in the plane ({@code b[0]}, {@code b[1]}), turning. */
-	private static void zigRing(Context c, Vec3 centre, Vec3[] b, float r, float jag, int points, int color, float alpha) {
+	static void zigRing(Context c, Vec3 centre, Vec3[] b, float r, float jag, int points, int color, float alpha) {
 		Vec3 last = null;
 		for (int i = 0; i <= points; i++) {
 			double angle = Mth.TWO_PI * i / points + c.t() * 0.3;
@@ -1060,7 +1060,7 @@ final class Signatures {
 		}
 	}
 
-	private static Vec3 moonAt(Context c) {
+	static Vec3 moonAt(Context c) {
 		return c.userCentre().add(0, c.move().user().getBbHeight() * 0.6 + 1.5 * c.size(), 0);
 	}
 
@@ -1068,7 +1068,7 @@ final class Signatures {
 	 * Moonblast: a full moon rising over the user with stars circling it, its light poured onto the target in a beam
 	 * wound with sparkles, and a great star of moonlight bursting there.
 	 */
-	private static void moonblast(Context c) {
+	static void moonblast(Context c) {
 		float s = c.size();
 		switch (phase(c)) {
 			case "wind" -> moon(c, ease(seg(c.k(), 0, 0.6f)), 1 - seg(c.k(), 0.85f, 1f));
@@ -1119,7 +1119,7 @@ final class Signatures {
 		}
 	}
 
-	private static void moon(Context c, float grow, float alpha) {
+	static void moon(Context c, float grow, float alpha) {
 		Vec3 at = moonAt(c);
 		float s = c.size();
 		float r = 0.5f * s * grow;
@@ -1135,12 +1135,12 @@ final class Signatures {
 		}
 	}
 
-	private static Vec3 circleAt(Context c) {
+	static Vec3 circleAt(Context c) {
 		return c.mouth().add(flat(c.toTarget()).scale(0.6 * c.size()));
 	}
 
 	/** A circle of magic: two rings, a turning six-pointed star, runes going round the other way. */
-	private static void magicCircle(Context c, Vec3 at, Vec3 normal, float r, float alpha) {
+	static void magicCircle(Context c, Vec3 at, Vec3 normal, float r, float alpha) {
 		if (r <= 0.01f) {
 			return;
 		}
@@ -1166,7 +1166,7 @@ final class Signatures {
 	}
 
 	/** Mystical Fire: a magic circle opens before the user, pink fire twists out of it and wraps the target. */
-	private static void mysticalFire(Context c) {
+	static void mysticalFire(Context c) {
 		float s = c.size();
 		Vec3 circle = circleAt(c);
 		switch (phase(c)) {
@@ -1209,7 +1209,7 @@ final class Signatures {
 	}
 
 	/** Scald: twin jets of boiling water, steam curling off them, and the target lost in a burst of steam. */
-	private static void scald(Context c) {
+	static void scald(Context c) {
 		float s = c.size();
 		Vec3 from = c.mouth();
 		Vec3 to = c.aim();
@@ -1273,7 +1273,7 @@ final class Signatures {
 	}
 
 	/** Sludge Bomb: glistening globs of poison lobbed high, dripping, splattering on the target into a bubbling pool. */
-	private static void sludgeBomb(Context c) {
+	static void sludgeBomb(Context c) {
 		float s = c.size();
 		int core = 0x3A1050;
 		if (phase(c).equals("travel")) {
@@ -1323,12 +1323,12 @@ final class Signatures {
 		}
 	}
 
-	private static Vec3 lobbed(Context c, float k, float s) {
+	static Vec3 lobbed(Context c, float k, float s) {
 		return c.mouth().lerp(c.aim(), k).add(0, Math.sin(k * Math.PI) * 2.2 * s, 0);
 	}
 
 	/** Dark comets with long trails: the meteors of Draco Meteor. */
-	private static void dracoMeteor(Context c) {
+	static void dracoMeteor(Context c) {
 		float s = c.size();
 		if (phase(c).equals("wind")) {
 			Vec3 from = c.mouth();
@@ -1390,9 +1390,9 @@ final class Signatures {
 	}
 
 	/** How long a meteor falls, as a share of the layer. */
-	private static final float METEOR_FALL = 0.3f;
+	static final float METEOR_FALL = 0.3f;
 
-	private static void meteorTick(Context c, ClientLevel level) {
+	static void meteorTick(Context c, ClientLevel level) {
 		if (!phase(c).equals("hit")) {
 			return;
 		}
@@ -1410,7 +1410,7 @@ final class Signatures {
 		}
 	}
 
-	private static Vec3 clockAt(Context c) {
+	static Vec3 clockAt(Context c) {
 		return c.aim().add(0, c.move().targetHeight() * 0.5 + 1.4 * c.size(), 0);
 	}
 
@@ -1418,7 +1418,7 @@ final class Signatures {
 	 * Future Sight: a light sent up over the foe opens into a clock whose hands race ahead (the blow comes turns
 	 * later); if the move strikes now, light pours down from it onto the target.
 	 */
-	private static void futureSight(Context c) {
+	static void futureSight(Context c) {
 		float s = c.size();
 		Vec3 at = clockAt(c);
 		if (phase(c).equals("hit")) {
@@ -1463,7 +1463,7 @@ final class Signatures {
 	}
 
 	/** Psyshock: psychic power hardened into crystals round the target, slammed into it, shattering. */
-	private static void psyshock(Context c) {
+	static void psyshock(Context c) {
 		Vec3 at = c.aim();
 		float s = c.size();
 		float k = c.k();
@@ -1498,15 +1498,15 @@ final class Signatures {
 		}
 	}
 
-	private static final int[] RAINBOW = { 0xFF4040, 0xFF9A30, 0xFFE840, 0x50E060, 0x40D8FF, 0x4870FF, 0xB060FF };
+	static final int[] RAINBOW = { 0xFF4040, 0xFF9A30, 0xFFE840, 0x50E060, 0x40D8FF, 0x4870FF, 0xB060FF };
 
-	private static final BlockState[] PRISMS = { Blocks.RED_STAINED_GLASS.defaultBlockState(), Blocks.ORANGE_STAINED_GLASS.defaultBlockState(),
+	static final BlockState[] PRISMS = { Blocks.RED_STAINED_GLASS.defaultBlockState(), Blocks.ORANGE_STAINED_GLASS.defaultBlockState(),
 			Blocks.YELLOW_STAINED_GLASS.defaultBlockState(), Blocks.LIME_STAINED_GLASS.defaultBlockState(),
 			Blocks.LIGHT_BLUE_STAINED_GLASS.defaultBlockState(), Blocks.BLUE_STAINED_GLASS.defaultBlockState(),
 			Blocks.PURPLE_STAINED_GLASS.defaultBlockState() };
 
 	/** Tera Starstorm: prisms of every colour turning round the user, then beams of each colour from the sky. */
-	private static void teraStarstorm(Context c) {
+	static void teraStarstorm(Context c) {
 		float s = c.size();
 		if (phase(c).equals("wind")) {
 			Entity user = c.move().user();
@@ -1551,7 +1551,7 @@ final class Signatures {
 	}
 
 	/** Make It Rain: a fountain of coins out of the user, then a downpour of gold on the target, bouncing. */
-	private static void makeItRain(Context c) {
+	static void makeItRain(Context c) {
 		float s = c.size();
 		ItemStack coin = new ItemStack(Items.GOLD_NUGGET);
 		if (phase(c).equals("wind")) {
@@ -1599,7 +1599,7 @@ final class Signatures {
 	}
 
 	/** A ghostly flame: glow, a pale heart, three flickering tongues. */
-	private static void wisp(Context c, Vec3 at, float size, float alpha) {
+	static void wisp(Context c, Vec3 at, float size, float alpha) {
 		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, size * 1.6f, c.color(), op(170 * alpha));
 		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, size * 0.7f, c.accent(), op(220 * alpha));
 		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, size * 0.3f, 0xFFFFFF, op(240 * alpha));
@@ -1610,21 +1610,21 @@ final class Signatures {
 		}
 	}
 
-	private static final int WISPS = 4;
+	static final int WISPS = 4;
 
-	private static Vec3 wispPath(Context c, int i, float p) {
+	static Vec3 wispPath(Context c, int i, float p) {
 		float s = c.size();
 		Vec3 start = c.userCentre().add(dirOf(i * 2.1).scale(0.8 * s)).add(0, 0.4 * Math.sin(i), 0);
 		Vec3 end = c.aim().add(dirOf(i * 2.1 + 1).scale(c.move().targetWidth() * 0.6 + 0.6 * s));
 		return start.lerp(end, ease(p)).add(0, Math.sin(p * Math.PI) * 0.8 + Math.sin(c.t() * 0.25 + i) * 0.2, 0);
 	}
 
-	private static float wispProgress(Context c, int i) {
+	static float wispProgress(Context c, int i) {
 		return seg(c.k(), i * 0.08f, 0.7f + i * 0.08f);
 	}
 
 	/** Will-O-Wisp: ghostly blue flames drifting over to the target, circling it, sinking in as a burn. */
-	private static void willOWisp(Context c) {
+	static void willOWisp(Context c) {
 		float s = c.size();
 		if (phase(c).equals("wind")) {
 			for (int i = 0; i < WISPS; i++) {
@@ -1664,7 +1664,7 @@ final class Signatures {
 		}
 	}
 
-	private static void wispTick(Context c, ClientLevel level) {
+	static void wispTick(Context c, ClientLevel level) {
 		if (phase(c).equals("wind")) {
 			for (int i = 0; i < WISPS; i++) {
 				float p = wispProgress(c, i);
@@ -1686,7 +1686,7 @@ final class Signatures {
 	// =====================================================================
 
 	/** Hurricane: a true funnel of wind (narrow at the ground, wide at the top) round the target, a storm cloud on it. */
-	private static void hurricane(Context c) {
+	static void hurricane(Context c) {
 		Vec3 base = c.move().aimFeet();
 		float s = c.size();
 		float grow = ease(seg(c.k(), 0, 0.25f));
@@ -1717,11 +1717,11 @@ final class Signatures {
 	}
 
 	/** The hurricane's radius {@code p} of the way up. */
-	private static double funnel(double p, float s) {
+	static double funnel(double p, float s) {
 		return (0.3 + 1.7 * Math.pow(p, 1.4)) * s;
 	}
 
-	private static void hurricaneTick(Context c, ClientLevel level) {
+	static void hurricaneTick(Context c, ClientLevel level) {
 		Vec3 base = c.move().aimFeet();
 		float s = c.size();
 		float height = 4.8f * s * ease(seg(c.k(), 0, 0.25f));
@@ -1736,7 +1736,7 @@ final class Signatures {
 	}
 
 	/** Defog: a gale from behind the user sweeping the field, the haze on the far side and the hazards blown away. */
-	private static void defog(Context c) {
+	static void defog(Context c) {
 		Vec3 from = c.userCentre();
 		Vec3 to = c.aim();
 		Vec3 dir = flat(to.subtract(from));
@@ -1780,7 +1780,7 @@ final class Signatures {
 		}
 	}
 
-	private static void defogTick(Context c, ClientLevel level) {
+	static void defogTick(Context c, ClientLevel level) {
 		Vec3 from = c.move().user().position();
 		Vec3 dir = flat(c.aim().subtract(from));
 		Vec3 sd = side(dir);
@@ -1792,7 +1792,7 @@ final class Signatures {
 		}
 	}
 
-	private static void scaldTick(Context c, ClientLevel level) {
+	static void scaldTick(Context c, ClientLevel level) {
 		if (!phase(c).equals("hit") || c.k() > 0.7f) {
 			return;
 		}
@@ -1809,7 +1809,7 @@ final class Signatures {
 	// =====================================================================
 
 	/** Swords Dance: glowing swords circling the user, rising, then gathered into a crown over its head with a flash. */
-	private static void swordsDance(Context c) {
+	static void swordsDance(Context c) {
 		Entity user = c.move().user();
 		int n = c.count(8);
 		float s = c.size();
@@ -1847,7 +1847,7 @@ final class Signatures {
 	 * Where a sword drawn by {@link Motifs#item} points (hilt to tip): the item frame's display turns the sprite round, so
 	 * its blade points up-left (135°) before the roll, then the yaw turns it.
 	 */
-	private static Vec3 bladeDirection(float yaw, float roll) {
+	static Vec3 bladeDirection(float yaw, float roll) {
 		double angle = Math.toRadians(135 + roll);
 		double x = Math.cos(angle);
 		double yr = Math.toRadians(yaw);
@@ -1855,7 +1855,7 @@ final class Signatures {
 	}
 
 	/** Roost: the wings folding round the user, feathers drifting down, a soft glow. */
-	private static void roost(Context c) {
+	static void roost(Context c) {
 		Entity user = c.move().user();
 		float s = c.size();
 		float h = user.getBbHeight();
@@ -1893,7 +1893,7 @@ final class Signatures {
 	}
 
 	/** Recover: rings of light coming down over the user, motes drawn into it, and it glows whole again. */
-	private static void recover(Context c) {
+	static void recover(Context c) {
 		Entity user = c.move().user();
 		float s = c.size();
 		float h = user.getBbHeight();
@@ -1930,7 +1930,7 @@ final class Signatures {
 	}
 
 	/** Wish: a star rising from the user into the sky, flaring, its light falling back as a shower of stars. */
-	private static void wish(Context c) {
+	static void wish(Context c) {
 		Entity user = c.move().user();
 		float s = c.size();
 		float k = c.k();
@@ -1969,7 +1969,7 @@ final class Signatures {
 	}
 
 	/** Substitute: the user lost in a puff of smoke, a little wool doll popping up in front of it as its decoy. */
-	private static void substitute(Context c) {
+	static void substitute(Context c) {
 		Entity user = c.move().user();
 		float s = c.size();
 		Vec3 centre = c.userCentre();
@@ -2014,7 +2014,7 @@ final class Signatures {
 	}
 
 	/** Calm Mind: slow ripples spreading level from the user's head, a third eye shining, motes rising in stillness. */
-	private static void calmMind(Context c) {
+	static void calmMind(Context c) {
 		Entity user = c.move().user();
 		float s = c.size();
 		float h = user.getBbHeight();
@@ -2041,7 +2041,7 @@ final class Signatures {
 	}
 
 	/** Nasty Plot: shadows coiling up round the user, red eyes opening over its head and narrowing, a menacing pulse. */
-	private static void nastyPlot(Context c) {
+	static void nastyPlot(Context c) {
 		Entity user = c.move().user();
 		float s = c.size();
 		float h = user.getBbHeight();
@@ -2092,7 +2092,7 @@ final class Signatures {
 	// =====================================================================
 
 	/** Toxic: venom bursting on the target, bubbles swelling and popping all over it, goo running down, two pulses. */
-	private static void toxic(Context c) {
+	static void toxic(Context c) {
 		Vec3 at = c.aim();
 		Vec3 feet = c.move().aimFeet();
 		float s = c.size();
@@ -2152,7 +2152,7 @@ final class Signatures {
 	}
 
 	/** Taunt: a throbbing anger mark over the target's head and stress lines flickering round it. */
-	private static void tauntRage(Context c) {
+	static void tauntRage(Context c) {
 		Vec3 centre = c.aim();
 		Vec3 head = centre.add(0, c.move().targetHeight() * 0.55 + 0.25, 0);
 		Vec3[] b = c.screen(head);
@@ -2191,65 +2191,65 @@ final class Signatures {
 	// Helpers
 	// =====================================================================
 
-	private static String phase(Context c) {
+	static String phase(Context c) {
 		return c.layer().phase == null ? "hit" : c.layer().phase;
 	}
 
-	private static float seg(float k, float from, float to) {
+	static float seg(float k, float from, float to) {
 		return Mth.clamp((k - from) / (to - from), 0f, 1f);
 	}
 
-	private static float ease(float x) {
+	static float ease(float x) {
 		x = Mth.clamp(x, 0f, 1f);
 		return x * x * (3 - 2 * x);
 	}
 
 	/** 0 at both ends, 1 halfway. */
-	private static float bell(float x) {
+	static float bell(float x) {
 		return x <= 0 || x >= 1 ? 0 : Mth.sin(x * Mth.PI);
 	}
 
-	private static int op(double alpha) {
+	static int op(double alpha) {
 		return Mth.clamp((int) alpha, 0, 255);
 	}
 
 	/** True on the one tick the layer goes past {@code share} of its length. */
-	private static boolean crossed(Context c, float share) {
+	static boolean crossed(Context c, float share) {
 		float at = share * c.length();
 		return c.t() >= at && c.t() - 1 < at;
 	}
 
-	private static Vec3 flat(Vec3 v) {
+	static Vec3 flat(Vec3 v) {
 		Vec3 f = v.multiply(1, 0, 1);
 		return f.lengthSqr() < 1.0E-4 ? new Vec3(0, 0, 1) : f.normalize();
 	}
 
-	private static Vec3 side(Vec3 dir) {
+	static Vec3 side(Vec3 dir) {
 		Vec3 s = dir.cross(UP);
 		return s.lengthSqr() < 1.0E-4 ? new Vec3(1, 0, 0) : s.normalize();
 	}
 
-	private static Vec3 dirOf(double angle) {
+	static Vec3 dirOf(double angle) {
 		return new Vec3(Math.cos(angle), 0, Math.sin(angle));
 	}
 
-	private static double flatDist(Vec3 a, Vec3 b) {
+	static double flatDist(Vec3 a, Vec3 b) {
 		double dx = a.x - b.x;
 		double dz = a.z - b.z;
 		return Math.sqrt(dx * dx + dz * dz);
 	}
 
-	private static Vec3 randomUnit(RandomSource jag) {
+	static Vec3 randomUnit(RandomSource jag) {
 		return new Vec3(jag.nextGaussian(), jag.nextGaussian(), jag.nextGaussian()).normalize();
 	}
 
-	private static Vec3 bezier(Vec3 a, Vec3 b, Vec3 c, double t) {
+	static Vec3 bezier(Vec3 a, Vec3 b, Vec3 c, double t) {
 		double u = 1 - t;
 		return a.scale(u * u).add(b.scale(2 * u * t)).add(c.scale(t * t));
 	}
 
 	/** The block under {@code feet}, for ground thrown up; dirt when it isn't a full block (or nothing is there). */
-	private static BlockState ground(Vec3 feet) {
+	static BlockState ground(Vec3 feet) {
 		ClientLevel level = Minecraft.getInstance().level;
 		if (level != null) {
 			BlockPos pos = BlockPos.containing(feet.x, feet.y - 0.05, feet.z);
@@ -2262,13 +2262,13 @@ final class Signatures {
 	}
 
 	/** An even line from {@code a} to {@code b}: two streaks facing each other. */
-	private static void line(Context c, Vec3 a, Vec3 b, float width, int color, float alpha) {
+	static void line(Context c, Vec3 a, Vec3 b, float width, int color, float alpha) {
 		Draw.streak(c.glow(), c.m(), a, b, c.camera(), width, color, op(alpha));
 		Draw.streak(c.glow(), c.m(), b, a, c.camera(), width, color, op(alpha));
 	}
 
 	/** A four-pointed star of light (a glint): two crossed streaks and a small glow. */
-	private static void twinkle(Context c, Vec3 at, float size, int color, int alpha) {
+	static void twinkle(Context c, Vec3 at, float size, int color, int alpha) {
 		if (alpha <= 0 || size <= 0) {
 			return;
 		}
@@ -2285,7 +2285,7 @@ final class Signatures {
 	 * A soft ribbon of light through {@code pts} (smooth, unlike chained streaks), facing the camera: width and alpha
 	 * go from the first point's to the last's.
 	 */
-	private static void ribbon(Context c, Vec3[] pts, float w0, float w1, int color, float a0, float a1) {
+	static void ribbon(Context c, Vec3[] pts, float w0, float w1, int color, float a0, float a1) {
 		int n = pts.length;
 		if (n < 2) {
 			return;
@@ -2323,7 +2323,7 @@ final class Signatures {
 	 * points. {@code width} across, {@code length} tip to tip, standing up, then turned by {@code yaw} and leant by
 	 * {@code tilt} (degrees).
 	 */
-	private static void crystal(Context c, BlockState state, Vec3 centre, float width, float length, float yaw, float tilt) {
+	static void crystal(Context c, BlockState state, Vec3 centre, float width, float length, float yaw, float tilt) {
 		if (width <= 0.01f || length <= 0.01f) {
 			return;
 		}
@@ -2342,7 +2342,7 @@ final class Signatures {
 	}
 
 	/** A crystal ({@link #crystal}) along {@code axis}. */
-	private static void crystalToward(Context c, BlockState state, Vec3 centre, float width, float length, Vec3 axis) {
+	static void crystalToward(Context c, BlockState state, Vec3 centre, float width, float length, Vec3 axis) {
 		Vec3 d = axis.normalize();
 		float tilt = (float) Math.toDegrees(Math.acos(Mth.clamp(d.y, -1, 1)));
 		float yaw = (float) Math.toDegrees(Math.atan2(d.x, d.z));
@@ -2350,7 +2350,7 @@ final class Signatures {
 	}
 
 	/** A block stretched to {@code sx} × {@code sy} × {@code sz} round {@code centre}, turned by {@code yaw}. */
-	private static void box(Context c, BlockState state, Vec3 centre, float sx, float sy, float sz, float yaw) {
+	static void box(Context c, BlockState state, Vec3 centre, float sx, float sy, float sz, float yaw) {
 		if (sx <= 0.01f || sy <= 0.01f || sz <= 0.01f) {
 			return;
 		}

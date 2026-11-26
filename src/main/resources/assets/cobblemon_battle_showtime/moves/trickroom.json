@@ -1,17 +1,15 @@
 {
   "category": "status",
-  "color": "#FF4FA8",
-  "accent": "#FFC0E8",
+  "color": "#FF60D0",
+  "accent": "#80FFFF",
   "layers": [
     {
-      "motif": "wall",
+      "motif": "trickroom",
       "phase": "self",
-      "size": 2.0
-    },
-    {
-      "motif": "rays",
-      "phase": "self",
-      "duration": 12
+      "duration": 40,
+      "particles": [
+        "minecraft:witch"
+      ]
     }
   ]
 }

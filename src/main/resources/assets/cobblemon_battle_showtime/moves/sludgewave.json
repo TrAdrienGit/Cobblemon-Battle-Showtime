@@ -1,19 +1,22 @@
 {
   "category": "special",
   "color": "#A040D0",
-  "accent": "#E8A0FF",
+  "accent": "#E0A0FF",
   "layers": [
     {
-      "motif": "wave",
-      "phase": "travel",
-      "duration": 22
+      "motif": "sludgewave",
+      "phase": "wind",
+      "duration": 24,
+      "particles": [
+        "minecraft:witch"
+      ]
     },
     {
-      "motif": "splat",
+      "motif": "sludgewave",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:witch",
-        "minecraft:squid_ink"
+        "minecraft:witch"
       ]
     }
   ]

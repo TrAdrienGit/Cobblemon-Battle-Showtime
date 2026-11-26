@@ -1,17 +1,15 @@
 {
   "category": "status",
   "color": "#FF4FA8",
-  "accent": "#FFC0E8",
+  "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "aura",
-      "phase": "self"
-    },
-    {
-      "motif": "rays",
+      "motif": "teleport",
       "phase": "self",
-      "duration": 10,
-      "delay": 20
+      "duration": 30,
+      "particles": [
+        "minecraft:end_rod"
+      ]
     }
   ]
 }

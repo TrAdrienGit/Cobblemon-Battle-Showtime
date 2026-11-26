@@ -1,26 +1,18 @@
 {
   "category": "physical",
   "color": "#FFD81A",
-  "accent": "#FFFFB0",
+  "accent": "#FFFFFF",
   "layers": [
     {
       "motif": "dash",
       "phase": "travel"
     },
     {
-      "motif": "fist",
+      "motif": "thunderpunch",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
-      ]
-    },
-    {
-      "motif": "sparks_on",
-      "phase": "hit",
-      "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
+        "minecraft:electric_spark"
       ]
     }
   ]

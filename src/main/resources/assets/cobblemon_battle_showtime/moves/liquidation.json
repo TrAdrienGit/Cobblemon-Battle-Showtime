@@ -1,26 +1,22 @@
 {
   "category": "physical",
   "color": "#2E8BFF",
-  "accent": "#B8ECFF",
+  "accent": "#E0F8FF",
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "stab",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:splash"
       ]
     },
     {
-      "motif": "splash",
+      "motif": "liquidation",
       "phase": "hit",
+      "duration": 26,
       "particles": [
         "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:bubble_pop"
       ]
     }
   ]

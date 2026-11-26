@@ -5,14 +5,18 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
+      "phase": "travel",
+      "particles": [
+        "minecraft:poof"
+      ]
     },
     {
-      "motif": "kick",
+      "motif": "lowkick",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:poof",
+        "minecraft:crit"
       ]
     }
   ]

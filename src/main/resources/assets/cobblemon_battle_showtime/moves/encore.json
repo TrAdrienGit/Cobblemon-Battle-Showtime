@@ -1,15 +1,14 @@
 {
   "category": "status",
-  "color": "#E8E2D0",
-  "accent": "#FFFFFF",
+  "color": "#FF80C0",
+  "accent": "#80C0FF",
   "layers": [
     {
-      "motif": "notes",
+      "motif": "encore",
       "phase": "hit",
-      "duration": 28,
+      "duration": 34,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:note"
       ]
     }
   ]

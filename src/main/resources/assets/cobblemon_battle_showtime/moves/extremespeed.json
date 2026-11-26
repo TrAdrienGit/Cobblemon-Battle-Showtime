@@ -1,38 +1,22 @@
 {
   "category": "physical",
-  "color": "#E8E2D0",
+  "color": "#E8E8FF",
   "accent": "#FFFFFF",
   "layers": [
     {
       "motif": "dash",
       "phase": "travel",
-      "duration": 4
-    },
-    {
-      "motif": "impact",
-      "phase": "hit",
+      "duration": 4,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:cloud"
       ]
     },
     {
-      "motif": "impact",
+      "motif": "extremespeed",
       "phase": "hit",
-      "delay": 3,
-      "size": 0.7,
+      "duration": 26,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "rays",
-      "phase": "hit",
-      "size": 0.6,
-      "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     }
   ]

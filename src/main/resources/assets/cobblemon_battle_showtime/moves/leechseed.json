@@ -1,20 +1,18 @@
 {
   "category": "status",
-  "color": "#48C840",
+  "color": "#50C030",
   "accent": "#D0FF88",
   "layers": [
     {
-      "motif": "lob",
-      "phase": "travel",
-      "count": 3
+      "motif": "leechseed",
+      "phase": "travel"
     },
     {
-      "motif": "seeds",
+      "motif": "leechseed",
       "phase": "hit",
-      "duration": 28,
+      "duration": 32,
       "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
+        "minecraft:happy_villager"
       ]
     }
   ]

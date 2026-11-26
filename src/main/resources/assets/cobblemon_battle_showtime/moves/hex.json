@@ -1,19 +1,14 @@
 {
   "category": "special",
-  "color": "#7A4CC8",
-  "accent": "#D0B0FF",
+  "color": "#8A50E0",
+  "accent": "#FF60C0",
   "layers": [
     {
-      "motif": "glare",
-      "phase": "wind"
-    },
-    {
-      "motif": "wisps",
+      "motif": "hex",
       "phase": "hit",
-      "duration": 22,
+      "duration": 32,
       "particles": [
-        "minecraft:soul",
-        "minecraft:witch"
+        "minecraft:soul"
       ]
     }
   ]

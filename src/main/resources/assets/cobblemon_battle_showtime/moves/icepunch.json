@@ -8,20 +8,12 @@
       "phase": "travel"
     },
     {
-      "motif": "fist",
+      "motif": "icepunch",
       "phase": "hit",
+      "duration": 26,
       "particles": [
         "minecraft:snowflake",
-        "minecraft:end_rod"
-      ]
-    },
-    {
-      "motif": "freeze",
-      "phase": "hit",
-      "size": 0.7,
-      "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
+        "minecraft:item_snowball"
       ]
     }
   ]

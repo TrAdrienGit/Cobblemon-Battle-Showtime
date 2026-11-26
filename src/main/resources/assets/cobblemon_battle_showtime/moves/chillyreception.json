@@ -4,9 +4,9 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "tornado",
-      "phase": "hit",
-      "duration": 24,
+      "motif": "chillyreception",
+      "phase": "self",
+      "duration": 40,
       "particles": [
         "minecraft:snowflake"
       ]

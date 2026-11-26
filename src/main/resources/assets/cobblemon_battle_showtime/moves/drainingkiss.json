@@ -1,20 +1,18 @@
 {
   "category": "special",
-  "color": "#FF8CD8",
+  "color": "#FF6AB0",
   "accent": "#FFE4F6",
   "layers": [
     {
-      "motif": "orb",
+      "motif": "drainingkiss",
       "phase": "travel"
     },
     {
-      "motif": "heal",
+      "motif": "drainingkiss",
       "phase": "hit",
-      "delay": 4,
-      "duration": 16,
+      "duration": 30,
       "particles": [
-        "minecraft:end_rod",
-        "minecraft:cherry_leaves"
+        "minecraft:heart"
       ]
     }
   ]

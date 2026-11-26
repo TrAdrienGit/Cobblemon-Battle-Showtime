@@ -4,40 +4,29 @@
   "accent": "#FFD040",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "flareblitz",
       "phase": "wind",
       "duration": 20,
       "particles": [
-        "minecraft:flame"
+        "minecraft:flame",
+        "minecraft:small_flame"
       ]
     },
     {
-      "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "impact",
-      "phase": "hit",
+      "motif": "flareblitz",
+      "phase": "travel",
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     },
     {
-      "motif": "flames_on",
+      "motif": "flareblitz",
       "phase": "hit",
+      "duration": 28,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
-      ]
-    },
-    {
-      "motif": "burst",
-      "phase": "hit",
-      "size": 1.3,
-      "particles": [
-        "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ],

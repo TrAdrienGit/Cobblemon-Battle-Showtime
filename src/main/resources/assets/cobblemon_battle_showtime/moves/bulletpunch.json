@@ -5,14 +5,18 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
+      "phase": "travel",
+      "duration": 4,
+      "particles": [
+        "minecraft:crit"
+      ]
     },
     {
-      "motif": "fist",
+      "motif": "bulletpunch",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:crit",
-        "minecraft:wax_on"
+        "minecraft:crit"
       ]
     }
   ]

@@ -1,19 +1,14 @@
 {
   "category": "physical",
   "color": "#6A40FF",
-  "accent": "#C8B0FF",
+  "accent": "#E0C0FF",
   "layers": [
     {
-      "motif": "psy_shards",
-      "phase": "travel",
-      "count": 5
-    },
-    {
-      "motif": "impact",
+      "motif": "scaleshot",
       "phase": "hit",
+      "duration": 30,
       "particles": [
-        "minecraft:dragon_breath",
-        "minecraft:reverse_portal"
+        "minecraft:crit"
       ]
     }
   ]

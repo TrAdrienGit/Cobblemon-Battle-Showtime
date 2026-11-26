@@ -1,15 +1,18 @@
 {
   "category": "special",
   "color": "#FFD81A",
-  "accent": "#FFFFB0",
+  "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "sky_bolt",
+      "motif": "thunderclap",
+      "phase": "wind"
+    },
+    {
+      "motif": "thunderclap",
       "phase": "hit",
-      "duration": 16,
+      "duration": 22,
       "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
+        "minecraft:electric_spark"
       ]
     }
   ]

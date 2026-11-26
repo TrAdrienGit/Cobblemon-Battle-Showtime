@@ -4,24 +4,15 @@
   "accent": "#B0FFFF",
   "layers": [
     {
-      "motif": "ice_beam",
+      "motif": "freezedry",
       "phase": "travel"
     },
     {
-      "motif": "freeze",
+      "motif": "freezedry",
       "phase": "hit",
+      "duration": 28,
       "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
-      ]
-    },
-    {
-      "motif": "cloud",
-      "phase": "hit",
-      "duration": 12,
-      "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
+        "minecraft:snowflake"
       ]
     }
   ]

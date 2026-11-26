@@ -1,18 +1,23 @@
 {
   "category": "special",
-  "color": "#E8E2D0",
+  "color": "#A0D0FF",
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "orb_rings",
+      "motif": "weatherball",
+      "phase": "wind"
+    },
+    {
+      "motif": "weatherball",
       "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "weatherball",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:cloud",
+        "minecraft:falling_water"
       ]
     }
   ]

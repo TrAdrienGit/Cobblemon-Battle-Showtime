@@ -5,22 +5,19 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "fist",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     },
     {
-      "motif": "flames_on",
+      "motif": "firepunch",
       "phase": "hit",
+      "duration": 24,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ]

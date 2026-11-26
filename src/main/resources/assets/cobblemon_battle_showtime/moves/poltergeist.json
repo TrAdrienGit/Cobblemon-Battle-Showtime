@@ -4,26 +4,14 @@
   "accent": "#D0B0FF",
   "layers": [
     {
-      "motif": "glare",
-      "phase": "wind"
-    },
-    {
-      "motif": "knock_item",
+      "motif": "poltergeist",
       "phase": "hit",
+      "duration": 34,
       "particles": [
         "minecraft:soul",
-        "minecraft:witch"
-      ]
-    },
-    {
-      "motif": "wisps",
-      "phase": "hit",
-      "duration": 16,
-      "particles": [
-        "minecraft:soul",
-        "minecraft:witch"
+        "minecraft:crit"
       ]
     }
   ],
-  "size": 1.2
+  "size": 1.1
 }

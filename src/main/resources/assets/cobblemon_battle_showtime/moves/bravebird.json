@@ -1,35 +1,28 @@
 {
   "category": "physical",
-  "color": "#B0D0FF",
-  "accent": "#FFFFFF",
+  "color": "#FF8040",
+  "accent": "#FFE0A0",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "bravebird",
       "phase": "wind",
       "duration": 20,
       "particles": [
-        "minecraft:cloud"
+        "minecraft:flame",
+        "minecraft:small_flame"
       ]
     },
     {
-      "motif": "dash",
+      "motif": "bravebird",
       "phase": "travel"
     },
     {
-      "motif": "wings",
+      "motif": "bravebird",
       "phase": "hit",
+      "duration": 26,
       "particles": [
         "minecraft:cloud",
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "impact",
-      "phase": "hit",
-      "size": 1.3,
-      "particles": [
-        "minecraft:cloud",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     }
   ],

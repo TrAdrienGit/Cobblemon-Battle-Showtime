@@ -1,27 +1,21 @@
 {
   "category": "physical",
-  "color": "#A040D0",
-  "accent": "#E8A0FF",
+  "color": "#B050E0",
+  "accent": "#E0A0FF",
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "stab",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:witch",
-        "minecraft:squid_ink"
+        "minecraft:witch"
       ]
     },
     {
-      "motif": "splat",
+      "motif": "poisonjab",
       "phase": "hit",
-      "size": 0.6,
+      "duration": 24,
       "particles": [
-        "minecraft:witch",
-        "minecraft:squid_ink"
+        "minecraft:witch"
       ]
     }
   ]

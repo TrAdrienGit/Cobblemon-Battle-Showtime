@@ -1,16 +1,15 @@
 {
   "category": "status",
-  "color": "#C0C0FF",
+  "color": "#A0A0FF",
   "accent": "#FFC0E8",
   "layers": [
     {
-      "motif": "notes",
+      "motif": "rest",
       "phase": "self",
-      "duration": 30
-    },
-    {
-      "motif": "heal",
-      "phase": "self"
+      "duration": 40,
+      "particles": [
+        "minecraft:happy_villager"
+      ]
     }
   ]
 }

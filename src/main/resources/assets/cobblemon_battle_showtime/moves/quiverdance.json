@@ -1,20 +1,15 @@
 {
   "category": "status",
-  "color": "#A8D020",
-  "accent": "#F0FF90",
+  "color": "#80E0FF",
+  "accent": "#FF90E0",
   "layers": [
     {
-      "motif": "dance",
+      "motif": "quiverdance",
       "phase": "self",
+      "duration": 40,
       "particles": [
         "minecraft:end_rod"
       ]
-    },
-    {
-      "motif": "wings",
-      "phase": "self",
-      "duration": 14,
-      "delay": 10
     }
   ]
 }

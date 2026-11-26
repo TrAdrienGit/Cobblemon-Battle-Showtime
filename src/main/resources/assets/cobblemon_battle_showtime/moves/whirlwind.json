@@ -1,15 +1,14 @@
 {
   "category": "status",
-  "color": "#B0D0FF",
+  "color": "#D8F0FF",
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "tornado",
+      "motif": "whirlwind",
       "phase": "hit",
-      "duration": 24,
+      "duration": 28,
       "particles": [
-        "minecraft:cloud",
-        "minecraft:poof"
+        "minecraft:cloud"
       ]
     }
   ]

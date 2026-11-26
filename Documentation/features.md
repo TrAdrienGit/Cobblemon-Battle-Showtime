@@ -79,6 +79,11 @@ remove it from roadmap.md.
   Meteor slants burning blocks onto the field, Future Sight opens a racing clock over the foe, Make It Rain pours gold,
   Power Whip lashes a vine of moss and leaves, and so on for the others. Their Dark and Poison moves no longer leave
   black squares (squid ink), Flamethrower and Heat Wave no longer leave lava smoke.
+- Second batch of signature motifs (`move/Signatures2`, 2026-11-26): moves 51 to 100 by the same ranking. The
+  elemental punches wear their element (Ice Punch seals the foe in ice that bursts, Thunder Punch throws bolts all
+  round), Surf rolls a great wave across the field, Sacred Sword plunges a giant blade of light, Trick Room unfolds a
+  wireframe room over the field, Draining Kiss sends a heart and pulls small hearts back, Iron Defense locks iron
+  plates round the user, Leech Seed grows vines up the foe, and so on. Heavy Slam and Solar Beam keep their drawing.
 - Physical moves strike up close, special moves travel; timing follows Cobblemon's own cues. A hit cue arriving after a
   long Cobblemon timeline starts the hit then (it used to start at the latest expected moment and play half over).
 - Pokémon whose model has no attack animation lunge (physical), recoil and thrust (special) or hop (status), with a

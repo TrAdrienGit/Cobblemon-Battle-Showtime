@@ -1,10 +1,10 @@
 {
   "category": "physical",
-  "color": "#E8502A",
-  "accent": "#FFC080",
+  "color": "#FF5030",
+  "accent": "#FFB040",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "superpower",
       "phase": "wind",
       "duration": 20,
       "particles": [
@@ -13,25 +13,20 @@
     },
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "barrage",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     },
     {
-      "motif": "impact",
+      "motif": "superpower",
       "phase": "hit",
-      "size": 1.4,
-      "delay": 8,
+      "duration": 26,
       "particles": [
         "minecraft:crit",
         "minecraft:poof"
       ]
     }
-  ]
+  ],
+  "size": 1.2
 }

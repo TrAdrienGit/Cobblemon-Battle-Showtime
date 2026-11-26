@@ -1,20 +1,18 @@
 {
   "category": "special",
   "color": "#FF4FA8",
-  "accent": "#FFC0E8",
+  "accent": "#FFB0E0",
   "layers": [
     {
-      "motif": "sound_rings",
-      "phase": "travel",
-      "duration": 14
+      "motif": "psychicnoise",
+      "phase": "travel"
     },
     {
-      "motif": "lift",
+      "motif": "psychicnoise",
       "phase": "hit",
-      "duration": 14,
+      "duration": 26,
       "particles": [
-        "minecraft:enchant",
-        "minecraft:glow"
+        "minecraft:witch"
       ]
     }
   ]

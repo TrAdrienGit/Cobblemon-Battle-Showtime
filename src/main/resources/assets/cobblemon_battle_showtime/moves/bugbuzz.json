@@ -4,15 +4,14 @@
   "accent": "#F0FF90",
   "layers": [
     {
-      "motif": "sound_rings",
-      "phase": "travel",
-      "duration": 14
+      "motif": "bugbuzz",
+      "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "bugbuzz",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:happy_villager",
         "minecraft:crit"
       ]
     }
