@@ -4,12 +4,11 @@
   "accent": "#E05A90",
   "layers": [
     {
-      "motif": "taunt",
+      "motif": "taunt_rage",
       "phase": "hit",
-      "duration": 26,
+      "duration": 30,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:angry_villager"
       ]
     }
   ]

@@ -12,6 +12,7 @@ Options:
   --target blastoise     the one taking them
   --distance 5.5 --height 1.8 --gap 2.2   camera distance/height from the stage's middle, half the gap between the two
   --sheets-only          only rebuild the contact sheets from existing MP4s
+  --grid folder          also write review grids there: one row of 8 frames per move, 6 moves an image
 
 ffmpeg: the FFMPEG environment variable, else the WinGet Gyan.FFmpeg install. Gradle runs with JDK 25 (JAVA_HOME
 or the default install path).
@@ -79,6 +80,43 @@ def sheet(ff, mp4):
     return out
 
 
+def duration(ff, mp4):
+    probe = subprocess.run([ff, "-i", mp4], capture_output=True, text=True).stderr
+    for part in probe.split("Duration: ")[1:2]:
+        h, m, s = part.split(",")[0].split(":")
+        return int(h) * 3600 + int(m) * 60 + float(s)
+    return 8.0
+
+
+def grids(ff, moves, folder, per=6, frames=8):
+    """Review grids: one row per move (frames spread over the move, cropped on the stage), `per` moves an image."""
+    strips = []
+    for move in moves:
+        mp4 = os.path.join(OUT, move + ".mp4")
+        if not os.path.exists(mp4):
+            continue
+        strip = os.path.join(folder, "_strip_" + move + ".png")
+        rate = frames / max(0.5, duration(ff, mp4))
+        subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", mp4, "-vf",
+                        f"fps={rate:.4f},crop=720:405:120:80,scale=240:-1,tile={frames}x1:padding=2:color=black",
+                        "-frames:v", "1", strip], check=True)
+        strips.append(strip)
+    out = []
+    for i in range(0, len(strips), per):
+        group = strips[i:i + per]
+        target = os.path.join(folder, f"grid_{i // per + 1:02d}.jpg")
+        inputs = []
+        for strip in group:
+            inputs += ["-i", strip]
+        graph = "".join(f"[{k}:v]" for k in range(len(group))) + f"vstack=inputs={len(group)}" if len(group) > 1 else "null"
+        subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y"] + inputs + ["-filter_complex", graph, "-q:v", "4", target],
+                       check=True)
+        out.append(target)
+    for strip in strips:
+        os.remove(strip)
+    return out
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("moves", nargs="*")
@@ -90,6 +128,7 @@ def main():
     p.add_argument("--height", default="1.8")
     p.add_argument("--gap", default="2.2")
     p.add_argument("--sheets-only", action="store_true")
+    p.add_argument("--grid", help="also write review grids (one row per move, 6 moves an image) into this folder")
     a = p.parse_args()
     ff = ffmpeg()
 
@@ -130,6 +169,11 @@ def main():
         mp4 = os.path.join(OUT, move + ".mp4")
         if os.path.exists(mp4):
             print(sheet(ff, mp4))
+    if a.grid:
+        os.makedirs(a.grid, exist_ok=True)
+        order = [m for m in moves if m != "all"] or captured
+        for path in grids(ff, order, a.grid):
+            print(path)
 
 
 if __name__ == "__main__":

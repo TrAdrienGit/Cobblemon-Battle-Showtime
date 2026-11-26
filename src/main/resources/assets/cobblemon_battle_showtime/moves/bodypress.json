@@ -4,33 +4,20 @@
   "accent": "#FFC080",
   "layers": [
     {
+      "motif": "bodypress",
+      "phase": "wind",
+      "duration": 20
+    },
+    {
       "motif": "dash",
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "bodypress",
       "phase": "hit",
+      "duration": 26,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "quake",
-      "phase": "hit",
-      "size": 0.6,
-      "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "burst",
-      "phase": "hit",
-      "size": 1.3,
-      "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     }
   ],

@@ -4,17 +4,16 @@
   "accent": "#FFF4B0",
   "layers": [
     {
-      "motif": "coins",
-      "phase": "travel",
-      "count": 10
+      "motif": "makeitrain",
+      "phase": "wind",
+      "duration": 20
     },
     {
-      "motif": "coins",
+      "motif": "makeitrain",
       "phase": "hit",
-      "count": 18,
-      "duration": 24,
+      "duration": 32,
+      "count": 36,
       "particles": [
-        "minecraft:crit",
         "minecraft:wax_on"
       ]
     }

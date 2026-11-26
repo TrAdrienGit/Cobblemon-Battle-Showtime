@@ -4,13 +4,18 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "wings",
+      "motif": "roost",
       "phase": "self",
-      "duration": 14
+      "duration": 38
     },
     {
       "motif": "heal",
-      "phase": "self"
+      "phase": "self",
+      "delay": 14,
+      "duration": 24,
+      "particles": [
+        "minecraft:happy_villager"
+      ]
     }
   ]
 }

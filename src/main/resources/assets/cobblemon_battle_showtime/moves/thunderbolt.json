@@ -4,25 +4,17 @@
   "accent": "#FFFFB0",
   "layers": [
     {
-      "motif": "sparks_on",
-      "phase": "wind",
-      "duration": 12
+      "motif": "gather",
+      "phase": "wind"
     },
     {
-      "motif": "bolt",
+      "motif": "thunderbolt",
       "phase": "travel"
     },
     {
-      "motif": "sparks_on",
+      "motif": "thunderbolt",
       "phase": "hit",
-      "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
-      ]
-    },
-    {
-      "motif": "burst",
-      "phase": "hit",
+      "duration": 22,
       "particles": [
         "minecraft:electric_spark",
         "minecraft:wax_off"

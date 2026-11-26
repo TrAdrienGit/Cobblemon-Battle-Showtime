@@ -5,14 +5,17 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
+      "phase": "travel",
+      "particles": [
+        "minecraft:crit"
+      ]
     },
     {
-      "motif": "bite",
+      "motif": "crunch",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ]

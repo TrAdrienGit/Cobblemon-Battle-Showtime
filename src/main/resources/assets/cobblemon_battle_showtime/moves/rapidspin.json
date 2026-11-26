@@ -4,7 +4,7 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "spin",
+      "motif": "rapidspin",
       "phase": "wind",
       "duration": 20
     },
@@ -13,8 +13,9 @@
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "rapidspin",
       "phase": "hit",
+      "duration": 24,
       "particles": [
         "minecraft:crit",
         "minecraft:poof"

@@ -4,12 +4,16 @@
   "accent": "#D0FF88",
   "layers": [
     {
-      "motif": "whip",
+      "motif": "powerwhip",
+      "phase": "wind",
+      "duration": 14
+    },
+    {
+      "motif": "powerwhip",
       "phase": "hit",
-      "duration": 20,
+      "duration": 24,
       "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
+        "minecraft:happy_villager"
       ]
     }
   ],

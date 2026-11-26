@@ -1,19 +1,15 @@
 {
   "category": "status",
-  "color": "#FF4FA8",
+  "color": "#8FB8FF",
   "accent": "#FFC0E8",
   "layers": [
     {
-      "motif": "aura",
+      "motif": "calmmind",
       "phase": "self",
+      "duration": 40,
       "particles": [
         "minecraft:enchant"
       ]
-    },
-    {
-      "motif": "glare",
-      "phase": "self",
-      "duration": 12
     }
   ]
 }

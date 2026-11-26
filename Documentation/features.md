@@ -73,7 +73,14 @@ remove it from roadmap.md.
   attack, finale; bigger and longer). Shadow Ball is fully hand-made (`ShadowBall`).
 - More than 70 motifs: blows, claws, swords, punches, kicks, fangs, hammers, tails, wings, projectiles, beams, jets, waves,
   coins, meteors, rocks, tornadoes, the Fire Blast star, the Moon…, with real Minecraft blocks and items.
-- Physical moves strike up close, special moves travel; timing follows Cobblemon's own cues.
+- Signature motifs (`move/Signatures`, 2026-11-26): the 50 most played moves (Smogon National Dex) get a drawing of
+  their own, reviewed with the move capture tool. Earthquake heaves the ground in waves of real blocks, Stealth Rock and
+  Stone Edge are pointed crystals, Swords Dance gathers real swords into a crown, Substitute pops a wool doll, Draco
+  Meteor slants burning blocks onto the field, Future Sight opens a racing clock over the foe, Make It Rain pours gold,
+  Power Whip lashes a vine of moss and leaves, and so on for the others. Their Dark and Poison moves no longer leave
+  black squares (squid ink), Flamethrower and Heat Wave no longer leave lava smoke.
+- Physical moves strike up close, special moves travel; timing follows Cobblemon's own cues. A hit cue arriving after a
+  long Cobblemon timeline starts the hit then (it used to start at the latest expected moment and play half over).
 - Pokémon whose model has no attack animation lunge (physical), recoil and thrust (special) or hop (status), with a
   40 % chance of a cry.
 - Resource packs can add or replace a move (`assets/<namespace>/moves/<move>.json`).

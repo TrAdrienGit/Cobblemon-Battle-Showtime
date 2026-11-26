@@ -1,18 +1,18 @@
 {
   "category": "physical",
   "color": "#6A3060",
-  "accent": "#E05A90",
+  "accent": "#FF4060",
   "layers": [
     {
-      "motif": "shadow_hand",
+      "motif": "pursuit",
       "phase": "travel"
     },
     {
-      "motif": "claw",
+      "motif": "pursuit",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ]

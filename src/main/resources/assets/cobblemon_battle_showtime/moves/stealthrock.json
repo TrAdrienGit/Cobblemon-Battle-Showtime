@@ -4,11 +4,11 @@
   "accent": "#F0E0A8",
   "layers": [
     {
-      "motif": "rocks_float",
+      "motif": "stealthrock",
       "phase": "hit",
-      "duration": 30,
+      "duration": 44,
       "particles": [
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     }
   ]

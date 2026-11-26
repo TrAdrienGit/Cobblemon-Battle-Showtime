@@ -4,35 +4,19 @@
   "accent": "#F0D890",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "headlongrush",
       "phase": "wind",
-      "duration": 20,
-      "particles": [
-        "minecraft:poof"
-      ]
+      "delay": 8,
+      "duration": 22
     },
     {
       "motif": "dash",
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "headlongrush",
       "phase": "hit",
-      "particles": [
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "cracks",
-      "phase": "hit",
-      "particles": [
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "quake",
-      "phase": "hit",
-      "size": 0.7,
+      "duration": 26,
       "particles": [
         "minecraft:poof"
       ]

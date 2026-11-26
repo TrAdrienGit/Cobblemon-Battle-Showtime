@@ -1,18 +1,21 @@
 {
   "category": "physical",
-  "color": "#6A3060",
+  "color": "#B050A0",
   "accent": "#E05A90",
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
+      "phase": "travel",
+      "particles": [
+        "minecraft:crit"
+      ]
     },
     {
-      "motif": "knock_item",
+      "motif": "knockoff",
       "phase": "hit",
+      "duration": 26,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ],

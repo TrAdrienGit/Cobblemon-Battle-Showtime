@@ -1,13 +1,14 @@
 {
   "category": "status",
   "color": "#FFE070",
-  "accent": "#FFFFFF",
+  "accent": "#FFF8C0",
   "layers": [
     {
-      "motif": "heal",
+      "motif": "recover",
       "phase": "self",
+      "duration": 36,
       "particles": [
-        "minecraft:happy_villager"
+        "minecraft:end_rod"
       ]
     }
   ]

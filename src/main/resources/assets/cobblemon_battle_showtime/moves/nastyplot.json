@@ -1,19 +1,15 @@
 {
   "category": "status",
-  "color": "#6A3060",
-  "accent": "#E05A90",
+  "color": "#7A3A90",
+  "accent": "#FF3040",
   "layers": [
     {
-      "motif": "aura",
+      "motif": "nastyplot",
       "phase": "self",
+      "duration": 38,
       "particles": [
-        "minecraft:squid_ink"
+        "minecraft:witch"
       ]
-    },
-    {
-      "motif": "glare",
-      "phase": "self",
-      "duration": 16
     }
   ]
 }

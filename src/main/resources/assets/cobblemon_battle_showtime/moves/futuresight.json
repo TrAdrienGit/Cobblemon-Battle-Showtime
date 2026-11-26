@@ -8,12 +8,15 @@
       "phase": "wind"
     },
     {
-      "motif": "orb_rings",
-      "phase": "travel"
+      "motif": "futuresight",
+      "phase": "wind",
+      "delay": 8,
+      "duration": 38
     },
     {
-      "motif": "rays",
+      "motif": "futuresight",
       "phase": "hit",
+      "duration": 24,
       "particles": [
         "minecraft:enchant",
         "minecraft:glow"

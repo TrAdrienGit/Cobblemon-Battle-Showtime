@@ -4,14 +4,15 @@
   "accent": "#C8B0FF",
   "layers": [
     {
-      "motif": "gather",
-      "phase": "wind"
+      "motif": "dracometeor",
+      "phase": "wind",
+      "duration": 20
     },
     {
-      "motif": "meteors",
+      "motif": "dracometeor",
       "phase": "hit",
-      "count": 6,
-      "duration": 28,
+      "duration": 40,
+      "count": 7,
       "particles": [
         "minecraft:dragon_breath",
         "minecraft:reverse_portal"

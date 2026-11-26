@@ -1,18 +1,18 @@
 {
   "category": "physical",
-  "color": "#6A3060",
-  "accent": "#E05A90",
+  "color": "#B04890",
+  "accent": "#FF3050",
   "layers": [
     {
-      "motif": "shadow_hand",
+      "motif": "suckerpunch",
       "phase": "travel"
     },
     {
-      "motif": "fist",
+      "motif": "suckerpunch",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ]

@@ -1,19 +1,16 @@
 {
   "category": "special",
   "color": "#FF4FA8",
-  "accent": "#FFC0E8",
+  "accent": "#E0A0FF",
   "layers": [
     {
       "motif": "gather",
       "phase": "wind"
     },
     {
-      "motif": "psy_shards",
-      "phase": "travel"
-    },
-    {
-      "motif": "burst",
+      "motif": "psyshock",
       "phase": "hit",
+      "duration": 30,
       "particles": [
         "minecraft:enchant",
         "minecraft:glow"

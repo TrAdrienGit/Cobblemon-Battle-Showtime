@@ -4,14 +4,12 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "meteors",
+      "motif": "wish",
       "phase": "self",
-      "count": 1,
-      "duration": 16
-    },
-    {
-      "motif": "heal",
-      "phase": "self"
+      "duration": 46,
+      "particles": [
+        "minecraft:end_rod"
+      ]
     }
   ]
 }

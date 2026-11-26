@@ -4,7 +4,7 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "spin",
+      "motif": "icespinner",
       "phase": "wind",
       "duration": 20
     },
@@ -13,17 +13,9 @@
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "icespinner",
       "phase": "hit",
-      "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
-      ]
-    },
-    {
-      "motif": "freeze",
-      "phase": "hit",
-      "size": 0.7,
+      "duration": 24,
       "particles": [
         "minecraft:snowflake",
         "minecraft:end_rod"

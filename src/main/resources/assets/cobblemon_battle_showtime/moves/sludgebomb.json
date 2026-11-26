@@ -4,16 +4,16 @@
   "accent": "#E8A0FF",
   "layers": [
     {
-      "motif": "lob",
+      "motif": "sludgebomb",
       "phase": "travel",
       "count": 3
     },
     {
-      "motif": "splat",
+      "motif": "sludgebomb",
       "phase": "hit",
+      "duration": 26,
       "particles": [
-        "minecraft:witch",
-        "minecraft:squid_ink"
+        "minecraft:witch"
       ]
     }
   ]

@@ -55,6 +55,11 @@ final class LayeredMove extends MoveEffect {
 		Entity found = targeted != null && targeted != user ? targeted : source != null && source != user ? source : null;
 		if (found != null) {
 			target = found;
+			if (hitAge >= 0 && !hit) {
+				// The hit phase was opened at HIT_LATEST without a cue (a miss, as far as we knew): a cue coming after a long
+				// Cobblemon timeline starts it now, else its layers would begin halfway through.
+				hitAge = age;
+			}
 			hit = true;
 		}
 	}

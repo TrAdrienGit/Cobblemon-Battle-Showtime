@@ -4,13 +4,12 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "shell",
-      "phase": "self"
-    },
-    {
-      "motif": "burst",
+      "motif": "substitute",
       "phase": "self",
-      "duration": 10
+      "duration": 36,
+      "particles": [
+        "minecraft:poof"
+      ]
     }
   ]
 }

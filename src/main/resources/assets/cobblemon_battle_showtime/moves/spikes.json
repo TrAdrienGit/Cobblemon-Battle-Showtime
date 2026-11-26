@@ -4,9 +4,9 @@
   "accent": "#F0D890",
   "layers": [
     {
-      "motif": "caltrops",
+      "motif": "spikes",
       "phase": "hit",
-      "duration": 26,
+      "duration": 34,
       "particles": [
         "minecraft:poof"
       ]

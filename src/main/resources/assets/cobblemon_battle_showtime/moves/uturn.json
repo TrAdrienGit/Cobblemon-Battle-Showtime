@@ -4,21 +4,13 @@
   "accent": "#F0FF90",
   "layers": [
     {
-      "motif": "dash",
+      "motif": "uturn",
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "uturn",
       "phase": "hit",
-      "particles": [
-        "minecraft:happy_villager",
-        "minecraft:crit"
-      ]
-    },
-    {
-      "motif": "wings",
-      "phase": "hit",
-      "size": 0.8,
+      "duration": 24,
       "particles": [
         "minecraft:happy_villager",
         "minecraft:crit"

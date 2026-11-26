@@ -4,12 +4,16 @@
   "accent": "#C0E0FF",
   "layers": [
     {
-      "motif": "wisps",
+      "motif": "willowisp",
+      "phase": "wind",
+      "duration": 24
+    },
+    {
+      "motif": "willowisp",
       "phase": "hit",
       "duration": 30,
       "particles": [
-        "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:soul_fire_flame"
       ]
     }
   ]

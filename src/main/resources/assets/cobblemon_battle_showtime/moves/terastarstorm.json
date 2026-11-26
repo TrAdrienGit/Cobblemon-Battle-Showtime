@@ -4,17 +4,16 @@
   "accent": "#A0E0FF",
   "layers": [
     {
-      "motif": "gather",
-      "phase": "wind"
+      "motif": "terastarstorm",
+      "phase": "wind",
+      "duration": 20
     },
     {
-      "motif": "meteors",
+      "motif": "terastarstorm",
       "phase": "hit",
-      "count": 8,
-      "duration": 28,
+      "duration": 30,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:end_rod"
       ]
     }
   ]

@@ -4,11 +4,12 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "tornado",
+      "motif": "defog",
       "phase": "hit",
-      "duration": 26,
+      "duration": 34,
       "particles": [
-        "minecraft:cloud"
+        "minecraft:cloud",
+        "minecraft:poof"
       ]
     }
   ]

@@ -45,6 +45,9 @@ import net.minecraft.world.phys.Vec3;
  * {@code burst}. <b>Self and status</b>: {@code swords}, {@code dance}, {@code aura}, {@code shell}, {@code heal},
  * {@code dome}, {@code wall}, {@code rocks_float}, {@code caltrops}, {@code web}, {@code wisps}, {@code cloud},
  * {@code seeds}, {@code notes}, {@code glare}, {@code taunt}.
+ *
+ * <p>Any other motif name is tried as a {@link Signatures signature motif} (one move's own drawing) before falling back
+ * to a {@code burst}.
  */
 final class Motifs {
 
@@ -181,7 +184,7 @@ final class Motifs {
 				}
 			}
 			default -> {
-				if (first) {
+				if (!Signatures.tick(c, level) && first) {
 					burstParticles(c, level, spot(c));
 				}
 			}
@@ -200,7 +203,7 @@ final class Motifs {
 		};
 	}
 
-	private static void burstParticles(Context c, ClientLevel level, Vec3 at) {
+	static void burstParticles(Context c, ClientLevel level, Vec3 at) {
 		RandomSource random = c.random();
 		for (int i = 0; i < c.layer().particles.size(); i++) {
 			ParticleOptions p = particle(c, i);
@@ -215,7 +218,7 @@ final class Motifs {
 		}
 	}
 
-	private static void dust(ClientLevel level, Vec3 feet, int count, float size) {
+	static void dust(ClientLevel level, Vec3 feet, int count, float size) {
 		BlockState ground = level.getBlockState(BlockPos.containing(feet).below());
 		if (ground.isAir()) {
 			return;
@@ -228,7 +231,7 @@ final class Motifs {
 		}
 	}
 
-	private static ParticleOptions particle(Context c, int index) {
+	static ParticleOptions particle(Context c, int index) {
 		if (c.layer().particles.size() <= index) {
 			return null;
 		}
@@ -316,7 +319,11 @@ final class Motifs {
 			case "notes" -> notes(c);
 			case "glare" -> glare(c);
 			case "taunt" -> taunt(c);
-			default -> burst(c, c.aim(), c.k(), 1f);
+			default -> {
+				if (!Signatures.render(c)) {
+					burst(c, c.aim(), c.k(), 1f);
+				}
+			}
 		}
 	}
 
@@ -467,7 +474,7 @@ final class Motifs {
 	}
 
 	/** One punch: a fist of light thrust in, a star, a shockwave. */
-	private static void fist(Context c, Vec3 at, float k, float scale) {
+	static void fist(Context c, Vec3 at, float k, float scale) {
 		float s = c.size() * scale;
 		Vec3 dir = c.toTarget();
 		float thrust = Mth.clamp(k * 4, 0, 1);
@@ -638,7 +645,7 @@ final class Motifs {
 	}
 
 	/** The common blow: a white flash, a star of rays, a ring facing the camera. */
-	private static void impact(Context c, Vec3 at, float k, float scale) {
+	static void impact(Context c, Vec3 at, float k, float scale) {
 		k = Mth.clamp(k, 0, 1);
 		float fade = 1 - k;
 		float s = c.size() * scale;
@@ -772,12 +779,12 @@ final class Motifs {
 
 	// ---------------------------------------------------------------- travelling
 
-	private static Vec3 along(Context c, float k, float arc) {
+	static Vec3 along(Context c, float k, float arc) {
 		return c.mouth().lerp(c.aim(), k).add(0, Math.sin(k * Math.PI) * arc * c.size(), 0);
 	}
 
 	/** A glowing orb flying to the target (in its travel layer) — Moonblast, Energy Ball, Volt Switch. */
-	private static void orb(Context c, boolean darkCore) {
+	static void orb(Context c, boolean darkCore) {
 		Vec3 at = along(c, c.k(), 0.3f);
 		float r = 0.32f * c.size();
 		Draw.halo(c.glow(), c.m(), at, c.camera(), r * 0.8f, r * 2.6f, c.color(), 170);
@@ -845,7 +852,7 @@ final class Motifs {
 	}
 
 	/** A straight beam, three layers: a wide soft glow, the colour, a white core. */
-	private static void beam(Context c, Vec3 from, Vec3 to, float strength) {
+	static void beam(Context c, Vec3 from, Vec3 to, float strength) {
 		float k = c.layer().phase.equals("travel") ? Math.min(1f, c.k() * 2) : 1f;
 		Vec3 end = from.lerp(to, k);
 		int alpha = (int) (220 * strength * (c.layer().phase.equals("hit") ? 1 - c.k() : 1));
@@ -1296,7 +1303,7 @@ final class Motifs {
 	}
 
 	/** Rays of light shooting out in every direction (Dazzling Gleam, Discharge). */
-	private static void rays(Context c, Vec3 at) {
+	static void rays(Context c, Vec3 at) {
 		float fade = c.fade(0.1f, 0.4f);
 		RandomSource jag = RandomSource.create(c.move().move.hashCode() * 13L);
 		for (int i = 0; i < 16; i++) {
@@ -1308,7 +1315,7 @@ final class Motifs {
 	}
 
 	/** A plain burst on the target: flash, rings. */
-	private static void burst(Context c, Vec3 at, float k, float scale) {
+	static void burst(Context c, Vec3 at, float k, float scale) {
 		float fade = 1 - k;
 		float s = c.size() * scale;
 		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, s * (0.6f + 1.6f * k), c.color(), (int) (210 * fade * fade));
@@ -1582,7 +1589,7 @@ final class Motifs {
 		}
 	}
 
-	private static BlockState block(Context c, BlockState fallback) {
+	static BlockState block(Context c, BlockState fallback) {
 		if (c.layer().block == null) {
 			return fallback;
 		}
@@ -1590,7 +1597,7 @@ final class Motifs {
 		return id == null || !BuiltInRegistries.BLOCK.containsKey(id) ? fallback : BuiltInRegistries.BLOCK.get(id).defaultBlockState();
 	}
 
-	private static ItemStack stack(Context c, net.minecraft.world.item.Item fallback) {
+	static ItemStack stack(Context c, net.minecraft.world.item.Item fallback) {
 		if (c.layer().item == null) {
 			return new ItemStack(fallback);
 		}
@@ -1599,7 +1606,7 @@ final class Motifs {
 	}
 
 	/** A block drawn at {@code at} (its centre), {@code scale} blocks wide, turned. */
-	private static void block(Context c, BlockState state, Vec3 at, float scale, float yaw, float pitch, float roll) {
+	static void block(Context c, BlockState state, Vec3 at, float scale, float yaw, float pitch, float roll) {
 		if (scale <= 0.01f) {
 			return;
 		}
@@ -1616,7 +1623,7 @@ final class Motifs {
 	}
 
 	/** An item drawn at {@code at}, {@code scale} blocks tall, turned. */
-	private static void item(Context c, ItemStack stack, Vec3 at, float scale, float yaw, float pitch, float roll) {
+	static void item(Context c, ItemStack stack, Vec3 at, float scale, float yaw, float pitch, float roll) {
 		if (scale <= 0.01f) {
 			return;
 		}
@@ -1632,7 +1639,7 @@ final class Motifs {
 		pose.popPose();
 	}
 
-	private static int darken(int color) {
+	static int darken(int color) {
 		return ((color >> 16 & 255) / 4) << 16 | ((color >> 8 & 255) / 4) << 8 | (color & 255) / 4;
 	}
 }

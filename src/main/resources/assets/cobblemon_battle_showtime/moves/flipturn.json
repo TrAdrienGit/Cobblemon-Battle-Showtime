@@ -4,20 +4,22 @@
   "accent": "#B8ECFF",
   "layers": [
     {
-      "motif": "engulf",
-      "phase": "wind",
-      "duration": 20,
-      "particles": [
-        "minecraft:splash"
-      ]
+      "motif": "flipturn",
+      "phase": "travel"
     },
     {
-      "motif": "dash",
-      "phase": "travel"
+      "motif": "flipturn",
+      "phase": "hit",
+      "duration": 24,
+      "particles": [
+        "minecraft:splash",
+        "minecraft:falling_water"
+      ]
     },
     {
       "motif": "splash",
       "phase": "hit",
+      "duration": 16,
       "particles": [
         "minecraft:splash",
         "minecraft:falling_water"

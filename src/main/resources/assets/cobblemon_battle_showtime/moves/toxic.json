@@ -6,12 +6,15 @@
     {
       "motif": "lob",
       "phase": "travel",
-      "count": 1
+      "count": 1,
+      "particles": [
+        "minecraft:witch"
+      ]
     },
     {
-      "motif": "cloud",
+      "motif": "toxic",
       "phase": "hit",
-      "duration": 28,
+      "duration": 34,
       "particles": [
         "minecraft:witch"
       ]

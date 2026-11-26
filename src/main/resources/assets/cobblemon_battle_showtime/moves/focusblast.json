@@ -8,13 +8,13 @@
       "phase": "wind"
     },
     {
-      "motif": "orb_rings",
+      "motif": "focusblast",
       "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "focusblast",
       "phase": "hit",
-      "size": 1.4,
+      "duration": 24,
       "particles": [
         "minecraft:crit",
         "minecraft:poof"

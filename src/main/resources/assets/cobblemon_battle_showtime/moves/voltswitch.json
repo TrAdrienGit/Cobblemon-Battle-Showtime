@@ -8,12 +8,13 @@
       "phase": "wind"
     },
     {
-      "motif": "orb",
+      "motif": "voltswitch",
       "phase": "travel"
     },
     {
-      "motif": "sparks_on",
+      "motif": "voltswitch",
       "phase": "hit",
+      "duration": 26,
       "particles": [
         "minecraft:electric_spark",
         "minecraft:wax_off"

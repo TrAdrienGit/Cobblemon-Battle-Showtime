@@ -4,9 +4,9 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "tornado",
+      "motif": "hurricane",
       "phase": "hit",
-      "duration": 30,
+      "duration": 36,
       "particles": [
         "minecraft:cloud"
       ]

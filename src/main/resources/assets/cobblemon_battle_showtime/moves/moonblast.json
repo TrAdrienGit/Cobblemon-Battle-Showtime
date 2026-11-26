@@ -4,16 +4,18 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "moon",
-      "phase": "wind"
+      "motif": "moonblast",
+      "phase": "wind",
+      "duration": 20
     },
     {
-      "motif": "beam",
+      "motif": "moonblast",
       "phase": "travel"
     },
     {
-      "motif": "rays",
+      "motif": "moonblast",
       "phase": "hit",
+      "duration": 24,
       "particles": [
         "minecraft:end_rod",
         "minecraft:cherry_leaves"

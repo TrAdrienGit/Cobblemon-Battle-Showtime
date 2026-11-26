@@ -4,28 +4,16 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "jets_water",
-      "phase": "travel",
-      "count": 2,
-      "particles": [
-        "minecraft:cloud"
-      ]
+      "motif": "scald",
+      "phase": "travel"
     },
     {
-      "motif": "splash",
+      "motif": "scald",
       "phase": "hit",
+      "duration": 26,
       "particles": [
-        "minecraft:splash",
-        "minecraft:falling_water"
-      ]
-    },
-    {
-      "motif": "cloud",
-      "phase": "hit",
-      "duration": 14,
-      "particles": [
-        "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:cloud",
+        "minecraft:splash"
       ]
     }
   ]

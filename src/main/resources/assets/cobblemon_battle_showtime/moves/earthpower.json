@@ -1,16 +1,12 @@
 {
   "category": "special",
   "color": "#C89A48",
-  "accent": "#F0D890",
+  "accent": "#FFB040",
   "layers": [
     {
-      "motif": "cracks",
-      "phase": "travel",
-      "duration": 10
-    },
-    {
-      "motif": "pillars",
+      "motif": "earthpower",
       "phase": "hit",
+      "duration": 32,
       "particles": [
         "minecraft:poof"
       ]

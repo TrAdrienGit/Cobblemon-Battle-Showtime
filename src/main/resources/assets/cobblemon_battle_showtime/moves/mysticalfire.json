@@ -1,26 +1,24 @@
 {
   "category": "special",
-  "color": "#FF4FA8",
-  "accent": "#FFB040",
+  "color": "#FF4FC0",
+  "accent": "#B070FF",
   "layers": [
     {
-      "motif": "stream_fire",
+      "motif": "mysticalfire",
+      "phase": "wind",
+      "duration": 20
+    },
+    {
+      "motif": "mysticalfire",
       "phase": "travel"
     },
     {
-      "motif": "glare",
+      "motif": "mysticalfire",
       "phase": "hit",
+      "duration": 26,
       "particles": [
-        "minecraft:flame",
-        "minecraft:lava"
-      ]
-    },
-    {
-      "motif": "flames_on",
-      "phase": "hit",
-      "particles": [
-        "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:witch",
+        "minecraft:flame"
       ]
     }
   ]

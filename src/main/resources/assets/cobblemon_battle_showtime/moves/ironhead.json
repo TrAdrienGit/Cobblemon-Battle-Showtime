@@ -4,31 +4,20 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "ironhead",
       "phase": "wind",
-      "duration": 20,
-      "particles": [
-        "minecraft:crit"
-      ]
+      "duration": 18
     },
     {
       "motif": "dash",
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "ironhead",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:crit",
-        "minecraft:wax_on"
-      ]
-    },
-    {
-      "motif": "burst",
-      "phase": "hit",
-      "particles": [
-        "minecraft:crit",
-        "minecraft:wax_on"
+        "minecraft:crit"
       ]
     }
   ]
