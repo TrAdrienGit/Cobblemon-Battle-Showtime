@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"id": "showtime_capture",
+	"version": "1.0.0",
+	"name": "Showtime move capture (dev)",
+	"description": "Dev only: films Showtime's moves in a flat world, then quits. Started by tools/move_capture.py.",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["com.mystaria.showtime.capture.MoveCapture"]
+	},
+	"depends": {
+		"cobblemon_battle_showtime": "*",
+		"cobblemon": "*"
+	}
+}

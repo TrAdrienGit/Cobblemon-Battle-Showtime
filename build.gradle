@@ -1,6 +1,9 @@
 plugins {
 	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
+	// No Kotlin source here: with the plugin, Loom also renames the Kotlin metadata of Cobblemon's classes, which its
+	// reflection reads at runtime. Without it the dev game (runCapture) crashes on intermediary class names.
+	id 'org.jetbrains.kotlin.jvm' version '2.2.20'
 }
 
 base {
@@ -21,8 +24,37 @@ repositories {
 	}
 }
 
+// The move capture tool (dev only, never in the shipped jar): a second mod in its own source set that drives a game
+// started by `./gradlew runCapture` and films moves without anyone at the keyboard. tools/move_capture.py runs it.
+sourceSets {
+	capture {
+		compileClasspath += main.compileClasspath + main.output
+		runtimeClasspath += main.runtimeClasspath + main.output
+	}
+}
+
 loom {
 	accessWidenerPath = file("src/main/resources/cobblemon_battle_showtime.accesswidener")
+
+	mods {
+		cobblemon_battle_showtime {
+			sourceSet sourceSets.main
+		}
+		showtime_capture {
+			sourceSet sourceSets.capture
+		}
+	}
+
+	runs {
+		capture {
+			client()
+			name "Move capture"
+			source sourceSets.capture
+			runDir "run-capture"
+			programArgs "--width", "960", "--height", "540"
+			ideConfigGenerated false
+		}
+	}
 }
 
 dependencies {
@@ -36,6 +68,10 @@ dependencies {
 	modImplementation "maven.modrinth:cobblemon:${project.cobblemon_version}"
 	// Cobblemon's API is Kotlin: javac needs the stdlib's classes, fabric-language-kotlin brings it at runtime.
 	compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
+	// The dev game (runCapture) does not read Cobblemon's nested jars: Kotlin and GraalJS (its Showdown engine, same
+	// versions as the nested ones) are given to it here.
+	modLocalRuntime "net.fabricmc:fabric-language-kotlin:1.13.6+kotlin.2.2.20"
+	localRuntime "org.graalvm.js:js:22.3.0"
 
 	// Mod Menu: optional, only its API is compiled against (the "Configure" button → settings screen).
 	modCompileOnly "maven.modrinth:modmenu:11.0.3"
@@ -51,6 +87,11 @@ processResources {
 	filesMatching("fabric.mod.json") {
 		expand "version": version
 	}
+}
+
+// Cobblemon refuses any Java but 21, and Gradle itself runs on 25 (Loom): the capture game gets a Java 21 launcher.
+tasks.matching { it.name == "runCapture" }.configureEach {
+	javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
 }
 
 tasks.withType(JavaCompile).configureEach {

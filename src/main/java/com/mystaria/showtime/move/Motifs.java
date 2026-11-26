@@ -33,7 +33,7 @@ import net.minecraft.world.phys.Vec3;
  * layer. Glowing shapes are additive light; rocks, hammers, swords, coins and ice are real blocks and items.
  *
  * <p><b>Blows</b> (on the target): {@code cross_slash}, {@code claw}, {@code slash}, {@code sword}, {@code barrage},
- * {@code fist}, {@code kick}, {@code bite}, {@code hammer}, {@code tail}, {@code whip}, {@code stab}, {@code wings},
+ * {@code flurry}, {@code fist}, {@code kick}, {@code bite}, {@code hammer}, {@code tail}, {@code whip}, {@code stab}, {@code wings},
  * {@code impact}, {@code knock_item}, {@code shadow_hand}. <b>On the user</b>: {@code engulf} (an element wraps the
  * user), {@code spin}, {@code dash} (afterimages rushing to the target), {@code moon}, {@code solar_charge},
  * {@code gather}. <b>Travelling</b>: {@code orb}, {@code orb_rings}, {@code orb_leaves}, {@code homing}, {@code lob},
@@ -157,6 +157,22 @@ final class Motifs {
 					level.addParticle(p, base.x + Math.cos(angle) * r, base.y + h, base.z + Math.sin(angle) * r, -Math.sin(angle) * 0.2, 0.05, Math.cos(angle) * 0.2);
 				}
 			}
+			case "flurry" -> {
+				// A spark of particles where each blow lands, the tick it lands.
+				ParticleOptions p = particle(c, 0);
+				int blows = c.count(FLURRY_BLOWS);
+				for (int i = 0; i < blows && p != null; i++) {
+					float lands = flurryLands(i, blows, c.length());
+					if (lands > c.t() - 1 && lands <= c.t()) {
+						Vec3 d = flurryDirection(c, i);
+						Vec3 spot = c.aim().add(d.scale(flurryRadius(c)));
+						for (int n = 0; n < 5; n++) {
+							Vec3 v = d.add(random.nextGaussian() * 0.5, random.nextGaussian() * 0.5, random.nextGaussian() * 0.5).scale(0.25);
+							level.addParticle(p, spot.x, spot.y, spot.z, v.x, v.y, v.z);
+						}
+					}
+				}
+			}
 			case "lob", "orb", "orb_rings", "orb_leaves", "homing", "psy_shards", "coins", "bolt" -> {
 				ParticleOptions p = particle(c, 0);
 				if (p != null) {
@@ -231,6 +247,7 @@ final class Motifs {
 			case "slash" -> slash(c);
 			case "sword" -> sword(c);
 			case "barrage" -> barrage(c);
+			case "flurry" -> flurry(c);
 			case "fist" -> fist(c, c.aim(), c.k(), 1f);
 			case "kick" -> kick(c);
 			case "bite" -> bite(c);
@@ -371,7 +388,68 @@ final class Motifs {
 				1.6f * s, yaw, 0, (float) Math.toDegrees(angle) - 45);
 	}
 
-	/** A flurry of fists all over the target (Close Combat, Surging Strikes). */
+	private static final int FLURRY_BLOWS = 14;
+
+	/**
+	 * Close Combat (2026-11-26): blows raining on the target from every side, too fast to see who throws them. Fists
+	 * of light fly in, each flashes where it lands, and the trails of the unseen fighter whirl round the target (the
+	 * user vanishes in Cobblemon's own rush meanwhile).
+	 */
+	private static void flurry(Context c) {
+		int blows = c.count(FLURRY_BLOWS);
+		Vec3 at = c.aim();
+		float s = c.size();
+		float r = flurryRadius(c);
+		float fade = c.fade(0.06f, 0.3f);
+		for (int i = 0; i < 3; i++) {
+			double tilt = 0.6 + i * 1.05;
+			Vec3 u = new Vec3(Math.cos(tilt), 0, Math.sin(tilt));
+			Vec3 v = new Vec3(-Math.sin(tilt) * 0.6, 1, Math.cos(tilt) * 0.6).normalize();
+			float spin = c.t() * (0.75f + i * 0.12f) + i * 2.1f;
+			Draw.arc(c.glow(), c.m(), at, u, v, r + 0.35f * s, spin, spin + 3.2f, 1f, 0.3f * s, i == 1 ? c.accent() : c.color(),
+					(int) (230 * fade));
+		}
+		for (int i = 0; i < blows; i++) {
+			float local = c.t() - flurryLands(i, blows, c.length());
+			if (local < -3 || local > 7) {
+				continue;
+			}
+			Vec3 d = flurryDirection(c, i);
+			Vec3 spot = at.add(d.scale(r));
+			Vec3 from = spot.add(d.scale(1.5 * s));
+			int color = i % 2 == 0 ? c.color() : c.accent();
+			if (local < 0) {
+				float p = (local + 3) / 3f;
+				Vec3 head = from.lerp(spot, p);
+				Draw.streak(c.glow(), c.m(), head, from.lerp(spot, Math.max(0f, p - 0.7f)), c.camera(), 0.16f * s, color, 190);
+				Draw.halo(c.glow(), c.m(), head, c.camera(), 0, 0.32f * s, color, 230);
+			} else {
+				// The last blows hit harder.
+				impact(c, spot, local / 7f, i >= blows - 3 ? 0.8f : 0.55f);
+			}
+		}
+	}
+
+	/** When blow {@code i} of {@code blows} lands, in ticks into the layer: closer and closer together. */
+	private static float flurryLands(int i, int blows, int length) {
+		float p = blows <= 1 ? 0 : i / (float) (blows - 1);
+		return length * (0.04f + 0.78f * (float) Math.pow(p, 0.8));
+	}
+
+	/** Where blow {@code i} comes from: any side but the far one (hidden by the target), up more than down. */
+	private static Vec3 flurryDirection(Context c, int i) {
+		RandomSource spread = RandomSource.create(c.move().move.hashCode() * 31L + i * 7919L);
+		Vec3 toCamera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().subtract(c.aim()).multiply(1, 0, 1);
+		toCamera = toCamera.lengthSqr() < 1.0E-4 ? new Vec3(0, 0, 1) : toCamera.normalize();
+		Vec3 d = new Vec3(spread.nextGaussian(), spread.nextGaussian() * 0.6 + 0.25, spread.nextGaussian()).normalize();
+		return d.add(toCamera.scale(0.7)).normalize();
+	}
+
+	private static float flurryRadius(Context c) {
+		return c.move().targetWidth() * 0.45f + 0.2f;
+	}
+
+	/** A flurry of fists all over the target (Surging Strikes). */
 	private static void barrage(Context c) {
 		int blows = c.count(6);
 		RandomSource spread = RandomSource.create(c.move().move.hashCode());

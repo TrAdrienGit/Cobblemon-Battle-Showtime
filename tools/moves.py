@@ -95,7 +95,9 @@ MOVES = {
     "quiverdance": ("bug", T, [L("dance", "self", particles=["minecraft:end_rod"]), L("wings", "self", duration=14, delay=10)], {}),
     "stickyweb": ("bug", T, [L("web", duration=30)], {"accent": "#FFFFFF"}),
     # ---- fighting ----
-    "closecombat": ("fighting", P, charge("barrage", L("kick", delay=10), dash=True), {}),
+    # 2026-11-26: a storm of blows while Cobblemon's rush hides the user, then a last heavy fist on its last recoil.
+    "closecombat": ("fighting", P, [L("dash", "travel"), L("flurry", duration=24, particles=["minecraft:crit"]),
+                                    L("fist", delay=28, size=1.7, particles=["minecraft:crit"])], {}),
     "drainpunch": ("fighting", P, charge("fist", L("heal", delay=6, duration=16)), {"accent": "#A0FF80"}),
     "machpunch": ("fighting", P, charge("fist"), {"accent": "#FFFFFF"}),
     "focusblast": ("fighting", S, [L("gather", "wind"), L("orb_rings", "travel"), L("burst", size=1.4)], {"size": 1.3}),

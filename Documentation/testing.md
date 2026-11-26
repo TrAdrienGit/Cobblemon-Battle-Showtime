@@ -25,6 +25,28 @@ There are no automated tests: the mod is visual and depends on real server packe
 Replaying a battle in Cobblemon's own Showdown engine (Node) helps when a damage or message question comes up, without
 a game client.
 
+## Filming moves without playing (move capture)
+
+`python tools/move_capture.py flamethrower thunderbolt` (or `--file list.txt`, or `--all` for every redrawn move)
+films moves with nobody at the keyboard, to look at them or compare a redraw before and after. It runs
+`./gradlew runCapture`: a dev game with Fabric API, Cobblemon, Showtime and a small capture mod (`src/capture`, its own
+source set, never in the shipped jar). The game opens or makes a flat world in `run-capture/`, puts two Pokémon face to
+face (`--user`, `--target`, Cobblemon properties), replays each move's Cobblemon timeline
+(`data/cobblemon/action_effects/moves/<move>.json`: the poses, the user's rush, the particle packets Showtime reads as
+cues) as a battle's server would send it, pipes the frames to ffmpeg and quits. A move without a timeline (most of
+them) gets its pose and the hit cue about when a battle's would land. Wild Pokémon and an earlier run's stage are
+cleared first.
+
+Output, in `run-capture/captures/`: `<move>.mp4` (20 fps, 960x540) and `<move>_sheet.jpg` (4 frames a second, 6 a
+row). About 4 s a move once the game is up (about 40 s to start). Camera: `--distance`, `--height`, `--gap`.
+
+- The game runs on Java 21 (Cobblemon refuses any other) through a Gradle toolchain launcher; Gradle stays on 25.
+- The Kotlin Gradle plugin is applied only so that Loom renames the Kotlin metadata of Cobblemon's classes (its
+  reflection reads them; without it the dev game crashes on intermediary names). `kotlin.stdlib.default.dependency`
+  is off, so the published POM is unchanged. After adding or upgrading the plugin, delete
+  `.gradle/loom-cache/remapped_mods` once: Loom does not remap the cached jars again by itself.
+- Kotlin and GraalJS are `localRuntime` dependencies: the dev game does not read Cobblemon's nested jars.
+
 ## Checklist after a change
 
 Run the lines your change touches; before a release, run all.

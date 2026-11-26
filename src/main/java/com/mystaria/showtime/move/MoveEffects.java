@@ -236,6 +236,22 @@ public final class MoveEffects {
 		return null;
 	}
 
+	/**
+	 * The hit of the move playing against {@code target}, as Cobblemon's impact cue would give it. For the dev capture
+	 * tool (src/capture), which plays moves outside a battle where no server sends that cue.
+	 */
+	public static void previewHit(Entity target) {
+		MoveEffect effect = hitBy(target);
+		if (effect != null) {
+			effect.cue("impact", target, target);
+		}
+	}
+
+	/** Whether a move is still being drawn (the dev capture tool waits for it). */
+	public static boolean busy() {
+		return !PLAYING.isEmpty();
+	}
+
 	public static void tick() {
 		MoveLunge.tick();
 		PLAYING.removeIf(effect -> {

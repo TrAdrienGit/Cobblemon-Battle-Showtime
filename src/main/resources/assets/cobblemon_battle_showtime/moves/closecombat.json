@@ -8,20 +8,20 @@
       "phase": "travel"
     },
     {
-      "motif": "barrage",
+      "motif": "flurry",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     },
     {
-      "motif": "kick",
+      "motif": "fist",
       "phase": "hit",
-      "delay": 10,
+      "delay": 28,
+      "size": 1.7,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     }
   ]
