@@ -15,4 +15,5 @@ For players, see the [project README](../README.md). For coding agents, start wi
 | [intro-references.md](intro-references.md) | Videos of every game's battle intros, to draw new intros from |
 | [testing.md](testing.md) | Build, test setups, in-game checklist |
 | [move-usage.csv](move-usage.csv) | Smogon usage of moves (`tools/move_table.py`), to prioritise polish |
+| [move-redraws.md](move-redraws.md) | Every move, and the ones redone with the capture tool, batch by batch (`tools/move_redraws.py`) |
 | [publication/](publication/) | Modrinth / CurseForge page and release checklist |
