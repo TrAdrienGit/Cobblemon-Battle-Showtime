@@ -4,7 +4,7 @@ Since 2026-11-26 moves are redone in batches of 50, by Smogon National Dex usage
 filmed before and after with tools/move_capture.py. Add a batch to BATCHES when it is committed, then run this script.
 
 Inputs:
-  - the move files (src/main/resources/assets/cobblemon_battle_showtime/moves/*.json) and CUSTOM: every move;
+  - the move files (src/main/resources/assets/cobblemon_battle_showtime/moves/*.json): every move;
   - tools/move_data.json: type and category;
   - Documentation/move-usage.csv: National Dex usage;
   - Cobblemon's jar, for the English and French names (found in the Gradle cache, or given as the first argument).
@@ -22,9 +22,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 MOVES_DIR = os.path.join(ROOT, "src", "main", "resources", "assets", "cobblemon_battle_showtime", "moves")
 OUT = os.path.join(ROOT, "Documentation", "move-redraws.md")
-
-# Moves drawn in Java instead of a move file (MoveEffects.CUSTOM).
-CUSTOM = ["shadowball"]
 
 # Moves redone with the capture tool, batch by batch (in each batch's usage order).
 BATCHES = [
@@ -61,6 +58,7 @@ NOTES = {
     "closecombat": "the capture tool's first move, before the batches",
     "heavyslam": "reviewed, drawing kept",
     "solarbeam": "reviewed, drawing kept",
+    "shadowball": "its own class until 2026-11-26, now a motif like the others",
     "fireblast": "drawing kept, flames instead of lava smoke",
     "pyroball": "Cinderace only (Scorbunny and Raboot send no cue of their own)",
 }
@@ -92,7 +90,7 @@ def main():
             if move in redone:
                 sys.exit(f"{move} is in two batches")
             redone[move] = (batch, date)
-    moves = sorted({f[:-5] for f in os.listdir(MOVES_DIR) if f.endswith(".json")} | set(CUSTOM))
+    moves = sorted(f[:-5] for f in os.listdir(MOVES_DIR) if f.endswith(".json"))
     missing = [m for m in redone if m not in moves]
     if missing:
         sys.exit(f"Redone moves without a move file: {missing}")

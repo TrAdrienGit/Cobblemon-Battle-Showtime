@@ -64,6 +64,11 @@ final class LayeredMove extends MoveEffect {
 		}
 	}
 
+	/** Whether the hit phase has begun (a wind layer held until the launch can stop there). */
+	boolean hitStarted() {
+		return hitAge >= 0;
+	}
+
 	@Override
 	protected boolean awaitingHit() {
 		return !self && hitAge < 0;

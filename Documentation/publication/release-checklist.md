@@ -10,7 +10,7 @@ gallery.
 |---|---|
 | Name | Cobblemon Battle Showtime |
 | Slug / URL | `cobblemon-battle-showtime` |
-| Summary (Modrinth, 256 characters max) | Turn every Cobblemon battle into a show: a cinematic camera, 16 battle intros, 883 redrawn moves, grand Z-Moves, Mega and Tera set pieces, animated trainers, ambiances and your own music. Client-side only. |
+| Summary (Modrinth, 256 characters max) | Turn every Cobblemon battle into a show: a cinematic camera, 16 battle intros, 884 redrawn moves, grand Z-Moves, Mega and Tera set pieces, animated trainers, ambiances and your own music. Client-side only. |
 | Summary (CurseForge) | Same text |
 | Project type | Mod |
 | Loader | Fabric |
@@ -70,7 +70,7 @@ First public release.
 - Cinematic battle camera in the stadium games' style: low drifting shots, cuts on the hit,
   keeps clear of blocks and people; the previous camera stays available in the settings
 - 16 battle intros, from the Game Boy to today, with an Intros page: generations, favourites, preview
-- 883 redrawn moves, 34 grand Z-Moves in three acts
+- 884 redrawn moves, 34 grand Z-Moves in three acts
 - Mega Evolution, Primal Reversion, Z-Power and Terastallization set pieces
 - Poké Ball throws, recalls and knock-outs, tinted after the ball
 - Weather, terrains, rooms, hazards, screens and Pokémon effects drawn on the field

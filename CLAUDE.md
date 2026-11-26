@@ -5,7 +5,7 @@ Load this file before working on the mod. It is the short version; the details l
 ## What it is
 
 A **client-only** Fabric mod (Minecraft 1.21.1, Cobblemon 1.8.1, Java 21) that stages Cobblemon battles: cinematic
-camera, drawn intros, 883 redrawn moves, Z-Move / Mega / Tera set pieces, Poké Ball effects, lasting field and
+camera, drawn intros, 884 redrawn moves, Z-Move / Mega / Tera set pieces, Poké Ball effects, lasting field and
 Pokémon effects, battle ambiances, trainer animations and resource-pack battle music. It never needs anything on the
 server, and every client stages its own view from the packets Cobblemon already sends.
 

@@ -6,7 +6,7 @@ blow: slash, fists, hammer, tail…), special ones travel (orbs, beams, jets, wa
 the target (2026-11-01: each move its own look). Colours default to the move's type.
 
 The list: every move at 1 % or more in Smogon's Gen 9 OU and National Dex usage (October 2026, see tools/move_table.py
-and Documentation/move-usage.csv) plus other common ones. Shadow Ball is hand-made (ShadowBall.java) and has no file.
+and Documentation/move-usage.csv) plus other common ones.
 Run: python tools/moves.py
 """
 import json
@@ -195,6 +195,7 @@ MOVES = {
     "shadowsneak": ("ghost", P, [L("shadowsneak", "travel", duration=12), L("shadowsneak", duration=24, particles=["minecraft:soul"])], {"color": "#8A50E0", "accent": "#D0B0FF"}),
     "poltergeist": ("ghost", P, [L("poltergeist", duration=34, particles=["minecraft:soul", "minecraft:crit"])], {"size": 1.1}),
     "shadowclaw": ("ghost", P, charge("claw"), {}),
+    "shadowball": ("ghost", S, [L("shadowball", "wind", duration=40), L("shadowball", duration=22)], {"color": "#9B3CFF", "accent": "#D9A8FF"}),
     "hex": ("ghost", S, [L("hex", duration=32, particles=["minecraft:soul"])], {"color": "#8A50E0", "accent": "#FF60C0"}),
     # ---- dragon ----
     "dracometeor": ("dragon", S, [L("dracometeor", "wind", duration=20), L("dracometeor", duration=40, count=7)], {"size": 1.2}),
@@ -446,7 +447,7 @@ def auto_moves():
         data = json.load(source)
     moves = {}
     for move, m in sorted(data.items()):
-        if move in MOVES or move == "shadowball":
+        if move in MOVES:
             continue
         name = m["name"].lower()
         category = {"physical": P, "special": S}.get(m["category"], T)

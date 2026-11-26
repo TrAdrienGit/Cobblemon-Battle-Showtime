@@ -1,0 +1,21 @@
+{
+  "category": "special",
+  "color": "#9B3CFF",
+  "accent": "#D9A8FF",
+  "layers": [
+    {
+      "motif": "shadowball",
+      "phase": "wind",
+      "duration": 40
+    },
+    {
+      "motif": "shadowball",
+      "phase": "hit",
+      "duration": 22,
+      "particles": [
+        "minecraft:soul",
+        "minecraft:witch"
+      ]
+    }
+  ]
+}

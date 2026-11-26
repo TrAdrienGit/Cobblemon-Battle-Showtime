@@ -41,14 +41,14 @@ def main():
     data = json.load(open(os.path.join(stats_dir, "moves.json"), encoding="utf-8"))
     with zipfile.ZipFile(jar) as z:
         fr = json.loads(z.read("assets/cobblemon/lang/fr_fr.json").decode("utf-8"))
-    ids = {m for m, u in ou.items() if u >= 1} | {m for m, u in natdex.items() if u >= 1} | set(redrawn.MOVES) | {"shadowball"}
+    ids = {m for m, u in ou.items() if u >= 1} | {m for m, u in natdex.items() if u >= 1} | set(redrawn.MOVES)
     rows = []
     for move in ids:
         info = data.get(move)
         if info is None:
             continue
         spec = redrawn.MOVES.get(move)
-        motifs = "hand-made" if move == "shadowball" else " + ".join(layer["motif"] for layer in spec[2]) if spec else ""
+        motifs = " + ".join(layer["motif"] for layer in spec[2]) if spec else ""
         rows.append({
             "type": info["type"],
             "category": info["category"],
@@ -58,7 +58,7 @@ def main():
             "id": move,
             "usage_ou_pct": round(ou.get(move, 0.0), 2),
             "usage_natdex_pct": round(natdex.get(move, 0.0), 2),
-            "redrawn": "yes" if spec or move == "shadowball" else "no",
+            "redrawn": "yes" if spec else "no",
             "motifs": motifs,
         })
     rows.sort(key=lambda r: (r["type"], r["category"], -(r["power"] or 0), r["name_fr"] or r["name_en"]))

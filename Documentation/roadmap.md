@@ -6,8 +6,8 @@ features.md.
 ## Next
 
 1. **Hand-made polish of the most used moves.** The 669 composed moves read well but alike. Take the top of
-   `Documentation/move-usage.csv` (Smogon usage) and give each a hand-tuned spec in `tools/moves.py`, or a hand-made
-   effect class like `ShadowBall` for the signature ones. Check each in a real battle.
+   `Documentation/move-usage.csv` (Smogon usage) and give each a hand-tuned spec in `tools/moves.py`, with a signature
+   motif (`move/Signatures*`) for the ones that deserve their own drawing. Check each in a real battle.
 2. **Move preview in the menu.** A "Moves" section in the N menu that plays any move on the preview, replacing the
    removed `/showtime preview move` (its code was deleted on 2026-11-10: `MoveEffects.create` and a fixed target
    point ahead of the player are enough to rebuild it).

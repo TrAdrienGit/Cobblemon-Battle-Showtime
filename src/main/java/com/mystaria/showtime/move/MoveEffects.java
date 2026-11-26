@@ -2,9 +2,7 @@ package com.mystaria.showtime.move;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeSet;
-import java.util.function.BiFunction;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.net.messages.client.animation.PlayPosableAnimationPacket;
@@ -33,13 +31,9 @@ import net.minecraft.world.phys.Vec3;
  * <li>Particles dropped: the move's own ({@code cobblemon:<move>_<part>}), and the generic hit
  * ({@code cobblemon:impact_<type>}) on another Pokémon while the move plays — they also tell the target and the hit.</li>
  * </ul>
- * Hand-made effects first ({@link ShadowBall}), then the moves of {@link MoveSpecs}. Client thread only.
+ * Every move is one of {@link MoveSpecs}, played by a {@link LayeredMove}. Client thread only.
  */
 public final class MoveEffects {
-
-	/** Hand-made effects, by Cobblemon's move id. */
-	private static final Map<String, BiFunction<String, Entity, MoveEffect>> CUSTOM = Map.of(
-			"shadowball", ShadowBall::new);
 
 	private static final List<MoveEffect> PLAYING = new ArrayList<>();
 	/** Set while Showtime itself plays one of Cobblemon's particles (Magma Storm's hurt): never dropped. */
@@ -106,16 +100,12 @@ public final class MoveEffects {
 	}
 
 	private static MoveEffect create(String move, Entity user) {
-		BiFunction<String, Entity, MoveEffect> custom = CUSTOM.get(move);
-		if (custom != null) {
-			return custom.apply(move, user);
-		}
 		MoveSpec spec = MoveSpecs.get(move);
 		return spec == null ? null : new LayeredMove(move, user, spec);
 	}
 
 	private static boolean redrawn(String move) {
-		return CUSTOM.containsKey(move) || MoveSpecs.get(move) != null;
+		return MoveSpecs.get(move) != null;
 	}
 
 	/** A Pokémon's pose: if it is a redrawn move's, the effect starts (the pose itself still plays). */

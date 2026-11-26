@@ -69,8 +69,9 @@ remove it from roadmap.md.
 
 ## Moves (`move/`)
 
-- 883 moves redrawn: 180 hand-tuned specs, 669 composed from each move's data, 34 Z-Moves in three acts (charge,
-  attack, finale; bigger and longer). Shadow Ball is fully hand-made (`ShadowBall`).
+- 884 moves redrawn: 181 hand-tuned specs, 669 composed from each move's data, 34 Z-Moves in three acts (charge,
+  attack, finale; bigger and longer). Every move is a move file played by `LayeredMove`; Shadow Ball, once a class of
+  its own, is a motif like the others since 2026-11-26 (same look, without the squid-ink squares).
 - More than 70 motifs: blows, claws, swords, punches, kicks, fangs, hammers, tails, wings, projectiles, beams, jets, waves,
   coins, meteors, rocks, tornadoes, the Fire Blast star, the Moon…, with real Minecraft blocks and items.
 - Signature motifs (`move/Signatures`, 2026-11-26): the 50 most played moves (Smogon National Dex) get a drawing of

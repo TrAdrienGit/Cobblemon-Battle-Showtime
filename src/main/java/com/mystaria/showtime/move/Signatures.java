@@ -43,7 +43,8 @@ final class Signatures {
 			"roost", "toxic", "rapidspin", "defog", "earthpower", "recover", "moonblast", "substitute", "stoneedge", "focusblast",
 			"voltswitch", "icespinner", "thunderbolt", "calmmind", "suckerpunch", "dracometeor", "bodypress", "mysticalfire",
 			"nastyplot", "hurricane", "thunderwave", "taunt_rage", "ironhead", "psyshock", "crunch", "headlongrush", "pursuit",
-			"wish", "scald", "terastarstorm", "spikes", "makeitrain", "futuresight", "sludgebomb", "willowisp", "powerwhip");
+			"wish", "scald", "terastarstorm", "spikes", "makeitrain", "futuresight", "sludgebomb", "willowisp", "powerwhip",
+			"shadowball");
 
 	private Signatures() {
 	}
@@ -52,6 +53,7 @@ final class Signatures {
 	static boolean render(Context c) {
 		switch (c.layer().motif) {
 			case "earthquake" -> earthquake(c);
+			case "shadowball" -> shadowBall(c);
 			case "knockoff" -> knockOff(c);
 			case "stealthrock" -> stealthRock(c);
 			case "uturn" -> uTurn(c, false);
@@ -111,6 +113,7 @@ final class Signatures {
 		}
 		switch (motif) {
 			case "earthquake" -> earthquakeTick(c, level);
+			case "shadowball" -> shadowBallTick(c, level);
 			case "earthpower" -> {
 				if (crossed(c, 0.3f)) {
 					Motifs.dust(level, c.move().aimFeet(), 50, c.size());
@@ -2362,5 +2365,122 @@ final class Signatures {
 		pose.translate(-0.5, -0.5, -0.5);
 		Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, pose, c.buffers(), 0xF000F0, OverlayTexture.NO_OVERLAY);
 		pose.popPose();
+	}
+	// =====================================================================
+	// Shadow Ball (hand-made class until 2026-11-26, now a motif like the others)
+	// =====================================================================
+
+	private static final int SHADOW_VIOLET = 0x9B3CFF;
+	private static final int SHADOW_PALE = 0xD9A8FF;
+	private static final int SHADOW_CORE = 0x1C0830;
+	/** Ticks the orb takes to fly to the target, at the start of the hit. */
+	private static final float SHADOW_FLIGHT = 6;
+
+	private static float shadowRadius(Context c) {
+		return Mth.clamp(0.22f + 0.18f * c.move().user().getBbHeight(), 0.28f, 0.8f) * c.size();
+	}
+
+	/** In front of the user's mouth, towards the target. */
+	private static Vec3 shadowStart(Context c, float radius) {
+		Entity user = c.move().user();
+		return user.position().add(0, user.getBbHeight() * 0.65, 0).add(flat(c.toTarget()).scale(user.getBbWidth() * 0.6 + radius * 1.2));
+	}
+
+	/** The orb in flight, {@code fly} from 0 (at the user) to 1 (at the target), wobbling across its path. */
+	private static Vec3 shadowFlight(Vec3 from, Vec3 to, float fly, float radius) {
+		Vec3 across = side(flat(to.subtract(from)));
+		double wobble = Math.sin(fly * Math.PI * 3) * (1 - fly) * radius * 0.8;
+		return from.lerp(to, fly).add(across.scale(wobble)).add(0, Math.sin(fly * Math.PI) * radius, 0);
+	}
+
+	/**
+	 * Shadow Ball, after the main games: dark wisps spiral into an orb at the user's mouth, a black core in a violet glow,
+	 * crackling (wind, held until Cobblemon's launch cue about 1.7 s in); the hit hurls it with a wobble and a trail of
+	 * echoes, and it bursts on the target in violet shock waves.
+	 */
+	private static void shadowBall(Context c) {
+		float radius = shadowRadius(c);
+		Vec3 start = shadowStart(c, radius);
+		if (phase(c).equals("wind")) {
+			if (c.move().hitStarted()) {
+				return; // launched: the hit layer draws the orb from here
+			}
+			float grow = ease(seg(c.k(), 0, 0.75f));
+			float r = radius * Math.max(0.05f, grow);
+			for (int i = 0; i < 12; i++) {
+				float p = (c.t() * 0.045f + i / 12f) % 1f;
+				float distance = radius * (0.8f + 3.2f * (1 - p));
+				float angle = i * 2.4f + c.t() * 0.25f + p * 4f;
+				float tilt = (i % 4 - 1.5f) * 0.6f;
+				Vec3 dir = new Vec3(Math.cos(angle), Math.sin(angle * 0.7f + tilt) * 0.6, Math.sin(angle)).normalize();
+				Vec3 head = start.add(dir.scale(distance));
+				Vec3 tail = start.add(new Vec3(Math.cos(angle - 0.5f), dir.y, Math.sin(angle - 0.5f)).normalize().scale(distance + radius * 0.9f));
+				Draw.streak(c.glow(), c.m(), head, tail, c.camera(), radius * 0.07f, SHADOW_PALE, op(200 * Math.sin(p * Math.PI)));
+			}
+			shadowOrb(c, start, r);
+			return;
+		}
+		Vec3 at = c.aim();
+		float fly = Math.min(1, c.t() / SHADOW_FLIGHT);
+		if (fly < 1) {
+			for (int i = 1; i <= 5; i++) {
+				float back = fly - i * 0.1f;
+				if (back < 0) {
+					break;
+				}
+				Draw.halo(c.glow(), c.m(), shadowFlight(start, at, back, radius), c.camera(), 0, radius * (1.6f - i * 0.15f), SHADOW_VIOLET, 110 - i * 18);
+			}
+			shadowOrb(c, shadowFlight(start, at, fly, radius), radius);
+			return;
+		}
+		float k = Mth.clamp((c.t() - SHADOW_FLIGHT) / Math.max(1, c.length() - SHADOW_FLIGHT), 0f, 1f);
+		float fade = 1 - k;
+		Draw.ring(c.glow(), c.m(), at, c.camera().subtract(at).normalize(), radius * (1.2f + 5f * k), radius * 0.45f, SHADOW_VIOLET, op(220 * fade));
+		Draw.ring(c.glow(), c.m(), at, UP, radius * (1f + 7f * k), radius * 0.6f, SHADOW_PALE, op(160 * fade));
+		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, radius * (2f + 4f * k), SHADOW_VIOLET, op(200 * fade * fade));
+		if (k < 0.45f) {
+			Draw.sphere(c.buffers().getBuffer(Draw.DARK), c.m(), at, radius * (1 + k * 2.5f), SHADOW_CORE, op(230 * (1 - k / 0.45f)), false);
+		}
+	}
+
+	/** The orb: a violet glow, a dark core, crackles on its surface. */
+	private static void shadowOrb(Context c, Vec3 orb, float r) {
+		float pulse = 1 + 0.08f * Mth.sin(c.t() * 1.3f);
+		Draw.halo(c.glow(), c.m(), orb, c.camera(), r * 0.9f, r * 2.4f * pulse, SHADOW_VIOLET, 170);
+		Draw.halo(c.glow(), c.m(), orb, c.camera(), r * 0.95f, r * 1.35f, SHADOW_PALE, 120);
+		Draw.sphere(c.glow(), c.m(), orb, r * 1.12f * pulse, SHADOW_VIOLET, 40, true);
+		Draw.sphere(c.buffers().getBuffer(Draw.DARK), c.m(), orb, r, SHADOW_CORE, 235, false);
+		RandomSource crackle = RandomSource.create((long) (c.t() / 2));
+		for (int i = 0; i < 4; i++) {
+			Vec3 a = new Vec3(crackle.nextGaussian(), crackle.nextGaussian(), crackle.nextGaussian()).normalize();
+			Vec3 b = a.add(new Vec3(crackle.nextGaussian(), crackle.nextGaussian(), crackle.nextGaussian()).scale(0.5)).normalize();
+			Draw.streak(c.glow(), c.m(), orb.add(a.scale(r * 1.02f)), orb.add(b.scale(r * 1.4f)), c.camera(), r * 0.05f, SHADOW_PALE, 220);
+		}
+	}
+
+	/** Violet sparks drawn into the charging orb, then shadow and souls bursting off the target (no squid ink). */
+	private static void shadowBallTick(Context c, ClientLevel level) {
+		RandomSource random = c.random();
+		float radius = shadowRadius(c);
+		if (phase(c).equals("wind")) {
+			if (!c.move().hitStarted() && random.nextFloat() < 0.6f) {
+				Vec3 orb = shadowStart(c, radius);
+				Vec3 from = orb.add(randomUnit(random).scale(radius * 4));
+				Vec3 pull = orb.subtract(from).scale(0.12);
+				level.addParticle(ParticleTypes.WITCH, from.x, from.y, from.z, pull.x, pull.y, pull.z);
+			}
+			return;
+		}
+		if (c.t() >= SHADOW_FLIGHT && c.t() - 1 < SHADOW_FLIGHT) {
+			Vec3 at = c.aim();
+			for (int i = 0; i < 30; i++) {
+				Vec3 v = randomUnit(random).scale(0.15 + random.nextFloat() * 0.35);
+				level.addParticle(ParticleTypes.WITCH, at.x, at.y, at.z, v.x, v.y, v.z);
+			}
+			for (int i = 0; i < 12; i++) {
+				Vec3 v = randomUnit(random).scale(0.05);
+				level.addParticle(ParticleTypes.SOUL, at.x, at.y, at.z, v.x, v.y + 0.04, v.z);
+			}
+		}
 	}
 }

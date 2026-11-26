@@ -1,7 +1,7 @@
 # Cobblemon Battle Showtime
 
 **Turn every Cobblemon battle into a show.** A client-side Fabric mod for Minecraft 1.21.1 and Cobblemon 1.8.1: a
-cinematic camera, drawn intros, 883 redrawn moves, grand Z-Moves, Mega Evolution and Terastallization set pieces,
+cinematic camera, drawn intros, 884 redrawn moves, grand Z-Moves, Mega Evolution and Terastallization set pieces,
 animated trainers, battle ambiances and your own battle music.
 
 It is **client-side only**: install it on your game and it works on any Cobblemon server, with nothing to add on the
@@ -14,7 +14,7 @@ server and nothing for the other players to install.
   people. Switch to the free camera at any time with one click.
 - **Sixteen battle intros**: player-versus-player battles open on an intro after a Pokémon game, from the Game Boy
   to today; pick your favourites, by generation, in the menu.
-- **883 redrawn moves**: every move gets its own effect, built from Minecraft particles, blocks and items (no asset
+- **884 redrawn moves**: every move gets its own effect, built from Minecraft particles, blocks and items (no asset
   taken from the games). 180 are hand-made; the rest are composed from each move's own data: type, category, punch,
   bite, sound, wave, projectile, healing… Pokémon without an attack animation lunge, recoil or hop instead, and
   sometimes cry.

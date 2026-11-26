@@ -35,7 +35,7 @@ is not in `move-usage.csv`. Rows: most played first, then by name.
 | 19 | Focus Blast | Exploforce | Fighting | Special | 4.82 | ✅ batch 1 (2026-11-26) |  |
 | 20 | Volt Switch | Change Éclair | Electric | Special | 4.77 | ✅ batch 1 (2026-11-26) |  |
 | 21 | Ice Beam | Laser Glace | Ice | Special | 4.55 | ✅ batch 1 (2026-11-26) |  |
-| 22 | Shadow Ball | Ball'Ombre | Ghost | Special | 4.33 | ✅ batch 1 (2026-11-26) |  |
+| 22 | Shadow Ball | Ball'Ombre | Ghost | Special | 4.33 | ✅ batch 1 (2026-11-26) | its own class until 2026-11-26, now a motif like the others |
 | 23 | Ice Spinner | Cryo-Pirouette | Ice | Physical | 4.32 | ✅ batch 1 (2026-11-26) |  |
 | 24 | Thunderbolt | Tonnerre | Electric | Special | 4.30 | ✅ batch 1 (2026-11-26) |  |
 | 25 | Calm Mind | Plénitude | Psychic | Status | 4.00 | ✅ batch 1 (2026-11-26) |  |

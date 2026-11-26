@@ -3,7 +3,7 @@
 **Turn every Cobblemon battle into a show.**
 
 Cobblemon Battle Showtime stages your Pokémon battles like a 3D Pokémon game: a cinematic camera, sixteen battle
-intros, 883 redrawn moves, grand Z-Moves, Mega Evolution and Terastallization set pieces, animated trainers, battle
+intros, 884 redrawn moves, grand Z-Moves, Mega Evolution and Terastallization set pieces, animated trainers, battle
 ambiances and your own music.
 
 **Client-side only.** Install it on your game: it works on any Cobblemon server, with nothing to add on the server and
