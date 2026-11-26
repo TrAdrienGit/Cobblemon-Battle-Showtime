@@ -4,20 +4,17 @@
   "accent": "#FFD040",
   "layers": [
     {
-      "motif": "engulf",
-      "phase": "wind"
+      "motif": "pyroball",
+      "phase": "wind",
+      "duration": 42
     },
     {
-      "motif": "lob",
-      "phase": "travel",
-      "count": 1
-    },
-    {
-      "motif": "star_fire",
+      "motif": "pyroball",
       "phase": "hit",
+      "duration": 30,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ],

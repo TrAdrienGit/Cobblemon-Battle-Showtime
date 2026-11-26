@@ -300,7 +300,7 @@ public final class MoveCapture implements ClientModInitializer {
 			}
 		});
 		encoder = new Encoder(settings.getProperty("ffmpeg", "ffmpeg"), out.resolve(move + ".mp4"));
-		timeline = Timeline.load(server, move, userId, targetId);
+		timeline = Timeline.load(server, move, settings.getProperty("user", "charizard").toLowerCase(Locale.ROOT), userId, targetId);
 		next = 0;
 		lastEvent = timeline == null || timeline.isEmpty() ? 0 : timeline.get(timeline.size() - 1).tick();
 		if (timeline == null) {

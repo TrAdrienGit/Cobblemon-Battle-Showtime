@@ -4,10 +4,9 @@
   "accent": "#F0E0A8",
   "layers": [
     {
-      "motif": "fall_rocks",
+      "motif": "rockslide",
       "phase": "hit",
-      "count": 6,
-      "duration": 26,
+      "duration": 34,
       "particles": [
         "minecraft:poof"
       ]

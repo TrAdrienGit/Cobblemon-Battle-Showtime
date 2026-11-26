@@ -1,19 +1,19 @@
 {
   "category": "physical",
-  "color": "#7A4CC8",
+  "color": "#8A50E0",
   "accent": "#D0B0FF",
   "layers": [
     {
-      "motif": "shadow_hand",
+      "motif": "shadowsneak",
       "phase": "travel",
       "duration": 12
     },
     {
-      "motif": "claw",
+      "motif": "shadowsneak",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:soul",
-        "minecraft:witch"
+        "minecraft:soul"
       ]
     }
   ]

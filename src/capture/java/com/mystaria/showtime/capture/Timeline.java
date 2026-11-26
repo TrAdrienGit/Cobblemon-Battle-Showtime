@@ -45,9 +45,14 @@ final class Timeline {
 	}
 
 	/** The move's timeline, or null when Cobblemon has none for it (then a generic one plays in a battle). */
-	static List<Event> load(MinecraftServer server, String move, int user, int target) {
-		ResourceLocation id = ResourceLocation.fromNamespaceAndPath("cobblemon", "action_effects/moves/" + move + ".json");
+	static List<Event> load(MinecraftServer server, String move, String species, int user, int target) {
+		// A species' own variant first (pyroball_cinderace), as Cobblemon picks it in a battle.
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath("cobblemon", "action_effects/moves/" + move + "_" + species + ".json");
 		Optional<Resource> resource = server.getResourceManager().getResource(id);
+		if (resource.isEmpty()) {
+			id = ResourceLocation.fromNamespaceAndPath("cobblemon", "action_effects/moves/" + move + ".json");
+			resource = server.getResourceManager().getResource(id);
+		}
 		if (resource.isEmpty()) {
 			return null;
 		}

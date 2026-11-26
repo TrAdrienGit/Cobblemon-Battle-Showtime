@@ -1,23 +1,28 @@
 {
   "category": "special",
-  "color": "#FF6A1A",
+  "color": "#FF6020",
   "accent": "#FFD040",
   "layers": [
     {
-      "motif": "dance",
+      "motif": "fierydance",
       "phase": "wind",
-      "duration": 12
+      "duration": 20,
+      "particles": [
+        "minecraft:flame",
+        "minecraft:small_flame"
+      ]
     },
     {
-      "motif": "stream_fire",
+      "motif": "fierydance",
       "phase": "travel"
     },
     {
-      "motif": "flames_on",
+      "motif": "fierydance",
       "phase": "hit",
+      "duration": 24,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ]

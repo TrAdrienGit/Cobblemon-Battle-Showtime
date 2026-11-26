@@ -1,16 +1,15 @@
 {
   "category": "status",
-  "color": "#FF4FA8",
-  "accent": "#FFC0E8",
+  "color": "#FFB0E0",
+  "accent": "#80D0FF",
   "layers": [
     {
-      "motif": "dance",
-      "phase": "self"
-    },
-    {
-      "motif": "dash",
+      "motif": "agility",
       "phase": "self",
-      "duration": 12
+      "duration": 34,
+      "particles": [
+        "minecraft:cloud"
+      ]
     }
   ]
 }

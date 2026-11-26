@@ -5,26 +5,15 @@
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "impact",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
         "minecraft:poof"
       ]
     },
     {
-      "motif": "cracks",
+      "motif": "highhorsepower",
       "phase": "hit",
-      "particles": [
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "kick",
-      "phase": "hit",
-      "count": 2,
+      "duration": 32,
       "particles": [
         "minecraft:poof"
       ]

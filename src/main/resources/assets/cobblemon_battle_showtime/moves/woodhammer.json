@@ -1,24 +1,24 @@
 {
   "category": "physical",
-  "color": "#48C840",
-  "accent": "#D0FF88",
+  "color": "#60C040",
+  "accent": "#C09050",
   "layers": [
     {
-      "motif": "hammer",
-      "phase": "hit",
-      "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
-      ]
+      "motif": "woodhammer",
+      "phase": "wind",
+      "duration": 18
     },
     {
-      "motif": "burst",
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "woodhammer",
       "phase": "hit",
+      "duration": 30,
       "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
+        "minecraft:happy_villager"
       ]
     }
-  ],
-  "size": 1.2
+  ]
 }

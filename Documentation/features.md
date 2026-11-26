@@ -84,6 +84,14 @@ remove it from roadmap.md.
   round), Surf rolls a great wave across the field, Sacred Sword plunges a giant blade of light, Trick Room unfolds a
   wireframe room over the field, Draining Kiss sends a heart and pulls small hearts back, Iron Defense locks iron
   plates round the user, Leech Seed grows vines up the foe, and so on. Heavy Slam and Solar Beam keep their drawing.
+- Third batch of signature motifs (`move/Signatures3`, 2026-11-26): moves 101 to 150 by the same ranking. Rock Slide
+  and Head Smash throw real rock blocks, Thunder gathers a storm cloud and drops a huge bolt, Hydro Pump blasts twin
+  jets of water, Waterfall climbs a column of water, Reflect and Light Screen raise glass panes turned to the viewer,
+  Malignant Chain coils glowing links round the foe, Foul Play raises a shadow hand behind it, Moonlight hangs a
+  crescent over the user, Healing Wish rises as a star and rains pink ones, Sticky Web spins a web round the foe's
+  feet, and so on. Fire Blast keeps its drawing with flames instead of lava smoke.
+  A particle a move borrows from another (Pyro Ball's burst is Flamethrower's) now counts as its hit cue, so Pyro
+  Ball's fire bursts on Cinderace's kick.
 - Physical moves strike up close, special moves travel; timing follows Cobblemon's own cues. A hit cue arriving after a
   long Cobblemon timeline starts the hit then (it used to start at the latest expected moment and play half over).
 - Pokémon whose model has no attack animation lunge (physical), recoil and thrust (special) or hop (status), with a

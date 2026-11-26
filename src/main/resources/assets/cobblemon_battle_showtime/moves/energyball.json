@@ -1,22 +1,22 @@
 {
   "category": "special",
-  "color": "#48C840",
-  "accent": "#D0FF88",
+  "color": "#70E040",
+  "accent": "#E0FFB0",
   "layers": [
     {
-      "motif": "gather",
+      "motif": "energyball",
       "phase": "wind"
     },
     {
-      "motif": "orb_leaves",
+      "motif": "energyball",
       "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "energyball",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
+        "minecraft:happy_villager"
       ]
     }
   ]

@@ -1,12 +1,12 @@
 {
   "category": "physical",
-  "color": "#E8E2D0",
-  "accent": "#FFFFFF",
+  "color": "#FF6040",
+  "accent": "#FFD040",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "facade",
       "phase": "wind",
-      "duration": 20,
+      "duration": 18,
       "particles": [
         "minecraft:angry_villager"
       ]
@@ -16,19 +16,11 @@
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "facade",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "burst",
-      "phase": "hit",
-      "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:crit"
       ]
     }
   ]

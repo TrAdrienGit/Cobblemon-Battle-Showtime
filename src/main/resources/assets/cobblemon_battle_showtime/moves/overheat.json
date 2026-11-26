@@ -4,24 +4,25 @@
   "accent": "#FFD040",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "overheat",
       "phase": "wind",
+      "duration": 20,
       "particles": [
-        "minecraft:flame"
+        "minecraft:flame",
+        "minecraft:small_flame"
       ]
     },
     {
-      "motif": "stream_fire",
-      "phase": "travel",
-      "size": 1.5
+      "motif": "overheat",
+      "phase": "travel"
     },
     {
-      "motif": "star_fire",
+      "motif": "overheat",
       "phase": "hit",
-      "size": 1.2,
+      "duration": 30,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ],

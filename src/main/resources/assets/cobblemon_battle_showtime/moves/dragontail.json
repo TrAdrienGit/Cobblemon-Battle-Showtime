@@ -1,16 +1,19 @@
 {
   "category": "physical",
   "color": "#6A40FF",
-  "accent": "#C8B0FF",
+  "accent": "#E0C0FF",
   "layers": [
     {
-      "motif": "tail",
+      "motif": "dash",
+      "phase": "travel"
+    },
+    {
+      "motif": "dragontail",
       "phase": "hit",
+      "duration": 26,
       "particles": [
-        "minecraft:dragon_breath",
-        "minecraft:reverse_portal"
+        "minecraft:crit"
       ]
     }
-  ],
-  "size": 1.2
+  ]
 }

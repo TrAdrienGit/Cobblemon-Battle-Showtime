@@ -1,29 +1,14 @@
 {
   "category": "special",
-  "color": "#6A3060",
-  "accent": "#E05A90",
+  "color": "#9040C0",
+  "accent": "#FF3050",
   "layers": [
     {
-      "motif": "gather",
-      "phase": "wind"
-    },
-    {
-      "motif": "cloud",
+      "motif": "ruination",
       "phase": "hit",
-      "duration": 24,
-      "size": 1.4,
+      "duration": 34,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
-      ]
-    },
-    {
-      "motif": "rays",
-      "phase": "hit",
-      "size": 0.8,
-      "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ]

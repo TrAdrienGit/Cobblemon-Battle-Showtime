@@ -1,20 +1,14 @@
 {
   "category": "status",
-  "color": "#E8E2D0",
-  "accent": "#FFFFFF",
+  "color": "#FF8040",
+  "accent": "#40A0FF",
   "layers": [
     {
-      "motif": "wall",
-      "phase": "self",
-      "duration": 16
-    },
-    {
-      "motif": "rays",
+      "motif": "courtchange",
       "phase": "hit",
-      "duration": 16,
+      "duration": 34,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:end_rod"
       ]
     }
   ]

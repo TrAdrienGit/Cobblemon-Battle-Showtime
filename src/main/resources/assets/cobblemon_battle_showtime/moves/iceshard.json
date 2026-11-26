@@ -4,22 +4,15 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "fall_rocks",
-      "phase": "hit",
-      "count": 3,
-      "block": "minecraft:packed_ice",
-      "duration": 12,
-      "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
-      ]
+      "motif": "iceshard",
+      "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "iceshard",
       "phase": "hit",
+      "duration": 20,
       "particles": [
-        "minecraft:snowflake",
-        "minecraft:end_rod"
+        "minecraft:snowflake"
       ]
     }
   ]

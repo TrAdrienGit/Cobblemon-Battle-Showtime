@@ -1,15 +1,15 @@
 {
   "category": "status",
-  "color": "#FF4FA8",
-  "accent": "#FFC0E8",
+  "color": "#FF90D0",
+  "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "rays",
-      "phase": "self"
-    },
-    {
-      "motif": "heal",
-      "phase": "self"
+      "motif": "healingwish",
+      "phase": "self",
+      "duration": 44,
+      "particles": [
+        "minecraft:end_rod"
+      ]
     }
   ]
 }

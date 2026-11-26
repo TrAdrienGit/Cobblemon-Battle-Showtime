@@ -1,28 +1,19 @@
 {
   "category": "physical",
   "color": "#FFD81A",
-  "accent": "#FFFFB0",
+  "accent": "#FFFFFF",
   "layers": [
     {
       "motif": "dash",
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "nuzzle",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
-      ]
-    },
-    {
-      "motif": "sparks_on",
-      "phase": "hit",
-      "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
+        "minecraft:electric_spark"
       ]
     }
-  ],
-  "size": 0.8
+  ]
 }

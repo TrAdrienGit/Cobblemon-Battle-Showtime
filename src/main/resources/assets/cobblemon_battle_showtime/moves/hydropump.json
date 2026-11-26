@@ -1,35 +1,25 @@
 {
   "category": "special",
   "color": "#2E8BFF",
-  "accent": "#B8ECFF",
+  "accent": "#E0F8FF",
   "layers": [
     {
-      "motif": "gather",
+      "motif": "hydropump",
       "phase": "wind"
     },
     {
-      "motif": "jets_water",
-      "phase": "travel",
-      "count": 3
+      "motif": "hydropump",
+      "phase": "travel"
     },
     {
-      "motif": "jets_water",
+      "motif": "hydropump",
       "phase": "hit",
-      "count": 3,
-      "duration": 10,
+      "duration": 26,
       "particles": [
         "minecraft:splash",
-        "minecraft:falling_water"
-      ]
-    },
-    {
-      "motif": "splash",
-      "phase": "hit",
-      "particles": [
-        "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:bubble_pop"
       ]
     }
   ],
-  "size": 1.3
+  "size": 1.2
 }

@@ -1,34 +1,21 @@
 {
   "category": "physical",
-  "color": "#48C840",
+  "color": "#60D040",
   "accent": "#D0FF88",
   "layers": [
     {
-      "motif": "engulf",
-      "phase": "wind",
-      "duration": 20,
+      "motif": "grassyglide",
+      "phase": "travel",
       "particles": [
         "minecraft:happy_villager"
       ]
     },
     {
-      "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "impact",
+      "motif": "grassyglide",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
-      ]
-    },
-    {
-      "motif": "cracks",
-      "phase": "hit",
-      "particles": [
-        "minecraft:happy_villager",
-        "minecraft:composter"
+        "minecraft:happy_villager"
       ]
     }
   ]

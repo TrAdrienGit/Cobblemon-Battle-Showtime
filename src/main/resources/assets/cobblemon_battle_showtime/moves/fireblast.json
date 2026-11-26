@@ -13,7 +13,7 @@
       "duration": 24,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     },
     {
@@ -21,7 +21,7 @@
       "phase": "hit",
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ],

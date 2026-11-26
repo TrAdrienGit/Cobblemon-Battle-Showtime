@@ -1,23 +1,14 @@
 {
   "category": "status",
-  "color": "#6A3060",
-  "accent": "#E05A90",
+  "color": "#9050C0",
+  "accent": "#FF5070",
   "layers": [
     {
-      "motif": "taunt",
+      "motif": "partingshot",
       "phase": "hit",
-      "duration": 24,
+      "duration": 34,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
-      ]
-    },
-    {
-      "motif": "glare",
-      "phase": "hit",
-      "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ]

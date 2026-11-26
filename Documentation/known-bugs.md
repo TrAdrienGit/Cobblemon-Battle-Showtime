@@ -44,3 +44,4 @@ as a bug is found and not fixed right away.
 | The cosmos ambiance hides the whole world as soon as the player is inside the field's circle | With Sodium, hiding only the blocks inside the circle is not simple. |
 | Cobblemon's move sounds and poses are kept | They come from the server; only particles are replaced. |
 | Spectators of a foreign battle don't get the battle's ambiance | The API only forces it on the players; the driving mod would need to pass it on. |
+| Pyro Ball is redrawn only when Cinderace uses it; Scorbunny and Raboot keep Cobblemon's burst | Cobblemon's generic Pyro Ball sends the "special" pose and Flamethrower's particles, nothing named after the move. Mapping it would mean guessing the move from a borrowed particle. |

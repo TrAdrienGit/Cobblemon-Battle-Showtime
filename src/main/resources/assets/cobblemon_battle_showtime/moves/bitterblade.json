@@ -1,36 +1,23 @@
 {
   "category": "physical",
   "color": "#FF6A1A",
-  "accent": "#FFD040",
+  "accent": "#FFE080",
   "layers": [
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "sword",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     },
     {
-      "motif": "flames_on",
+      "motif": "bitterblade",
       "phase": "hit",
+      "duration": 30,
       "particles": [
         "minecraft:flame",
-        "minecraft:lava"
-      ]
-    },
-    {
-      "motif": "heal",
-      "phase": "hit",
-      "delay": 6,
-      "duration": 14,
-      "particles": [
-        "minecraft:flame",
-        "minecraft:lava"
+        "minecraft:small_flame"
       ]
     }
   ]

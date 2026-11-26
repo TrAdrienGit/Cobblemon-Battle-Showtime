@@ -1,20 +1,15 @@
 {
   "category": "status",
-  "color": "#E8502A",
-  "accent": "#FFC080",
+  "color": "#FF6030",
+  "accent": "#FFC060",
   "layers": [
     {
-      "motif": "aura",
+      "motif": "bulkup",
       "phase": "self",
+      "duration": 38,
       "particles": [
         "minecraft:crit"
       ]
-    },
-    {
-      "motif": "shell",
-      "phase": "self",
-      "duration": 12,
-      "delay": 18
     }
   ]
 }

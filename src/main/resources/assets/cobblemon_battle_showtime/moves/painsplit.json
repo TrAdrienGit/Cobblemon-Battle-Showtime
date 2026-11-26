@@ -1,22 +1,15 @@
 {
   "category": "status",
-  "color": "#E8E2D0",
-  "accent": "#FFFFFF",
+  "color": "#FF8080",
+  "accent": "#80C0FF",
   "layers": [
     {
-      "motif": "glare",
+      "motif": "painsplit",
       "phase": "hit",
-      "duration": 16,
+      "duration": 34,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:end_rod"
       ]
-    },
-    {
-      "motif": "heal",
-      "phase": "self",
-      "delay": 8,
-      "duration": 20
     }
   ]
 }

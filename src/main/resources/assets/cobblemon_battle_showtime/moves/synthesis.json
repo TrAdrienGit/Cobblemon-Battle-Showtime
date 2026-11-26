@@ -1,16 +1,15 @@
 {
   "category": "status",
   "color": "#48C840",
-  "accent": "#D0FF88",
+  "accent": "#FFF0A0",
   "layers": [
     {
-      "motif": "solar_charge",
+      "motif": "synthesis",
       "phase": "self",
-      "duration": 14
-    },
-    {
-      "motif": "heal",
-      "phase": "self"
+      "duration": 40,
+      "particles": [
+        "minecraft:happy_villager"
+      ]
     }
   ]
 }

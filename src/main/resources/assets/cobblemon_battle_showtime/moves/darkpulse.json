@@ -1,23 +1,19 @@
 {
   "category": "special",
-  "color": "#6A3060",
+  "color": "#8040B0",
   "accent": "#E05A90",
   "layers": [
     {
-      "motif": "gather",
-      "phase": "wind"
+      "motif": "darkpulse",
+      "phase": "wind",
+      "duration": 14
     },
     {
-      "motif": "dark_rings",
-      "phase": "travel",
-      "duration": 12
-    },
-    {
-      "motif": "burst",
+      "motif": "darkpulse",
       "phase": "hit",
+      "duration": 28,
       "particles": [
-        "minecraft:squid_ink",
-        "minecraft:smoke"
+        "minecraft:crit"
       ]
     }
   ]

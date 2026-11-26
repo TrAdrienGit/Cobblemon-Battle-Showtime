@@ -1,18 +1,18 @@
 {
   "category": "special",
   "color": "#FFD81A",
-  "accent": "#FFFFB0",
+  "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "rays",
+      "motif": "discharge",
       "phase": "wind"
     },
     {
-      "motif": "sparks_on",
+      "motif": "discharge",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:electric_spark",
-        "minecraft:wax_off"
+        "minecraft:electric_spark"
       ]
     }
   ]

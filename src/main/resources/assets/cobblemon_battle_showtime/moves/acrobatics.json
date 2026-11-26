@@ -1,31 +1,21 @@
 {
   "category": "physical",
-  "color": "#B0D0FF",
+  "color": "#A0D8FF",
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "spin",
-      "phase": "wind"
-    },
-    {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "kick",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:cloud",
-        "minecraft:poof"
+        "minecraft:cloud"
       ]
     },
     {
-      "motif": "wings",
+      "motif": "acrobatics",
       "phase": "hit",
-      "delay": 4,
+      "duration": 28,
       "particles": [
-        "minecraft:cloud",
-        "minecraft:poof"
+        "minecraft:cloud"
       ]
     }
   ]

@@ -1,11 +1,15 @@
 {
   "category": "status",
-  "color": "#FFB0FF",
+  "color": "#FF70E0",
   "accent": "#FFC0E8",
   "layers": [
     {
-      "motif": "wall",
-      "phase": "self"
+      "motif": "reflect",
+      "phase": "self",
+      "duration": 38,
+      "particles": [
+        "minecraft:end_rod"
+      ]
     }
   ]
 }

@@ -1,23 +1,22 @@
 {
   "category": "special",
-  "color": "#B8C8D8",
+  "color": "#C8D8E8",
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "gather",
+      "motif": "flashcannon",
       "phase": "wind"
     },
     {
-      "motif": "beam_rings",
+      "motif": "flashcannon",
       "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "flashcannon",
       "phase": "hit",
-      "size": 1.2,
+      "duration": 24,
       "particles": [
-        "minecraft:crit",
-        "minecraft:wax_on"
+        "minecraft:end_rod"
       ]
     }
   ]

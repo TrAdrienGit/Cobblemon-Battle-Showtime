@@ -86,7 +86,7 @@ final class Signatures2 {
 			case "whirlwind" -> whirlwind(c);
 			case "sludgewave" -> sludgeWave(c);
 			default -> {
-				return false;
+				return Signatures3.render(c);
 			}
 		}
 		return true;
@@ -95,7 +95,7 @@ final class Signatures2 {
 	static boolean tick(Context c, ClientLevel level) {
 		String motif = c.layer().motif;
 		if (!NAMES.contains(motif)) {
-			return false;
+			return Signatures3.tick(c, level);
 		}
 		boolean first = c.t() < 1f;
 		String phase = phase(c);
@@ -290,7 +290,7 @@ final class Signatures2 {
 	}
 
 	/** Motes flowing from the target back to the user over {@code p} 0 → 1, and the user glowing as they arrive. */
-	private static void drainBack(Context c, float p, int n, int color, float r) {
+	static void drainBack(Context c, float p, int n, int color, float r) {
 		if (p <= 0 || p >= 1) {
 			return;
 		}
@@ -492,7 +492,7 @@ final class Signatures2 {
 	}
 
 	/** A crown of water thrown up round {@code feet} and falling back as droplets. */
-	private static void splashCrown(Context c, Vec3 feet, float k, float s) {
+	static void splashCrown(Context c, Vec3 feet, float k, float s) {
 		float r0 = c.move().targetWidth() * 0.6f + 0.3f;
 		float fade = 1 - seg(k, 0.5f, 1f);
 		for (int i = 0; i < 14; i++) {
@@ -917,7 +917,7 @@ final class Signatures2 {
 	// =====================================================================
 
 	/** A heart, facing the camera: its outline and a glow inside. */
-	private static void heart(Context c, Vec3 at, float size, int color, float alpha) {
+	static void heart(Context c, Vec3 at, float size, int color, float alpha) {
 		if (size <= 0.01f || alpha <= 0) {
 			return;
 		}
@@ -1128,7 +1128,7 @@ final class Signatures2 {
 		}
 	}
 
-	private static void orbGlow(Context c, Vec3 at, float r) {
+	static void orbGlow(Context c, Vec3 at, float r) {
 		if (r <= 0.01f) {
 			return;
 		}
@@ -1319,7 +1319,7 @@ final class Signatures2 {
 	}
 
 	/** A musical note: a round head, a stem and a flag, facing the camera. */
-	private static void note(Context c, Vec3 at, float size, int color, float alpha) {
+	static void note(Context c, Vec3 at, float size, int color, float alpha) {
 		Vec3[] b = c.screen(at);
 		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, size * 0.3f, color, op(alpha));
 		Draw.halo(c.glow(), c.m(), at, c.camera(), 0, size * 0.14f, 0xFFFFFF, op(alpha));

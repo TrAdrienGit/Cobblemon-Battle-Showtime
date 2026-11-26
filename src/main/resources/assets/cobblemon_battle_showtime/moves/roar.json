@@ -4,10 +4,13 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "sound_rings",
-      "phase": "travel",
-      "duration": 14,
-      "size": 1.4
+      "motif": "roar",
+      "phase": "hit",
+      "duration": 30,
+      "particles": [
+        "minecraft:cloud"
+      ]
     }
-  ]
+  ],
+  "size": 1.3
 }

@@ -4,10 +4,9 @@
   "accent": "#D0FF88",
   "layers": [
     {
-      "motif": "tornado",
+      "motif": "leafstorm",
       "phase": "hit",
-      "duration": 28,
-      "block": "minecraft:oak_leaves",
+      "duration": 36,
       "particles": [
         "minecraft:cherry_leaves"
       ]

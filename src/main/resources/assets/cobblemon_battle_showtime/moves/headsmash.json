@@ -1,35 +1,26 @@
 {
   "category": "physical",
-  "color": "#B8A058",
+  "color": "#C0B090",
   "accent": "#F0E0A8",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "headsmash",
       "phase": "wind",
-      "duration": 20,
-      "particles": [
-        "minecraft:poof"
-      ]
+      "duration": 16
     },
     {
-      "motif": "dash",
+      "motif": "headsmash",
       "phase": "travel"
     },
     {
-      "motif": "impact",
+      "motif": "headsmash",
       "phase": "hit",
+      "duration": 30,
       "particles": [
-        "minecraft:poof"
-      ]
-    },
-    {
-      "motif": "burst",
-      "phase": "hit",
-      "size": 1.5,
-      "particles": [
-        "minecraft:poof"
+        "minecraft:poof",
+        "minecraft:crit"
       ]
     }
   ],
-  "size": 1.4
+  "size": 1.3
 }

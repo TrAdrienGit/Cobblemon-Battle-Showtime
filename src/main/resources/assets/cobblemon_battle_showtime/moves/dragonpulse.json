@@ -1,22 +1,18 @@
 {
   "category": "special",
   "color": "#6A40FF",
-  "accent": "#C8B0FF",
+  "accent": "#40C0FF",
   "layers": [
     {
-      "motif": "gather",
-      "phase": "wind"
-    },
-    {
-      "motif": "beam_rings",
+      "motif": "dragonpulse",
       "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "dragonpulse",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:dragon_breath",
-        "minecraft:reverse_portal"
+        "minecraft:dragon_breath"
       ]
     }
   ]

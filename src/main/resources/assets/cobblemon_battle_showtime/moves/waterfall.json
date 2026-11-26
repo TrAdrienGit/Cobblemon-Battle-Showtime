@@ -1,34 +1,30 @@
 {
   "category": "physical",
   "color": "#2E8BFF",
-  "accent": "#B8ECFF",
+  "accent": "#E0F8FF",
   "layers": [
     {
-      "motif": "engulf",
+      "motif": "waterfall",
       "phase": "wind",
-      "duration": 20,
+      "duration": 16,
       "particles": [
         "minecraft:splash"
       ]
     },
     {
       "motif": "dash",
-      "phase": "travel"
-    },
-    {
-      "motif": "splash",
-      "phase": "hit",
+      "phase": "travel",
       "particles": [
-        "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:splash"
       ]
     },
     {
-      "motif": "impact",
+      "motif": "waterfall",
       "phase": "hit",
+      "duration": 28,
       "particles": [
         "minecraft:splash",
-        "minecraft:falling_water"
+        "minecraft:bubble_pop"
       ]
     }
   ]

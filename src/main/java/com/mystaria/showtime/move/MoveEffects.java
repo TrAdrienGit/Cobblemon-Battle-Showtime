@@ -175,8 +175,11 @@ public final class MoveEffects {
 		String part = path.substring(split + 1);
 		MoveEffect effect = playing(move, source, targeted);
 		if (effect == null) {
-			// Another redrawn move borrowing this one's particles (Pyro Ball's burst is Flamethrower's): dropped.
-			if (anyPlaying(source, targeted)) {
+			// Another redrawn move borrowing this one's particles (Pyro Ball's burst is Flamethrower's): dropped, and taken
+			// as that move's hit cue when it lands on the target (Pyro Ball sends no other).
+			MoveEffect borrower = borrowing(source, targeted);
+			if (borrower != null) {
+				borrower.cue(part, source, targeted);
 				return true;
 			}
 			// Not a move being played: an end-of-turn hurt (Leech Seed, Fire Spin, Infestation) or an ability's cue
@@ -206,14 +209,14 @@ public final class MoveEffects {
 	}
 
 	/** Whether any move being drawn involves these entities. */
-	private static boolean anyPlaying(Entity source, Entity targeted) {
+	private static MoveEffect borrowing(Entity source, Entity targeted) {
 		for (MoveEffect effect : PLAYING) {
 			if (!effect.finished() && (effect.user == source || effect.user == targeted
 					|| effect.target != null && (effect.target == source || effect.target == targeted))) {
-				return true;
+				return effect;
 			}
 		}
-		return false;
+		return null;
 	}
 
 	private static MoveEffect playingFor(String move, Entity user) {

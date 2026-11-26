@@ -4,19 +4,19 @@
   "accent": "#A0D0FF",
   "layers": [
     {
-      "motif": "gather",
+      "motif": "aurasphere",
       "phase": "wind"
     },
     {
-      "motif": "homing",
+      "motif": "aurasphere",
       "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "aurasphere",
       "phase": "hit",
+      "duration": 24,
       "particles": [
-        "minecraft:crit",
-        "minecraft:poof"
+        "minecraft:end_rod"
       ]
     }
   ]

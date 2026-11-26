@@ -4,20 +4,20 @@
   "accent": "#FFC0E8",
   "layers": [
     {
-      "motif": "aura",
-      "phase": "wind"
+      "motif": "storedpower",
+      "phase": "wind",
+      "duration": 20
     },
     {
-      "motif": "psy_shards",
-      "phase": "travel",
-      "count": 9
+      "motif": "storedpower",
+      "phase": "travel"
     },
     {
-      "motif": "burst",
+      "motif": "storedpower",
       "phase": "hit",
+      "duration": 22,
       "particles": [
-        "minecraft:enchant",
-        "minecraft:glow"
+        "minecraft:end_rod"
       ]
     }
   ]

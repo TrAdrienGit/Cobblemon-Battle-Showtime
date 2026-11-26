@@ -4,16 +4,12 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "heal",
+      "motif": "slackoff",
       "phase": "self",
+      "duration": 40,
       "particles": [
         "minecraft:happy_villager"
       ]
-    },
-    {
-      "motif": "notes",
-      "phase": "self",
-      "duration": 14
     }
   ]
 }

@@ -4,9 +4,12 @@
   "accent": "#FFFFFF",
   "layers": [
     {
-      "motif": "cloud",
-      "phase": "self",
-      "size": 2.0
+      "motif": "haze",
+      "phase": "hit",
+      "duration": 40,
+      "particles": [
+        "minecraft:cloud"
+      ]
     }
   ]
 }
