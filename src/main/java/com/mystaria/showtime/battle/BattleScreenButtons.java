@@ -45,7 +45,9 @@ public final class BattleScreenButtons {
 	/** ...or under Cobblemon Battle Extras' taller one, with its stat stages. */
 	private static final int TOP_BATTLE_EXTRAS = 68;
 	private static final boolean BATTLE_EXTRAS = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("cobblemon-battle-extras");
-	private static final int TOP = (BATTLE_EXTRAS ? TOP_BATTLE_EXTRAS : TOP_COBBLEMON) + PAD;
+	private static final int TOP_ONE_TILE = (BATTLE_EXTRAS ? TOP_BATTLE_EXTRAS : TOP_COBBLEMON) + PAD;
+	/** Each further opponent tile (doubles, triples) is this much lower: Cobblemon's spacing, or Battle Extras' taller one. */
+	private static final int TILE_STEP = BATTLE_EXTRAS ? 43 : 40;
 	/** Clear of the screen edge, or of Battle Extras' column of the opponent's team down the right edge (26 wide). */
 	private static final int RIGHT_INSET = BATTLE_EXTRAS ? 36 : 10;
 	/** The track list, left of the column. */
@@ -106,8 +108,29 @@ public final class BattleScreenButtons {
 		return screen.width - RIGHT_INSET - W;
 	}
 
+	/**
+	 * Top of the panel: under the opponent's last tile, so the panel never hides the second Pokémon's tile in a
+	 * doubles battle (2026-11-27). Cobblemon's client battle puts the local side first.
+	 */
+	private static int top() {
+		int tiles = 1;
+		try {
+			com.cobblemon.mod.common.client.battle.ClientBattle battle = com.cobblemon.mod.common.client.CobblemonClient.INSTANCE.getBattle();
+			if (battle != null) {
+				int count = 0;
+				for (com.cobblemon.mod.common.client.battle.ClientBattleActor actor : battle.getSide2().getActors()) {
+					count += actor.getActivePokemon().size();
+				}
+				tiles = Math.max(1, count);
+			}
+		} catch (RuntimeException ex) {
+			// No battle state to read: one tile.
+		}
+		return TOP_ONE_TILE + (tiles - 1) * TILE_STEP;
+	}
+
 	private static int controlsY() {
-		return TOP + H + GAP;
+		return top() + H + GAP;
 	}
 
 	/** Top of the button column, under the player. */
@@ -138,7 +161,7 @@ public final class BattleScreenButtons {
 
 	private static boolean inList(Screen screen, double mouseX, double mouseY) {
 		int rows = Math.min(LIST_ROWS, tracks().size());
-		return mouseX >= listX(screen) && mouseX < listX(screen) + LIST_W && mouseY >= TOP && mouseY < TOP + rows * ROW + 4;
+		return mouseX >= listX(screen) && mouseX < listX(screen) + LIST_W && mouseY >= top() && mouseY < top() + rows * ROW + 4;
 	}
 
 	private static boolean in(double mouseX, double mouseY, int x, int y, int w, int h) {
@@ -153,7 +176,7 @@ public final class BattleScreenButtons {
 	private static boolean click(Screen screen, double mouseX, double mouseY) {
 		int x = x(screen);
 		if (listOpen && inList(screen, mouseX, mouseY)) {
-			int index = listScroll + (int) ((mouseY - TOP - 2) / ROW);
+			int index = listScroll + (int) ((mouseY - top() - 2) / ROW);
 			List<ResourceLocation> tracks = tracks();
 			if (index >= 0 && index < tracks.size()) {
 				BattleMusic.choose(tracks.get(index));
@@ -162,14 +185,14 @@ public final class BattleScreenButtons {
 			}
 			return true;
 		}
-		if (in(mouseX, mouseY, x + titleW() + GAP, TOP, NEXT_W, H)) {
+		if (in(mouseX, mouseY, x + titleW() + GAP, top(), NEXT_W, H)) {
 			if (BattleMusic.skippable()) {
 				BattleMusic.skip();
 			}
 			sound();
 			return true;
 		}
-		if (in(mouseX, mouseY, x, TOP, titleW(), H)) {
+		if (in(mouseX, mouseY, x, top(), titleW(), H)) {
 			listOpen = !listOpen && !tracks().isEmpty();
 			listScroll = 0;
 			sound();
@@ -227,18 +250,18 @@ public final class BattleScreenButtons {
 		List<BattleButton> shown = shown();
 		// One card behind everything.
 		int bottom = buttonY(shown.size()) - GAP;
-		g.fill(x - PAD, TOP - PAD, x + W + PAD, bottom + PAD, style.card());
-		outline(g, x - PAD, TOP - PAD, W + PAD * 2, bottom - TOP + PAD * 2, style.edge());
+		g.fill(x - PAD, top() - PAD, x + W + PAD, bottom + PAD, style.card());
+		outline(g, x - PAD, top() - PAD, W + PAD * 2, bottom - top() + PAD * 2, style.edge());
 
 		// The player: title (opens the list) and next, then − volume +.
 		ResourceLocation current = BattleMusic.current();
 		String title = current == null ? Component.translatable("cobblemon_battle_showtime.player.none").getString()
 				: "♪ " + BattleMusic.title(current);
 		boolean hasList = !tracks().isEmpty();
-		button(g, font, x, TOP, titleW(), H, in(mouseX, mouseY, x, TOP, titleW(), H) && hasList, title + (hasList ? (listOpen ? " ▲" : " ▼") : ""),
+		button(g, font, x, top(), titleW(), H, in(mouseX, mouseY, x, top(), titleW(), H) && hasList, title + (hasList ? (listOpen ? " ▲" : " ▼") : ""),
 				current == null ? BattleButton.DIM : BattleButton.CYAN);
 		int nextX = x + titleW() + GAP;
-		button(g, font, nextX, TOP, NEXT_W, H, in(mouseX, mouseY, nextX, TOP, NEXT_W, H) && BattleMusic.skippable(),
+		button(g, font, nextX, top(), NEXT_W, H, in(mouseX, mouseY, nextX, top(), NEXT_W, H) && BattleMusic.skippable(),
 				"⏭", BattleMusic.skippable() ? BattleButton.CYAN : BattleButton.DIM);
 		int cy = controlsY();
 		int barX = x + SMALL + GAP;
@@ -271,11 +294,11 @@ public final class BattleScreenButtons {
 			} else {
 				int lx = listX(screen);
 				int rows = Math.min(LIST_ROWS, tracks.size());
-				g.fillGradient(lx, TOP, lx + LIST_W, TOP + rows * ROW + 4, style.top(), style.bottom());
-				outline(g, lx, TOP, LIST_W, rows * ROW + 4, style.edge());
+				g.fillGradient(lx, top(), lx + LIST_W, top() + rows * ROW + 4, style.top(), style.bottom());
+				outline(g, lx, top(), LIST_W, rows * ROW + 4, style.edge());
 				for (int i = 0; i < rows; i++) {
 					ResourceLocation file = tracks.get(listScroll + i);
-					int ry = TOP + 2 + i * ROW;
+					int ry = top() + 2 + i * ROW;
 					boolean hovered = in(mouseX, mouseY, lx, ry, LIST_W, ROW);
 					if (hovered) {
 						g.fill(lx + 1, ry, lx + LIST_W - 1, ry + ROW, style.hoverTop());
@@ -286,7 +309,7 @@ public final class BattleScreenButtons {
 				}
 				if (tracks.size() > LIST_ROWS) {
 					int barH = Math.max(8, rows * ROW * LIST_ROWS / tracks.size());
-					int barY = TOP + 2 + (rows * ROW - barH) * listScroll / Math.max(1, tracks.size() - LIST_ROWS);
+					int barY = top() + 2 + (rows * ROW - barH) * listScroll / Math.max(1, tracks.size() - LIST_ROWS);
 					g.fill(lx + LIST_W - 3, barY, lx + LIST_W - 1, barY + barH, style.cyan());
 				}
 			}

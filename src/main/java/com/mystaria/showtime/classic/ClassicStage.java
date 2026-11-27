@@ -57,6 +57,24 @@ final class ClassicStage implements BattleStage {
 	}
 
 	@Override
+	public java.util.List<Entity> activePokemons(boolean local) {
+		ClientBattleSide side = side(local);
+		java.util.List<Entity> entities = new java.util.ArrayList<>();
+		if (side == null) {
+			return entities;
+		}
+		for (ClientBattleActor actor : side.getActors()) {
+			for (ActiveClientBattlePokemon active : actor.getActivePokemon()) {
+				PokemonEntity entity = entityOf(active.getBattlePokemon());
+				if (entity != null) {
+					entities.add(entity);
+				}
+			}
+		}
+		return entities;
+	}
+
+	@Override
 	public Vec3 trainerPosition(boolean local) {
 		ClientBattleSide side = side(local);
 		ClientLevel level = Minecraft.getInstance().level;

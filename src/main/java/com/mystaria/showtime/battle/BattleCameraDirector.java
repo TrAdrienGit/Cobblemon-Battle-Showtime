@@ -503,8 +503,9 @@ public final class BattleCameraDirector {
 		}
 		Entity localMon = stage.activePokemon(true);
 		Entity opponentMon = stage.activePokemon(false);
-		Vec3 local = localMon != null ? localMon.getPosition(partialTick) : stage.trainerPosition(true);
-		Vec3 opponent = opponentMon != null ? opponentMon.getPosition(partialTick) : stage.trainerPosition(false);
+		// The middle of each side's active Pokémon: both of them in doubles.
+		Vec3 local = stage.sidePosition(true, partialTick);
+		Vec3 opponent = stage.sidePosition(false, partialTick);
 		if (local == null || opponent == null) {
 			return null;
 		}

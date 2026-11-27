@@ -59,6 +59,9 @@ the local player may choose, `Ambiances.reservedIds()` and `BattleCinematic.rese
 ## `BattleStage`
 
 What the camera needs: `pokemonAt(pnx)` (the entity for `p1a`, `p2a`…), `activePokemon(local)`, `trainerPosition(local)`.
+Optional (default methods, 2026-11-27): `activePokemons(local)` lists every active Pokémon of a side (two in doubles)
+and `sidePosition(local, partialTick)` gives their middle; the cameras frame that middle, so a doubles stage only
+needs to override `activePokemons`.
 Give it when your battle starts.
 
 ## `BattleButton`
