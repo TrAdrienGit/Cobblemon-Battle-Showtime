@@ -68,7 +68,7 @@ import com.mystaria.showtime.move.MoveSpecs;
 public final class MoveCapture implements ClientModInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger("showtime_capture");
-	private static final String WORLD = "showtime-capture";
+	static final String WORLD = "showtime-capture";
 	/** Marks the two Pokémon of the stage: any other one wandering in is removed before each move. */
 	private static final String TAG = "showtime_capture";
 	/** Ticks after the pose when the impact cue is given (Cobblemon's usually lands around there). */
@@ -101,7 +101,23 @@ public final class MoveCapture implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+		if (!"scenes".equals(readSettings().getProperty("mode"))) { // scenes: SceneCapture's run
+			ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+		}
+	}
+
+	/** {@code run-capture/capture.properties}, empty if missing. */
+	static Properties readSettings() {
+		Properties read = new Properties();
+		Path file = FabricLoader.getInstance().getGameDir().resolve("capture.properties");
+		if (Files.exists(file)) {
+			try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+				read.load(reader);
+			} catch (IOException e) {
+				LOG.error("Unreadable capture.properties", e);
+			}
+		}
+		return read;
 	}
 
 	private void tick(Minecraft mc) {
@@ -196,13 +212,7 @@ public final class MoveCapture implements ClientModInitializer {
 
 	private void loadSettings() throws IOException {
 		Path dir = FabricLoader.getInstance().getGameDir();
-		settings = new Properties();
-		Path file = dir.resolve("capture.properties");
-		if (Files.exists(file)) {
-			try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-				settings.load(reader);
-			}
-		}
+		settings = readSettings();
 		String list = settings.getProperty("moves", "flamethrower").trim();
 		if (list.equalsIgnoreCase("all")) {
 			moves.addAll(new java.util.TreeSet<>(MoveSpecs.ids()));
@@ -218,7 +228,7 @@ public final class MoveCapture implements ClientModInitializer {
 		LOG.info("Move capture: {} moves into {}", moves.size(), out);
 	}
 
-	private void createWorld(Minecraft mc) {
+	static void createWorld(Minecraft mc) {
 		GameRules rules = new GameRules();
 		rules.getRule(GameRules.RULE_DAYLIGHT).set(false, null);
 		rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, null);
@@ -272,7 +282,7 @@ public final class MoveCapture implements ClientModInitializer {
 		userId = user.getId();
 	}
 
-	private static PokemonEntity spawn(ServerLevel level, String properties, double x, double y, double z, float yaw) {
+	static PokemonEntity spawn(ServerLevel level, String properties, double x, double y, double z, float yaw) {
 		PokemonEntity entity = PokemonProperties.Companion.parse(properties).createEntity(level);
 		entity.moveTo(x, y, z, yaw, 0f);
 		entity.setYHeadRot(yaw);

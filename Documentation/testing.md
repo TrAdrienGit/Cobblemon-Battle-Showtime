@@ -25,6 +25,18 @@ There are no automated tests: the mod is visual and depends on real server packe
 Replaying a battle in Cobblemon's own Showdown engine (Node) helps when a damage or message question comes up, without
 a game client.
 
+## Picturing battle scenes without playing (scene capture)
+
+`python tools/scene_capture.py` (`--kinds preset,stadium,ambiance`, `--only id1,id2`, `--extra scenes.tsv`) takes a
+picture of every battle scene, for the choice cards of a battle lobby (2026-11-28). Same dev game and flat world as the
+move capture (`mode=scenes` in `capture.properties`, `SceneCapture` in `src/capture`): two Pokémon face to face, each
+scene built whole around the stage's middle as a battle builds it (Showtime's own start, by reflection; the camera
+goes back to its spot once it is built), a screenshot without the HUD after `--settle` ticks (80), then the next one.
+`--view distant` shows it as a battle seen from afar instead (`BattleAmbiance.startDistant`: only the field dressed). A preset brings its own stadium, a stadium is shown alone, an ambiance
+alone over the flat world. `--extra` adds another mod's scenes (`kind<TAB>id<TAB><ambiance>|<stadium>` lines, League
+Reborn fields for Phantasmon). Output: `run-capture/scenes/<kind>/<ns>/<name>.png` (960x540), and
+`run-capture/capture-done.txt` (one line per scene, "nothing shown" when it resolved to nothing).
+
 ## Filming moves without playing (move capture)
 
 `python tools/move_capture.py flamethrower thunderbolt` (or `--file list.txt`, or `--all` for every redrawn move)

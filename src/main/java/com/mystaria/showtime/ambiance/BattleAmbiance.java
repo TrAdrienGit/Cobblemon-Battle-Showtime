@@ -7050,15 +7050,15 @@ for (int fx = -1; fx <= 1; fx++) {
 			return;
 		}
 		double ground = groundAt(0, 0);
-		if (distant) {
-			// Seen from around a battle: no vault nor walls of its own, the props go on the real blocks (below).
-		} else if (ambiance.cavern != null) {
+		// Seen from around a battle: no vault nor walls of its own, the props go on the real blocks (the last branch).
+		// It used to stop at an empty branch, leaving no anchors: a crash on the first prop (2026-11-28).
+		if (!distant && ambiance.cavern != null) {
 			anchors = vaultAnchors(ambiance.cavern);
-		} else if (ambiance.sea != null) {
+		} else if (!distant && ambiance.sea != null) {
 			anchors = seaAnchors(ambiance.sea);
-		} else if (ambiance.land != null || ambiance.hall != null) {
+		} else if (!distant && (ambiance.land != null || ambiance.hall != null)) {
 			anchors = placeAnchors(ambiance);
-		} else if (ambiance.hideWorld) {
+		} else if (!distant && ambiance.hideWorld) {
 			// The world hidden by a stadium without surfaces of its own: only its ground (people stand on it) and the air.
 			anchors = new Anchors();
 			for (int i = 0; i < 160; i++) {
